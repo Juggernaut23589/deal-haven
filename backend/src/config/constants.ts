@@ -1,0 +1,111 @@
+// Deal Haven — Application Constants
+
+export const AUTH = {
+  ACCESS_TOKEN_EXPIRY: '15m',
+  REFRESH_TOKEN_EXPIRY: '7d',
+  REFRESH_TOKEN_EXPIRY_MS: 7 * 24 * 60 * 60 * 1000,
+  BCRYPT_ROUNDS: 12,
+  PASSWORD_MIN_LENGTH: 8,
+  PASSWORD_MAX_LENGTH: 128,
+  EMAIL_VERIFY_EXPIRY: '24h',
+  PASSWORD_RESET_EXPIRY: '1h',
+  MAX_LOGIN_ATTEMPTS: 10,
+  LOCKOUT_DURATION_MS: 15 * 60 * 1000, // 15 minutes
+} as const;
+
+export const LISTING = {
+  MAX_IMAGES: 20,
+  EXPIRY_DAYS: 30,
+  MAX_TITLE_LENGTH: 80,
+  MAX_DESCRIPTION_LENGTH: 5000,
+  NEW_SELLER_WEEKLY_LIMIT: 5,
+  DUPLICATE_SIMILARITY_THRESHOLD: 0.8,
+} as const;
+
+export const OFFER = {
+  EXPIRY_HOURS: 48,
+  COUNTER_EXPIRY_HOURS: 24,
+  MAX_ACTIVE_PER_LISTING: 3,
+  PAYMENT_TIMEOUT_HOURS: 2,
+} as const;
+
+export const AUCTION = {
+  MIN_BID_INCREMENT_PERCENT: 0.05,
+  MIN_BID_INCREMENT_ABSOLUTE: 1,
+  ANTI_SNIPE_WINDOW_MINUTES: 2,
+  ANTI_SNIPE_EXTEND_MINUTES: 2,
+  WINNER_PAYMENT_HOURS: 24,
+} as const;
+
+export const ORDER = {
+  ESCROW_AUTO_RELEASE_DAYS: 14,
+  DISPUTE_WINDOW_DAYS: 30,
+} as const;
+
+export const REVIEW = {
+  WINDOW_DAYS: 60,
+  EDIT_LOCK_HOURS: 48,
+  MAX_CONTENT_LENGTH: 1000,
+  SELLER_RESPONSE_MAX_LENGTH: 1000,
+} as const;
+
+export const DISPUTE = {
+  EVIDENCE_WINDOW_HOURS: 72,
+  RESOLUTION_BUSINESS_DAYS: 7,
+} as const;
+
+export const PLATFORM_FEE = {
+  TIER_1_MAX: 500,
+  TIER_1_RATE: 0.05,
+  TIER_2_MAX: 5000,
+  TIER_2_RATE: 0.03,
+  TIER_3_RATE: 0.02,
+} as const;
+
+export const PAGINATION = {
+  DEFAULT_PAGE_SIZE: 20,
+  MAX_PAGE_SIZE: 100,
+} as const;
+
+export const CACHE_TTL = {
+  CATEGORIES: 60 * 60, // 1 hour
+  POPULAR_LISTINGS: 5 * 60, // 5 minutes
+  SELLER_PROFILE: 10 * 60, // 10 minutes
+  SEARCH_RESULTS: 2 * 60, // 2 minutes
+  USER_SESSION: 24 * 60 * 60, // 24 hours
+} as const;
+
+export const FILE_UPLOAD = {
+  MAX_IMAGE_SIZE_MB: 10,
+  MAX_IMAGE_SIZE_BYTES: 10 * 1024 * 1024,
+  ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+  MAX_DOCUMENT_SIZE_MB: 20,
+  MAX_DOCUMENT_SIZE_BYTES: 20 * 1024 * 1024,
+  THUMBNAIL_WIDTH: 300,
+  THUMBNAIL_HEIGHT: 300,
+  MAX_WIDTH: 1920,
+  MAX_HEIGHT: 1920,
+} as const;
+
+export const RATE_LIMIT = {
+  AUTH_MAX: 10,
+  AUTH_WINDOW_MS: 15 * 60 * 1000,
+  API_MAX: 100,
+  API_WINDOW_MS: 60 * 1000,
+  UPLOAD_MAX: 20,
+  UPLOAD_WINDOW_MS: 60 * 1000,
+  SEARCH_MAX: 60,
+  SEARCH_WINDOW_MS: 60 * 1000,
+} as const;
+
+export const QUEUE_NAMES = {
+  EMAIL: 'email',
+  IMAGE_PROCESSING: 'image-processing',
+  NOTIFICATIONS: 'notifications',
+  AUCTION_EXPIRY: 'auction-expiry',
+  OFFER_EXPIRY: 'offer-expiry',
+  LISTING_EXPIRY: 'listing-expiry',
+  ESCROW_RELEASE: 'escrow-release',
+  DEAL_SCORE: 'deal-score',
+  SAVED_SEARCH_ALERTS: 'saved-search-alerts',
+} as const;

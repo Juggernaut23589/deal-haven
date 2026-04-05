@@ -1,0 +1,59 @@
+# dependencies
+node_modules/
+*/node_modules/
+
+# env files
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# builds
+dist/
+.next/
+out/
+build/
+
+# prisma
+backend/prisma/generated/
+backend/prisma/*.db
+backend/prisma/*.db-journal
+
+# uploads
+backend/uploads/
+frontend/public/uploads/
+
+# logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# testing / coverage
+coverage/
+.nyc_output/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# IDE / editors
+.vscode/
+.idea/
+.cursor/
+*.swp
+*.swo
+*~
+
+# misc
+.turbo/
+.cache/
+.pnpm-store/

@@ -1,0 +1,664 @@
+================================================================================
+  DEAL HAVEN — COMPLETE DEPLOYMENT & RUN GUIDE
+  (Backend Engineer + DevOps Reference)
+================================================================================
+
+  Stack Summary:
+  ┌─────────────────┬────────────────────────────────────────────────────────┐
+  │  Layer          │  Technology                                            │
+  ├─────────────────┼────────────────────────────────────────────────────────┤
+  │ API Server      │ Fastify 4 (TypeScript, compiled to CommonJS dist/)     │
+  │ ORM             │ Prisma 5 + PostgreSQL 16                               │
+  │ Cache / Queue   │ Redis (ioredis) + BullMQ                               │
+  │ Real-time       │ Socket.io 4                                            │
+  │ Frontend        │ Next.js 14 (App Router, TypeScript)                    │
+  │ Process Mgr     │ PM2 (production) / tsx watch (local dev)               │
+  └─────────────────┴────────────────────────────────────────────────────────┘
+
+  Ports:
+    Backend API  →  4000   (Fastify)
+    Frontend     →  3000   (Next.js)
+
+================================================================================
+  SECTION A — LOCAL DEVELOPMENT (your Mac)
+================================================================================
+
+  Prerequisites
+  -------------
+  - Node.js v22 LTS  (check: node --version)
+  - npm 10+          (check: npm --version)
+  - PostgreSQL 16    (local install OR use Supabase — see dev-setup.txt)
+  - Redis 7+         (local install OR use Upstash — see dev-setup.txt)
+  - Git
+
+  Install Node.js v22 on Mac (if not already installed):
+    brew install node@22
+    # or use nvm:
+    nvm install 22 && nvm use 22
+
+  Install PostgreSQL locally (optional — skip if using Supabase):
+    brew install postgresql@16
+    brew services start postgresql@16
+    createdb deal_haven_dev
+
+  Install Redis locally (optional — skip if using Upstash):
+    brew install redis
+    brew services start redis
+
+
+  --- A1. Clone / Enter the project ---
+
+    cd /Users/olumidearowolo/Desktop/web-projects/deal-haven
+
+
+  --- A2. Configure backend environment ---
+
+    cd backend
+    cp ../.env.example .env
+    open .env   # or: nano .env
+
+  Minimum required values for LOCAL dev (edit these):
+
+    NODE_ENV=development
+    PORT=4000
+    HOST=0.0.0.0
+    API_URL=http://localhost:4000
+    FRONTEND_URL=http://localhost:3000
+    ALLOWED_ORIGINS=http://localhost:3000
+
+    # Local PostgreSQL:
+    DATABASE_URL="postgresql://postgres:YOUR_PG_PASSWORD@localhost:5432/deal_haven_dev"
+    # -OR- Supabase URL (from dev-setup.txt Step 1):
+    # DATABASE_URL="postgresql://postgres:PASSWORD@db.XXXX.supabase.co:5432/postgres"
+
+    # Local Redis:
+    REDIS_HOST=localhost
+    REDIS_PORT=6379
+    REDIS_PASSWORD=
+    # -OR- Upstash (IMPORTANT — see TLS note below):
+    # REDIS_HOST=unique-name.upstash.io
+    # REDIS_PORT=6380
+    # REDIS_PASSWORD=your-upstash-password
+
+    # Generate each secret with:  openssl rand -base64 64
+    JWT_SECRET=<generated>
+    JWT_REFRESH_SECRET=<generated>
+    COOKIE_SECRET=<generated>
+    ACCESS_TOKEN_EXPIRY=15m
+    REFRESH_TOKEN_EXPIRY=7d
+
+    # Stripe — use test keys from https://dashboard.stripe.com/apikeys
+    STRIPE_SECRET_KEY=sk_test_...
+    STRIPE_PUBLISHABLE_KEY=pk_test_...
+    STRIPE_WEBHOOK_SECRET=whsec_...
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+
+    # Email — use Ethereal (free fake SMTP) for dev:
+    #  1. Go to https://ethereal.email  → click "Create Ethereal Account"
+    #  2. Copy the generated SMTP credentials into these fields:
+    SMTP_HOST=smtp.ethereal.email
+    SMTP_PORT=587
+    SMTP_SECURE=false
+    SMTP_USER=<ethereal user>
+    SMTP_PASS=<ethereal pass>
+    EMAIL_FROM="Deal Haven <noreply@dealhaven.com>"
+
+    # Leave Stripe/Google/Mapbox blank if not testing those features
+    UPLOAD_DIR=uploads
+    LOG_LEVEL=info
+
+
+  !!! CRITICAL — UPSTASH TLS FIX !!!
+  ------------------------------------
+  The ioredis client in backend/src/config/redis.ts uses plain TCP by default.
+  Upstash REQUIRES TLS on port 6380. If you use Upstash you MUST add a `tls`
+  option to the Redis constructor in that file, otherwise connections will hang
+  and the server will fail to start. Add this to the ioredis options object:
+
+    tls: { rejectUnauthorized: false }
+
+  If you use local Redis (port 6379), TLS is NOT needed — leave it as-is.
+
+
+  --- A3. Install backend dependencies ---
+
+    cd /path/to/deal-haven/backend
+    npm install
+
+  NOTE: The `sharp` package (image processing) builds a native binary.
+  On Apple Silicon (M1/M2/M3) this works fine. On the Oracle ARM VM it also
+  works fine — but the binary is architecture-specific and is NOT portable
+  across x86 ↔ ARM. Never copy node_modules between machines; always run
+  `npm install` on each machine fresh.
+
+
+  --- A4. Generate Prisma client & run migrations ---
+
+    # Generate the Prisma TypeScript client (MUST run after any schema change):
+    npx prisma generate
+
+    # Apply all pending migrations to the database:
+    npx prisma migrate deploy
+
+    # Seed the database with demo data (100+ listings, 20+ users, etc.):
+    npm run db:seed
+
+  NOTE: If this is a first-time setup and there are no existing migration files,
+  use the dev migration command instead:
+    npx prisma migrate dev --name init
+
+
+  --- A5. Start backend in dev mode ---
+
+    npm run dev
+    # Uses: tsx watch src/index.ts
+    # Hot-reloads on file change. Logs to stdout via pino-pretty.
+    # Server starts on: http://localhost:4000
+    # Health check:     http://localhost:4000/health
+    # Swagger UI:       http://localhost:4000/documentation
+
+
+  --- A6. Configure frontend environment ---
+
+    cd /path/to/deal-haven/frontend
+    # Create .env.local (Next.js reads this automatically):
+    cat > .env.local << 'EOF'
+    NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1
+    NEXT_PUBLIC_SOCKET_URL=http://localhost:4000
+    NEXT_PUBLIC_APP_URL=http://localhost:3000
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+    EOF
+
+
+  --- A7. Install frontend dependencies ---
+
+    cd /path/to/deal-haven/frontend
+    npm install
+
+
+  --- A8. Start frontend in dev mode ---
+
+    npm run dev
+    # Uses: next dev
+    # Hot-reloads on file change.
+    # App available at: http://localhost:3000
+
+
+  --- A9. Verify the stack is working ---
+
+  Open in browser:
+    http://localhost:3000          → Homepage (Next.js)
+    http://localhost:4000/health   → {"status":"ok"} (Fastify health check)
+
+  Demo login credentials (password for all: Password123!):
+    admin@dealhaven.com      → Admin
+    techseller@example.com   → Seller
+    carseller@example.com    → Seller
+    buyer1@example.com       → Buyer
+
+
+================================================================================
+  SECTION B — PRODUCTION DEPLOYMENT (Oracle Cloud VM)
+================================================================================
+
+  Refer to dev-setup.txt for:
+    - Provisioning Supabase (PostgreSQL)
+    - Provisioning Upstash (Redis)
+    - Creating the Oracle Cloud free VM
+    - Opening ports 3000 and 4000 at the VCN and iptables level
+    - Connecting via SSH
+
+  This section assumes:
+    - You are SSH'd into the Oracle VM
+    - Node.js 22, Git, and PM2 are already installed (see dev-setup.txt Step 4)
+    - Your Oracle VM public IP is: YOUR_ORACLE_IP
+
+
+  --- B1. Transfer or clone the project ---
+
+  Option A — SCP from your Mac (if not on GitHub):
+    # Run on your LOCAL Mac:
+    scp -i ~/Downloads/ssh-key.key -r \
+      /Users/olumidearowolo/Desktop/web-projects/deal-haven \
+      ubuntu@YOUR_ORACLE_IP:~/deal-haven
+
+  Option B — Clone from GitHub (if pushed):
+    git clone https://github.com/YOUR_USERNAME/deal-haven.git ~/deal-haven
+
+
+  --- B2. Configure backend .env on the server ---
+
+    cd ~/deal-haven/backend
+    cp ../.env.example .env
+    nano .env
+
+  Update these values (everything else can stay at defaults):
+
+    NODE_ENV=production
+    PORT=4000
+    HOST=0.0.0.0
+    API_URL=http://YOUR_ORACLE_IP:4000
+    FRONTEND_URL=http://YOUR_ORACLE_IP:3000
+    ALLOWED_ORIGINS=http://YOUR_ORACLE_IP:3000
+
+    DATABASE_URL="postgresql://postgres:PASSWORD@db.XXXX.supabase.co:5432/postgres"
+
+    # Upstash TLS — use port 6380:
+    REDIS_HOST=unique-name.upstash.io
+    REDIS_PORT=6380
+    REDIS_PASSWORD=your-upstash-password
+    # ALSO apply the TLS fix in redis.ts (see Section A, CRITICAL note above)
+
+    JWT_SECRET=<run: openssl rand -base64 64>
+    JWT_REFRESH_SECRET=<run: openssl rand -base64 64>
+    COOKIE_SECRET=<run: openssl rand -base64 64>
+
+    LOG_LEVEL=info
+    UPLOAD_DIR=uploads
+
+
+  --- B3. Install backend dependencies ---
+
+    cd ~/deal-haven/backend
+    npm install --omit=dev
+
+  NOTE: --omit=dev skips test/lint packages to keep the install lean.
+  If you need to compile TypeScript (for `npm run start`), devDependencies
+  ARE required. Use plain `npm install` in that case (see B4 below).
+
+
+  --- B4. Build the backend for production ---
+
+  The `npm run start` script runs `node dist/index.js` — it requires a
+  compiled build. Run:
+
+    cd ~/deal-haven/backend
+    npm install           # needs devDependencies (tsc, tsx) to compile
+    npm run build         # tsc → compiles src/ → dist/
+    # Verify:
+    ls dist/index.js      # must exist before starting with PM2
+
+
+  --- B5. Run Prisma migrations and seed ---
+
+    cd ~/deal-haven/backend
+    npx prisma generate
+    npx prisma migrate deploy
+    npm run db:seed
+
+
+  --- B6. Configure frontend .env on the server ---
+
+    cd ~/deal-haven/frontend
+    nano .env.local
+
+  Add:
+    NEXT_PUBLIC_API_URL=http://YOUR_ORACLE_IP:4000/api/v1
+    NEXT_PUBLIC_SOCKET_URL=http://YOUR_ORACLE_IP:4000
+    NEXT_PUBLIC_APP_URL=http://YOUR_ORACLE_IP:3000
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+
+
+  --- B7. Install and build the frontend ---
+
+    cd ~/deal-haven/frontend
+    npm install
+    npm run build
+    # Next.js produces an optimized production build in .next/
+
+  IMPORTANT: npm run build reads .env.local at BUILD TIME for all
+  NEXT_PUBLIC_ variables. If you change any NEXT_PUBLIC_ env var later,
+  you must run `npm run build` again — a process restart is not enough.
+
+
+  --- B8. Start both services with PM2 ---
+
+  Backend (compiled production build — NOT dev mode):
+    cd ~/deal-haven/backend
+    pm2 start npm --name "deal-haven-api" -- run start
+    # This runs: node dist/index.js
+
+  Frontend (Next.js production server):
+    cd ~/deal-haven/frontend
+    pm2 start npm --name "deal-haven-web" -- run start
+    # This runs: next start (serves the .next/ build)
+
+  Save PM2 process list and enable auto-start on reboot:
+    pm2 save
+    pm2 startup
+    # Copy-paste and run the command it outputs (starts with: sudo env PATH=...)
+    pm2 save   # run again after the startup command
+
+
+  --- B9. Verify production is running ---
+
+    pm2 status
+    # Both processes should show: online  ✓
+
+  Check backend:
+    curl http://localhost:4000/health
+    # Expected: {"status":"ok","timestamp":"..."}
+
+  Check logs for errors:
+    pm2 logs deal-haven-api --lines 50
+    pm2 logs deal-haven-web --lines 50
+
+  Open in browser:
+    http://YOUR_ORACLE_IP:3000    → Deal Haven frontend
+    http://YOUR_ORACLE_IP:4000    → Fastify API root
+
+
+================================================================================
+  SECTION C — BUILD COMMANDS REFERENCE
+================================================================================
+
+  BACKEND
+  -------
+  Command                   What it does
+  ───────────────────────── ────────────────────────────────────────────────
+  npm run dev               Start API with tsx watch (hot-reload, dev only)
+  npm run build             Compile TypeScript → dist/ (required for prod)
+  npm run start             Run compiled dist/index.js (production)
+  npx prisma generate       Regenerate Prisma client after schema changes
+  npx prisma migrate dev    Create + apply a new migration (dev only)
+  npx prisma migrate deploy Apply all pending migrations (production safe)
+  npx prisma migrate reset  DANGEROUS — wipe DB and reapply all migrations
+  npm run db:seed           Seed demo data (runs prisma/seed.ts via tsx)
+  npm run db:studio         Open Prisma Studio (visual DB browser on :5555)
+  npm run typecheck         Run tsc --noEmit to check types without building
+  npm run test              Run Jest test suite
+  npm run lint              Run ESLint on src/
+
+  FRONTEND
+  --------
+  Command                   What it does
+  ───────────────────────── ────────────────────────────────────────────────
+  npm run dev               Start Next.js dev server with hot-reload (:3000)
+  npm run build             Build optimized production bundle → .next/
+  npm run start             Serve production build (requires build first)
+  npm run typecheck         Run tsc --noEmit to check types
+  npm run lint              Run Next.js ESLint
+  npm run test              Run Jest + React Testing Library tests
+
+
+================================================================================
+  SECTION D — PM2 OPERATIONS REFERENCE
+================================================================================
+
+  View running processes:
+    pm2 status
+
+  View live logs (all processes):
+    pm2 logs
+
+  View logs for specific process:
+    pm2 logs deal-haven-api
+    pm2 logs deal-haven-web
+
+  Tail last N lines then stream live:
+    pm2 logs deal-haven-api --lines 100
+
+  Restart a process (picks up code changes if using dist/):
+    pm2 restart deal-haven-api
+    pm2 restart deal-haven-web
+    pm2 restart all
+
+  Stop all processes:
+    pm2 stop all
+
+  Delete a process from PM2 list:
+    pm2 delete deal-haven-api
+
+  Monitor CPU/RAM in real time:
+    pm2 monit
+
+  Full redeploy after a code update:
+    cd ~/deal-haven
+    git pull
+    # Backend:
+    cd backend
+    npm install
+    npm run build
+    npx prisma migrate deploy
+    pm2 restart deal-haven-api
+    # Frontend:
+    cd ../frontend
+    npm install
+    npm run build
+    pm2 restart deal-haven-web
+
+
+================================================================================
+  SECTION E — KNOWN ISSUES & FIXES
+================================================================================
+
+  ISSUE 1 — Upstash Redis / TLS connection hang
+  -----------------------------------------------
+  Symptom:  Server starts then hangs or Redis shows "ECONNREFUSED" or times out
+            after several retries on port 6380.
+  Root cause: backend/src/config/redis.ts creates an ioredis client without TLS
+              options. Upstash mandates TLS on port 6380.
+  Fix:      In backend/src/config/redis.ts, add `tls: {}` to the Redis options:
+
+    redisClient = new Redis({
+      host: process.env.REDIS_HOST ?? 'localhost',
+      port: parseInt(process.env.REDIS_PORT ?? '6379', 10),
+      password: process.env.REDIS_PASSWORD,
+      db: parseInt(process.env.REDIS_DB ?? '0', 10),
+      tls: process.env.REDIS_PORT === '6380' ? { rejectUnauthorized: false } : undefined,
+      // ... rest of options
+    });
+
+  ISSUE 2 — PM2 using `npm run dev` in production
+  -------------------------------------------------
+  Symptom:  dev-setup.txt Step 6A says:
+              pm2 start npm --name "deal-haven-api" -- run dev
+            This starts tsx watch which is a dev-only tool. It works but is
+            wasteful (tsx compiles on each change) and not suitable for prod.
+  Fix:      Always use the compiled production build for PM2 in production:
+              npm run build                 # compile first
+              pm2 start npm --name "deal-haven-api" -- run start
+            The `start` script runs `node dist/index.js` — no compilation at
+            runtime, much faster and more stable.
+
+  ISSUE 3 — `sharp` native binary on ARM (Oracle Ampere A1)
+  -----------------------------------------------------------
+  Symptom:  `npm install` completes but the server crashes on image upload with
+            "Error: Could not load the "sharp" module using the linux-arm64 runtime"
+  Fix:      On the Oracle ARM VM, run:
+              npm uninstall sharp
+              npm install --cpu=wasm32 sharp
+            Or use the generic ARM-compatible build:
+              npm install --ignore-scripts=false sharp
+            Then re-run: npm run build && pm2 restart deal-haven-api
+
+  ISSUE 4 — Supabase paused database
+  ------------------------------------
+  Symptom:  Backend starts but all DB operations fail with "connection refused"
+            or "ECONNREFUSED" against db.XXXX.supabase.co.
+  Fix:      Log into https://supabase.com → select your project → click
+            "Restore project". Wait ~60 seconds, then:
+              pm2 restart deal-haven-api
+
+  ISSUE 5 — Frontend build fails with missing env vars
+  -----------------------------------------------------
+  Symptom:  `npm run build` outputs warnings about undefined NEXT_PUBLIC_ vars
+            or the built app cannot reach the API.
+  Fix:      Ensure ~/deal-haven/frontend/.env.local exists with all 3 vars:
+              NEXT_PUBLIC_API_URL=http://YOUR_ORACLE_IP:4000/api/v1
+              NEXT_PUBLIC_SOCKET_URL=http://YOUR_ORACLE_IP:4000
+              NEXT_PUBLIC_APP_URL=http://YOUR_ORACLE_IP:3000
+            Then re-run: npm run build && pm2 restart deal-haven-web
+
+  ISSUE 6 — Port 3000 / 4000 not reachable from browser
+  -------------------------------------------------------
+  Oracle Cloud has TWO independent firewall layers — BOTH must allow the port:
+    Layer 1 — VCN Security List (Oracle console):
+              Hamburger → Networking → Virtual Cloud Networks → your VCN
+              → Security Lists → Add Ingress Rule for TCP 3000 and 4000
+    Layer 2 — Ubuntu iptables (inside the VM):
+              sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 3000 -j ACCEPT
+              sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 4000 -j ACCEPT
+              sudo netfilter-persistent save
+  Verify which rules are active:
+    sudo iptables -L INPUT -n --line-numbers
+
+  ISSUE 7 — BullMQ / background jobs fail to start
+  --------------------------------------------------
+  Symptom:  Server starts but logs show BullMQ errors about missing Redis
+            connection or "maxRetriesPerRequest must be null for blocking commands".
+  Fix:      BullMQ requires a SEPARATE ioredis connection with
+            `maxRetriesPerRequest: null`. This is distinct from the cache client.
+            In backend/src/jobs/notification.job.ts, ensure the Queue and Worker
+            are created with a connection config of `maxRetriesPerRequest: null`.
+
+  ISSUE 8 — Prisma migration fails: "Table already exists"
+  ---------------------------------------------------------
+  Symptom:  `npx prisma migrate deploy` fails with PG error about duplicate
+            table or constraint already existing.
+  Fix:      The database already has some schema applied (e.g. from an earlier
+            db:push). To resolve cleanly for dev:
+              npx prisma migrate reset --force    # WIPES DATA — dev only
+              npm run db:seed
+            For production: manually baseline the existing schema:
+              npx prisma migrate resolve --applied "migration_name"
+
+  ISSUE 9 — TypeScript build errors on noUnusedLocals / noUnusedParameters
+  --------------------------------------------------------------------------
+  Symptom:  `npm run build` fails with TS errors about unused variables.
+  Fix:      The tsconfig.json has strict unused-variable checks enabled. Before
+            building for production, run:
+              npm run typecheck
+            Fix all reported errors. Do NOT disable strict mode.
+
+  ISSUE 10 — Seed script fails with "P2002 Unique constraint failed"
+  ------------------------------------------------------------------
+  Symptom:  `npm run db:seed` errors because demo users/listings already exist.
+  Fix:      The seed script should be idempotent (using upsert). If it is not,
+            clear the database first:
+              npx prisma migrate reset --force    # dev only — wipes all data
+              npm run db:seed
+
+
+================================================================================
+  SECTION F — ENVIRONMENT VARIABLES COMPLETE REFERENCE
+================================================================================
+
+  File location: backend/.env  (server-side, never expose to browser)
+
+  Variable                      Required  Description
+  ────────────────────────────  ────────  ──────────────────────────────────────
+  NODE_ENV                      yes       development | production | test
+  PORT                          yes       API server port (default: 4000)
+  HOST                          yes       Bind address (0.0.0.0 for all interfaces)
+  API_URL                       yes       Full URL of this API (for internal refs)
+  FRONTEND_URL                  yes       Frontend origin (for CORS allow-list)
+  ALLOWED_ORIGINS               yes       Comma-separated CORS origins
+  LOG_LEVEL                     no        debug | info | warn | error (default: info)
+  LOG_QUERIES                   no        true | false — logs Prisma queries
+
+  DATABASE_URL                  yes       Prisma-format PostgreSQL connection URL
+  DATABASE_URL_TEST             no        Separate DB for running Jest tests
+
+  REDIS_HOST                    yes       Redis hostname
+  REDIS_PORT                    yes       6379 (local) or 6380 (Upstash TLS)
+  REDIS_PASSWORD                no        Redis password (required for Upstash)
+  REDIS_DB                      no        Redis logical DB index (default: 0)
+
+  JWT_SECRET                    yes       Min 32 chars — signs access tokens
+  JWT_REFRESH_SECRET            yes       Min 32 chars — signs refresh tokens
+  COOKIE_SECRET                 yes       Min 32 chars — signs cookies
+  ACCESS_TOKEN_EXPIRY           yes       e.g. 15m
+  REFRESH_TOKEN_EXPIRY          yes       e.g. 7d
+
+  STRIPE_SECRET_KEY             yes       sk_test_... or sk_live_...
+  STRIPE_PUBLISHABLE_KEY        yes       pk_test_... or pk_live_...
+  STRIPE_WEBHOOK_SECRET         yes       whsec_... (from Stripe dashboard)
+  NEXT_PUBLIC_STRIPE_PK         yes       Same as publishable key (for frontend)
+
+  UPLOAD_DIR                    yes       Relative path for file uploads (uploads)
+  AWS_ACCESS_KEY_ID             no        S3 migration — leave blank for local
+  AWS_SECRET_ACCESS_KEY         no        S3 migration
+  AWS_S3_BUCKET                 no        S3 bucket name
+  AWS_REGION                    no        AWS region
+
+  SMTP_HOST                     yes       e.g. smtp.ethereal.email
+  SMTP_PORT                     yes       587 (STARTTLS) or 465 (SSL)
+  SMTP_SECURE                   yes       false (587) or true (465)
+  SMTP_USER                     yes       SMTP username
+  SMTP_PASS                     yes       SMTP password
+  EMAIL_FROM                    yes       "Deal Haven <noreply@dealhaven.com>"
+  EMAIL_REPLY_TO                no        support@dealhaven.com
+
+  GOOGLE_CLIENT_ID              no        OAuth2 client ID (optional feature)
+  GOOGLE_CLIENT_SECRET          no        OAuth2 client secret
+  GOOGLE_CALLBACK_URL           no        OAuth2 redirect URI
+
+  ─ Frontend-only (Next.js .env.local) ──────────────────────────────────────
+  NEXT_PUBLIC_API_URL           yes       http://HOST:4000/api/v1
+  NEXT_PUBLIC_SOCKET_URL        yes       http://HOST:4000
+  NEXT_PUBLIC_APP_URL           yes       http://HOST:3000
+  NEXT_PUBLIC_STRIPE_PK         yes       Stripe publishable key
+  NEXT_PUBLIC_MAPBOX_TOKEN      no        Mapbox token (Leaflet works without)
+
+
+================================================================================
+  SECTION G — HEALTH CHECKS & MONITORING
+================================================================================
+
+  Endpoint: GET http://YOUR_HOST:4000/health
+  Expected: 200 OK  →  { "status": "ok", "timestamp": "..." }
+
+  API docs: GET http://YOUR_HOST:4000/documentation
+  (Swagger UI — auto-generated from Fastify schema definitions)
+
+  PM2 process monitoring (SSH into VM):
+    pm2 status          → one-line status for all processes
+    pm2 monit           → live CPU/RAM dashboard in terminal
+    pm2 logs --lines 200 → last 200 log lines from all processes
+
+  Database health (via Prisma Studio, dev only):
+    cd backend && npm run db:studio
+    # Opens at http://localhost:5555 — visual database browser
+
+  Check if ports are actually open on the Oracle VM:
+    sudo ss -tlnp | grep -E '3000|4000'
+    # Should show LISTEN on 0.0.0.0:3000 and 0.0.0.0:4000
+
+  Check iptables rules are in place:
+    sudo iptables -L INPUT -n --line-numbers | grep -E '3000|4000'
+
+
+================================================================================
+  SECTION H — DEVELOPMENT WORKFLOW QUICK REFERENCE
+================================================================================
+
+  Daily local dev startup (after first setup):
+  ─────────────────────────────────────────────
+  Terminal 1 (backend):
+    cd /Users/olumidearowolo/Desktop/web-projects/deal-haven/backend
+    npm run dev
+
+  Terminal 2 (frontend):
+    cd /Users/olumidearowolo/Desktop/web-projects/deal-haven/frontend
+    npm run dev
+
+  Then open: http://localhost:3000
+
+  After changing Prisma schema:
+    cd backend
+    npx prisma migrate dev --name describe_your_change
+    npx prisma generate
+    # Restart dev server (tsx watch auto-detects but re-generate is manual)
+
+  After pulling new code from teammates:
+    cd backend && npm install && npx prisma migrate deploy
+    cd ../frontend && npm install
+    # Restart both dev servers
+
+  Reset to clean state (dev only — DESTROYS ALL DATA):
+    cd backend
+    npx prisma migrate reset --force
+    npm run db:seed
+
+================================================================================

@@ -1,0 +1,489 @@
+================================================================================
+  DEAL HAVEN — DEV/TEST ENVIRONMENT SETUP GUIDE
+================================================================================
+
+  Free Stack:
+  ┌────────────┬──────────────────┬──────────────────────────────────────────┐
+  │  Service   │      Vendor      │               Free Tier                  │
+  ├────────────┼──────────────────┼──────────────────────────────────────────┤
+  │ PostgreSQL │ Supabase         │ 500 MB, forever, no credit card          │
+  │ Redis      │ Upstash          │ 256 MB, 10K cmds/day, forever, no CC     │
+  │ App Server │ Oracle Cloud     │ 4 vCPU / 24 GB RAM, forever, no CC       │
+  └────────────┴──────────────────┴──────────────────────────────────────────┘
+
+  Total cost: $0 for dev/testing purposes.
+  Oracle Cloud is the only major cloud provider that offers a powerful VM
+  with no credit card required, and it never expires.
+
+================================================================================
+  STEP 1 — SUPABASE (PostgreSQL)
+================================================================================
+
+  1. Go to https://supabase.com and click "Start your project"
+
+  2. Sign up with GitHub or email (no credit card required)
+
+  3. Click "New Project"
+       - Choose your organization
+       - Project name: deal-haven
+       - Database password: choose a strong password and SAVE IT
+       - Region: pick the closest to you (e.g. US East, EU West)
+       - Plan: Free
+       - Click "Create new project" (takes ~2 minutes to provision)
+
+  4. Once ready, get your connection string:
+       - Go to Project Settings (gear icon, bottom left)
+       - Click "Database"
+       - Scroll to "Connection string" section
+       - Select "URI" tab
+       - Copy the string — it looks like:
+           postgresql://postgres:[YOUR-PASSWORD]@db.xxxxxxxxxxxx.supabase.co:5432/postgres
+       - Replace [YOUR-PASSWORD] with the password you set in step 3
+
+  5. Save this — you'll need it for the .env file later.
+
+  NOTE: Supabase free tier pauses your database after 1 week of inactivity.
+  To resume, just log into Supabase and click "Restore project". This is
+  normal for free tier dev use.
+
+
+================================================================================
+  STEP 2 — UPSTASH (Redis)
+================================================================================
+
+  1. Go to https://upstash.com and click "Start for free"
+
+  2. Sign up with GitHub, Google, or email (no credit card required)
+
+  3. Create a Redis database:
+       - Click "Create database"
+       - Name: deal-haven-redis
+       - Type: Regional
+       - Region: pick the closest to your Oracle Cloud VM (e.g. US-East-1)
+       - Plan: Free (256 MB, 10,000 commands/day)
+       - Click "Create"
+
+  4. Once created, click on your database. From the "Details" tab, note:
+       - Endpoint  → this is your REDIS_HOST
+                     (format: unique-name.upstash.io)
+       - Port      → this is your REDIS_PORT (usually 6379 or 6380 for TLS)
+       - Password  → this is your REDIS_PASSWORD (shown under "REST API" or
+                     directly in the connection details)
+
+     TIP: You can also copy the full Redis URL which looks like:
+       rediss://:PASSWORD@unique-name.upstash.io:6380
+
+  5. Save the host, port, and password — you'll need them for .env later.
+
+  NOTE: 10,000 commands/day is plenty for dev/testing with 2-3 people.
+  Each API request typically uses 2-5 Redis commands (cache check, session, etc.).
+  That gives you ~2,000-5,000 API requests/day before hitting the limit.
+
+
+================================================================================
+  STEP 3 — ORACLE CLOUD (App Server)
+================================================================================
+
+  Oracle Cloud Always Free gives you:
+    - 4 vCPU (ARM-based Ampere A1)
+    - 24 GB RAM
+    - 200 GB storage
+    - Unlimited bandwidth
+    - No credit card required
+    - Never expires
+
+  --- 3A. Create an Oracle Cloud Account ---
+
+  1. Go to https://www.oracle.com/cloud/free and click "Start for free"
+
+  2. Fill in your details:
+       - Country, name, email address
+       - Account type: Individual
+       - Home region: pick the closest to you — IMPORTANT: you cannot change
+         this later. Choose carefully (e.g. US East Ashburn, UK South London,
+         AP Tokyo, EU Frankfurt)
+
+  3. Verify your email address when prompted
+
+  4. Set up your Cloud Account:
+       - Cloud Account Name: choose a unique name (e.g. "dealhaven")
+       - Username and password for your account
+       - You will be asked for a credit card for identity verification ONLY
+         — Oracle states: "You will NOT be charged unless you manually
+         upgrade to a paid account"
+       - Complete phone verification if prompted
+
+  5. Wait for account activation email (usually instant, sometimes up to
+     30 minutes). Click the "Sign In" link in the email.
+
+
+  --- 3B. Launch a Free VM Instance ---
+
+  1. Sign in to the Oracle Cloud Console at https://cloud.oracle.com
+
+  2. Click the hamburger menu (top left) → "Compute" → "Instances"
+
+  3. Click "Create instance"
+
+  4. Configure the instance:
+       - Name: deal-haven-dev
+       - Compartment: (root) — leave as default
+
+       - Image and shape (IMPORTANT — must select ARM for Always Free):
+           Click "Edit" next to "Image and shape"
+           → Image: Canonical Ubuntu → Ubuntu 22.04 (minimal)
+             (Click "Change image" if needed)
+           → Shape: Click "Change shape"
+             → Shape series: Ampere (ARM-based, Always Free eligible)
+             → Shape: VM.Standard.A1.Flex
+             → OCPUs: 4
+             → Memory: 24 GB
+             → Click "Select shape"
+
+       - Networking:
+           Leave defaults (a new VCN will be created automatically)
+           Make sure "Assign a public IPv4 address" is ENABLED
+
+       - Add SSH keys:
+           Option A — Generate a key pair:
+             Select "Generate a key pair for me"
+             Click "Save private key" — download the .key file
+             Keep it safe — you cannot re-download it
+           Option B — Paste your existing public key:
+             Select "Paste public keys"
+             Paste your ~/.ssh/id_rsa.pub content
+
+       - Boot volume:
+           Size: 50 GB (free tier allows up to 200 GB total)
+           Leave other settings as default
+
+  5. Click "Create" at the bottom
+
+  6. Wait ~2 minutes for the instance to reach "Running" state.
+     Go to the instance details page and note the "Public IP address".
+
+
+  --- 3C. Open Required Ports (VCN Security Rules) ---
+
+  By default, Oracle Cloud only allows port 22 (SSH). You need to open
+  ports 3000 and 4000 for the app.
+
+  1. In the Oracle Cloud Console, go to the instance details page
+
+  2. Under "Instance information" → "Primary VNIC" → click the Subnet link
+
+  3. Click on the "Default Security List" (or the security list attached)
+
+  4. Click "Add Ingress Rules" → add the following (one at a time):
+
+       Rule 1 — Next.js frontend:
+         Source Type:   CIDR
+         Source CIDR:   0.0.0.0/0
+         IP Protocol:   TCP
+         Dest Port:     3000
+         Description:   Next.js frontend
+         → Click "Add Ingress Rules"
+
+       Rule 2 — Fastify backend API:
+         Source Type:   CIDR
+         Source CIDR:   0.0.0.0/0
+         IP Protocol:   TCP
+         Dest Port:     4000
+         Description:   Fastify backend API
+         → Click "Add Ingress Rules"
+
+  5. Also open the ports in the VM's firewall (Ubuntu's iptables/ufw blocks
+     traffic even after the Oracle-level rules are set). You'll run these
+     commands in Step 4 after connecting via SSH.
+
+
+  --- 3D. Connect via SSH ---
+
+  On your local machine, open a terminal:
+
+  Mac/Linux:
+    chmod 400 ~/Downloads/ssh-key-YYYY-MM-DD.key
+    ssh -i ~/Downloads/ssh-key-YYYY-MM-DD.key ubuntu@YOUR_ORACLE_PUBLIC_IP
+
+  Windows (PowerShell):
+    ssh -i C:\Users\YourName\Downloads\ssh-key-YYYY-MM-DD.key ubuntu@YOUR_ORACLE_PUBLIC_IP
+
+  Replace YOUR_ORACLE_PUBLIC_IP with the IP from step 3B.6 above.
+
+  NOTE: The default username for Ubuntu on Oracle Cloud is "ubuntu"
+  (same as AWS). For Oracle Linux it would be "opc" — but we're using Ubuntu.
+
+
+================================================================================
+  STEP 4 — SERVER SETUP (run these commands inside your Oracle VM via SSH)
+================================================================================
+
+  --- 4A. Update the system ---
+
+    sudo apt update && sudo apt upgrade -y
+
+
+  --- 4B. Open firewall ports (Ubuntu's iptables) ---
+
+  Oracle Cloud uses iptables rules in addition to VCN security rules.
+  Run these to allow traffic on ports 3000 and 4000:
+
+    sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 3000 -j ACCEPT
+    sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 4000 -j ACCEPT
+    sudo netfilter-persistent save
+
+  If netfilter-persistent is not installed:
+    sudo apt install -y iptables-persistent
+    sudo netfilter-persistent save
+
+
+  --- 4C. Install Node.js 22 LTS ---
+
+    curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+    sudo apt install -y nodejs
+    node --version   # should show v22.x.x
+    npm --version    # should show 10.x.x
+
+
+  --- 4D. Install Git ---
+
+    sudo apt install -y git
+
+
+  --- 4E. Install PM2 (keeps your app running) ---
+
+    sudo npm install -g pm2
+
+
+================================================================================
+  STEP 5 — DEPLOY THE PROJECT
+================================================================================
+
+  --- 5A. Clone the repository ---
+
+  If your project is on GitHub:
+    git clone https://github.com/YOUR_USERNAME/deal-haven.git
+    cd deal-haven
+
+  If not on GitHub yet, copy files from your local machine:
+    # Run this on your LOCAL machine (not the Oracle VM):
+    scp -i ~/Downloads/ssh-key-YYYY-MM-DD.key -r \
+      /Users/olumidearowolo/Desktop/web-projects/deal-haven \
+      ubuntu@YOUR_ORACLE_PUBLIC_IP:~/deal-haven
+
+
+  --- 5B. Configure environment variables ---
+
+    cd ~/deal-haven/backend
+    cp ../.env.example .env
+    nano .env
+
+  Update these values in the file (use your saved credentials from Steps 1 & 2):
+
+    # Database — paste your Supabase connection string
+    DATABASE_URL="postgresql://postgres:[YOUR-PASSWORD]@db.xxxx.supabase.co:5432/postgres"
+
+    # Redis — paste your Upstash credentials
+    REDIS_HOST=unique-name.upstash.io
+    REDIS_PORT=6380
+    REDIS_PASSWORD=your-upstash-password
+
+    # Auth secrets — generate 3 random strings:
+    #   Run this command 3 times to generate each one:
+    #   node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+    JWT_SECRET=paste-generated-value-here
+    JWT_REFRESH_SECRET=paste-generated-value-here
+    COOKIE_SECRET=paste-generated-value-here
+
+    # URLs — replace with your Oracle Cloud public IP
+    API_URL=http://YOUR_ORACLE_PUBLIC_IP:4000
+    FRONTEND_URL=http://YOUR_ORACLE_PUBLIC_IP:3000
+    ALLOWED_ORIGINS=http://YOUR_ORACLE_PUBLIC_IP:3000
+
+  Save and exit: Ctrl+X → Y → Enter
+
+
+  --- 5C. Install backend dependencies & run migrations ---
+
+    cd ~/deal-haven/backend
+    npm install
+    npx prisma generate
+    npx prisma migrate deploy
+    npm run db:seed
+
+
+  --- 5D. Configure frontend environment ---
+
+    cd ~/deal-haven/frontend
+    nano .env.local
+
+  Add these lines:
+
+    NEXT_PUBLIC_API_URL=http://YOUR_ORACLE_PUBLIC_IP:4000/api/v1
+    NEXT_PUBLIC_SOCKET_URL=http://YOUR_ORACLE_PUBLIC_IP:4000
+    NEXT_PUBLIC_APP_URL=http://YOUR_ORACLE_PUBLIC_IP:3000
+
+  Save and exit: Ctrl+X → Y → Enter
+
+  Install and build:
+
+    npm install
+    npm run build
+
+
+================================================================================
+  STEP 6 — START THE APPLICATION
+================================================================================
+
+  --- 6A. Start the backend with PM2 ---
+
+    cd ~/deal-haven/backend
+    pm2 start npm --name "deal-haven-api" -- run dev
+    pm2 save
+
+
+  --- 6B. Start the frontend with PM2 ---
+
+    cd ~/deal-haven/frontend
+    pm2 start npm --name "deal-haven-web" -- run start
+    pm2 save
+
+
+  --- 6C. Set PM2 to auto-start on reboot ---
+
+    pm2 startup
+    # Copy and run the command it outputs, then:
+    pm2 save
+
+
+  --- 6D. Verify both are running ---
+
+    pm2 status
+    # Both "deal-haven-api" and "deal-haven-web" should show "online"
+
+
+================================================================================
+  STEP 7 — ACCESS THE APPLICATION
+================================================================================
+
+  Open your browser:
+
+    Frontend:      http://YOUR_ORACLE_PUBLIC_IP:3000
+    API:           http://YOUR_ORACLE_PUBLIC_IP:4000
+    Health check:  http://YOUR_ORACLE_PUBLIC_IP:4000/health
+
+  Demo accounts (password: Password123!):
+  ┌──────────────┬────────────────────────────────┐
+  │     Role     │             Email              │
+  ├──────────────┼────────────────────────────────┤
+  │ Admin        │ admin@dealhaven.com            │
+  │ Seller       │ techseller@example.com         │
+  │ Seller       │ carseller@example.com          │
+  │ Buyer        │ buyer1@example.com             │
+  └──────────────┴────────────────────────────────┘
+
+
+================================================================================
+  USEFUL COMMANDS (run on Oracle VM via SSH)
+================================================================================
+
+  View running processes:
+    pm2 status
+
+  View backend logs:
+    pm2 logs deal-haven-api
+
+  View frontend logs:
+    pm2 logs deal-haven-web
+
+  Restart backend:
+    pm2 restart deal-haven-api
+
+  Restart frontend:
+    pm2 restart deal-haven-web
+
+  Stop everything:
+    pm2 stop all
+
+  Re-run database seed (resets demo data):
+    cd ~/deal-haven/backend && npm run db:seed
+
+  Pull latest code changes and redeploy:
+    cd ~/deal-haven
+    git pull
+    cd backend && npm install && npx prisma migrate deploy
+    cd ../frontend && npm install && npm run build
+    pm2 restart all
+
+
+================================================================================
+  TROUBLESHOOTING
+================================================================================
+
+  Problem: "Cannot connect to database"
+  Fix:     Check your DATABASE_URL in backend/.env
+           Make sure Supabase project is not paused (log in to supabase.com)
+
+  Problem: "Redis connection refused"
+  Fix:     Verify REDIS_HOST, REDIS_PORT, REDIS_PASSWORD in backend/.env
+           Check Upstash dashboard — database should show "Active"
+           Make sure REDIS_PORT is 6380 (TLS) not 6379 for Upstash
+
+  Problem: "Port 3000 / 4000 not accessible from browser"
+  Fix:     TWO things must both be done:
+           1. Oracle VCN Security List must have ingress rules for 3000 & 4000
+              (Step 3C above)
+           2. Ubuntu iptables must also allow the ports (Step 4B above)
+           Both are required — Oracle has two layers of firewall.
+           Check iptables rules: sudo iptables -L INPUT -n --line-numbers
+
+  Problem: "PM2 process shows errored"
+  Fix:     Run: pm2 logs deal-haven-api --lines 50
+           Check the error output and verify your .env values
+
+  Problem: "npm run build fails on frontend"
+  Fix:     Make sure .env.local exists in frontend/ with all 3 NEXT_PUBLIC_ vars
+           Run: cd frontend && npm install && npm run build
+
+  Problem: Supabase project is paused after inactivity
+  Fix:     Log in to supabase.com → select your project → click "Restore project"
+           Wait ~1 minute, then restart backend: pm2 restart deal-haven-api
+
+  Problem: "Upstash rate limit exceeded" (10K commands/day)
+  Fix:     This is a dev/testing limit. Wait until midnight UTC for reset.
+           To increase: upgrade Upstash to Pay-As-You-Go ($0.2/100K commands)
+           Or reduce cache TTLs in backend to lower Redis command frequency.
+
+  Problem: Oracle VM is unreachable after reboot
+  Fix:     Oracle Cloud public IPs are static (reserved) — your IP does not
+           change on reboot. Check the Oracle Cloud Console to confirm the
+           instance is in "Running" state. If stopped, click "Start".
+
+
+================================================================================
+  FREE TIER LIMITS TO WATCH
+================================================================================
+
+  Supabase:
+    - 500 MB database storage
+    - Pauses after 7 days of inactivity (just restore via dashboard)
+    - 2 GB bandwidth/month
+
+  Upstash:
+    - 256 MB memory
+    - 10,000 commands/day (resets at midnight UTC)
+    - Sufficient for ~2,000-5,000 API requests/day (dev/test use)
+
+  Oracle Cloud (Always Free — never expires, no credit card):
+    - 4 vCPU (ARM Ampere A1)
+    - 24 GB RAM
+    - 200 GB storage
+    - Unlimited inbound/outbound bandwidth
+    - 2 Always Free AMD micro instances also available (1/8 OCPU, 1 GB each)
+    - Always Free — no 12-month expiry, unlike AWS Free Tier
+
+  IMPORTANT: Oracle "Always Free" resources are marked with a tag in the
+  console. Do not create resources without the "Always Free" label as those
+  will incur charges if you provided a credit card during signup.
+
+================================================================================
