@@ -6,7 +6,7 @@ import { QUEUE_NAMES } from '../config/constants';
 import type { NotificationType } from '@prisma/client';
 
 let workers: Worker[] = [];
-let queues: Queue[] = [];
+const queues: Queue[] = [];
 
 interface NotificationJobData {
   userId: string;
