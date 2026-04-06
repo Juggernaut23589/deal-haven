@@ -385,8 +385,6 @@ function SellerCard({
 
 import HomepageListingSections from './HomepageListingSections';
 
-// Prevent static prerendering — the page includes client-only components (Navbar/stores).
-export const dynamic = 'force-dynamic';
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
