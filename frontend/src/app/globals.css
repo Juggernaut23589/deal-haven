@@ -206,6 +206,33 @@
     @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-md;
   }
 
+  /* Float animation for hero product images */
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(var(--tw-rotate, 0deg)); }
+    50% { transform: translateY(-12px) rotate(var(--tw-rotate, 0deg)); }
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  /* Subtle shimmer for image cards on hover */
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.08) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s ease-in-out infinite;
+  }
+
   /* Reduced motion */
   @media (prefers-reduced-motion: reduce) {
     *, ::before, ::after {
