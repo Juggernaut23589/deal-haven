@@ -79,7 +79,8 @@ jobs:
             cd backend
             npm ci --production
 
-            # Run database migrations
+            # Baseline existing DB if needed, then run migrations
+            npx prisma migrate resolve --applied 0_init 2>/dev/null || true
             npx prisma migrate deploy
 
             # Restart backend via PM2
