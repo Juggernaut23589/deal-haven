@@ -88,8 +88,17 @@
   postgresql_user:
     name: "{{ db_user }}"
     password: "{{ db_password }}"
-    db: "{{ db_name }}"
-    priv: ALL
+    state: present
+  vars:
+    ansible_pipelining: true
+
+- name: Grant all privileges on database to app user
+  become_user: postgres
+  postgresql_privs:
+    database: "{{ db_name }}"
+    privs: ALL
+    type: database
+    role: "{{ db_user }}"
     state: present
   vars:
     ansible_pipelining: true
