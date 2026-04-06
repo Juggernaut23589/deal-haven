@@ -80,6 +80,8 @@
     name: "{{ db_name }}"
     encoding: UTF-8
     state: present
+  vars:
+    ansible_pipelining: true
 
 - name: Create application database user
   become_user: postgres
@@ -89,6 +91,8 @@
     db: "{{ db_name }}"
     priv: ALL
     state: present
+  vars:
+    ansible_pipelining: true
 
 - name: Allow PostgreSQL port through UFW from VCN only
   ufw:
