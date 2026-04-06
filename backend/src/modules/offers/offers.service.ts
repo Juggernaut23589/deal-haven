@@ -96,7 +96,7 @@ export class OffersService {
     // Check auto-accept/auto-decline thresholds
     let autoAccepted = false;
     let autoDeclined = false;
-    let finalStatus = OfferStatus.PENDING;
+    let finalStatus: OfferStatus = OfferStatus.PENDING;
 
     if (listing.autoAcceptPrice && input.amount >= Number(listing.autoAcceptPrice)) {
       autoAccepted = true;
@@ -333,7 +333,7 @@ export class OffersService {
 
   private async convertOfferToOrder(
     offerId: string,
-    buyerId: string,
+    _buyerId: string,
   ): Promise<void> {
     // Mark listing as reserved and update offer status
     await prisma.offer.update({

@@ -150,7 +150,7 @@ export class ListingsController {
       }),
     );
 
-    await listingsService.addImages(id, user.id, processedImages);
+    await listingsService.addImages(id, user.id, processedImages as any);
 
     void reply.status(200).send({
       success: true,

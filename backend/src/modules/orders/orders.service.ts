@@ -4,7 +4,6 @@ import {
   NotFoundError,
   AuthorizationError,
   BusinessRuleError,
-  PaymentError,
 } from '../../shared/errors';
 import { ORDER } from '../../config/constants';
 import { generateOrderNumber, calculatePlatformFee, addDays } from '../../shared/utils';
@@ -334,10 +333,6 @@ export class OrdersService {
       throw new BusinessRuleError(
         `Cannot cancel order in ${order.status} status`,
       );
-    }
-
-    if (order.status === OrderStatus.SHIPPED) {
-      throw new BusinessRuleError('Cannot cancel an order that has already shipped');
     }
 
     await prisma.$transaction(async (tx) => {

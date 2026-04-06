@@ -30,7 +30,7 @@ export function verifyAccessToken(token: string): JwtPayload {
 // Middleware: require authenticated user
 export async function requireAuth(
   request: FastifyRequest,
-  reply: FastifyReply,
+  _reply: FastifyReply,
 ): Promise<void> {
   const token = extractToken(request);
 

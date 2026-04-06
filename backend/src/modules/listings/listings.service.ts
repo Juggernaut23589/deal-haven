@@ -12,7 +12,6 @@ import {
   addDays,
   buildPaginatedResponse,
   paginate,
-  hashString,
 } from '../../shared/utils';
 import type { SearchFilters, PaginatedResponse } from '../../shared/types';
 import type { CreateListingInput, UpdateListingInput } from './listings.schema';

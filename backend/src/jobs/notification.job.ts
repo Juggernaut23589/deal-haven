@@ -49,7 +49,7 @@ export async function createNotification(data: NotificationJobData): Promise<voi
       type: data.type,
       title: data.title,
       message: data.message,
-      data: data.data ?? undefined,
+      data: (data.data as any) ?? undefined,
       actionUrl: data.actionUrl,
     },
   });

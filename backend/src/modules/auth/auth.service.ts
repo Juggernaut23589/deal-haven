@@ -8,7 +8,6 @@ import { AUTH } from '../../config/constants';
 import {
   AuthenticationError,
   ConflictError,
-  NotFoundError,
   BusinessRuleError,
 } from '../../shared/errors';
 import { cache } from '../../config/redis';

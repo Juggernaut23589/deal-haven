@@ -1,7 +1,7 @@
 import type { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 import { ZodError } from 'zod';
 import { Prisma } from '@prisma/client';
-import { AppError, isAppError } from '../shared/errors';
+import { isAppError } from '../shared/errors';
 import { logger } from '../config/logger';
 
 export function errorHandler(

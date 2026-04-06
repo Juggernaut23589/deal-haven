@@ -1,5 +1,5 @@
 import { prisma } from '../../config/database';
-import { NotFoundError, AuthorizationError, BusinessRuleError } from '../../shared/errors';
+import { AuthorizationError, BusinessRuleError } from '../../shared/errors';
 
 const conversationSelect = {
   id: true,

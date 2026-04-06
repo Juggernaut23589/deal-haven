@@ -8,30 +8,15 @@ const globalForPrisma = globalThis as unknown as {
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
-    log: [
-      { emit: 'event', level: 'query' },
-      { emit: 'event', level: 'error' },
-      { emit: 'event', level: 'warn' },
-    ],
+    log:
+      process.env.NODE_ENV === 'production'
+        ? ['error', 'warn']
+        : ['query', 'error', 'warn'],
   });
 
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;
 }
-
-prisma.$on('query', (e) => {
-  if (process.env.LOG_QUERIES === 'true') {
-    logger.debug({ query: e.query, params: e.params, duration: e.duration }, 'DB Query');
-  }
-});
-
-prisma.$on('error', (e) => {
-  logger.error({ message: e.message }, 'DB Error');
-});
-
-prisma.$on('warn', (e) => {
-  logger.warn({ message: e.message }, 'DB Warning');
-});
 
 export async function connectDatabase(): Promise<void> {
   try {

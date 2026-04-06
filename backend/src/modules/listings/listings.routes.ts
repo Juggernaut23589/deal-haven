@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { listingsController } from './listings.controller';
-import { requireAuth, optionalAuth, requireSeller } from '../../middleware/auth';
+import { optionalAuth, requireSeller } from '../../middleware/auth';
 import { searchRateLimiter, uploadRateLimiter } from '../../middleware/rateLimiter';
 
 export async function listingRoutes(fastify: FastifyInstance): Promise<void> {

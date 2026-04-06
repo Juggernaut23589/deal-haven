@@ -1,4 +1,3 @@
-import type { FastifyRequest, FastifyReply } from 'fastify';
 import sharp from 'sharp';
 import path from 'path';
 import fs from 'fs/promises';
@@ -26,7 +25,7 @@ export async function processAndSaveImage(
   mimetype: string,
   subDir: string,
 ): Promise<Omit<UploadedFile, 'fieldname' | 'originalname' | 'size' | 'buffer'>> {
-  if (!FILE_UPLOAD.ALLOWED_IMAGE_TYPES.includes(mimetype)) {
+  if (!FILE_UPLOAD.ALLOWED_IMAGE_TYPES.includes(mimetype as any)) {
     throw new ValidationError(
       `Invalid file type. Allowed types: ${FILE_UPLOAD.ALLOWED_IMAGE_TYPES.join(', ')}`,
     );

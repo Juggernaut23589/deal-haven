@@ -154,7 +154,7 @@ export async function searchRoutes(fastify: FastifyInstance): Promise<void> {
         name: body.name,
         query: body.query,
         categoryId: body.categoryId,
-        filters: body.filters,
+        filters: body.filters as any,
         alertEnabled: body.alertEnabled ?? true,
         alertFrequency: body.alertFrequency ?? 'INSTANT',
       },

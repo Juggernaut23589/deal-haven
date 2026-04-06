@@ -11,7 +11,6 @@ import {
   verifyEmailSchema,
 } from './auth.schema';
 import type { AuthenticatedRequest } from '../../shared/types';
-import { ValidationError } from '../../shared/errors';
 
 export class AuthController {
   async register(request: FastifyRequest, reply: FastifyReply): Promise<void> {

@@ -46,6 +46,15 @@ export async function disconnectRedis(): Promise<void> {
   }
 }
 
+export const CACHE_TTL = {
+  CATEGORIES: 3600,       // 1 hour
+  LISTING: 300,           // 5 minutes
+  SEARCH_RESULTS: 180,    // 3 minutes
+  SELLER_PROFILE: 600,    // 10 minutes
+  USER_SESSION: 86400,    // 24 hours
+  POPULAR_LISTINGS: 900,  // 15 minutes
+};
+
 // Cache helpers
 export const cache = {
   async get<T>(key: string): Promise<T | null> {
