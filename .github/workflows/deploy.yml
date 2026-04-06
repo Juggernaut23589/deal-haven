@@ -51,7 +51,7 @@ jobs:
         run: npm run build
         working-directory: frontend
 
-  deploy-backend:
+  deploy:
     needs: test
     runs-on: ubuntu-latest
     steps:
@@ -65,18 +65,20 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ env.APP_SERVER }} >> ~/.ssh/known_hosts 2>/dev/null
 
-      - name: Deploy backend
+      - name: Pull latest code on server
         run: |
           ssh ${{ env.DEPLOY_USER }}@${{ env.APP_SERVER }} << 'ENDSSH'
             set -e
             cd ${{ env.APP_DIR }}
-
-            # Pull latest code (--force to handle ref divergence)
-            git fetch --force origin dev
+            git fetch --prune --force origin dev
             git reset --hard origin/dev
+          ENDSSH
 
-            # Install backend dependencies
-            cd backend
+      - name: Deploy backend
+        run: |
+          ssh ${{ env.DEPLOY_USER }}@${{ env.APP_SERVER }} << 'ENDSSH'
+            set -e
+            cd ${{ env.APP_DIR }}/backend
             npm ci --production
 
             # Baseline existing DB if needed, then run migrations
@@ -88,32 +90,11 @@ jobs:
             pm2 save
           ENDSSH
 
-  deploy-frontend:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H ${{ env.APP_SERVER }} >> ~/.ssh/known_hosts 2>/dev/null
-
       - name: Deploy frontend
         run: |
           ssh ${{ env.DEPLOY_USER }}@${{ env.APP_SERVER }} << 'ENDSSH'
             set -e
-            cd ${{ env.APP_DIR }}
-
-            # Pull latest code (--force to handle ref divergence)
-            git fetch --force origin dev
-            git reset --hard origin/dev
-
-            # Install and build frontend
-            cd frontend
+            cd ${{ env.APP_DIR }}/frontend
             npm ci
             npm run build
 
