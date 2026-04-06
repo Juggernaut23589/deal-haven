@@ -623,7 +623,7 @@ export default function ListingDetailPage() {
 
   const handleMessageSeller = () => {
     if (!isAuthenticated) { router.push('/auth/login'); return; }
-    router.push(`/dashboard/messages?listing=${params.id}` as string & {});
+    router.push((`/dashboard/messages?listing=${params.id}`) as Route);
   };
 
   const handleIsAvailable = () => {
