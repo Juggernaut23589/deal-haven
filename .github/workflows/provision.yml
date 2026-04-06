@@ -5,6 +5,7 @@ on:
     branches: [dev]
     paths:
       - 'infra/ansible/**'
+      - '.github/workflows/provision.yml'
   workflow_dispatch:
 
 jobs:
@@ -31,30 +32,11 @@ jobs:
           ssh-keyscan -H ${{ secrets.APP_SERVER_IP }} >> ~/.ssh/known_hosts 2>/dev/null
           ssh-keyscan -H ${{ secrets.DB_SERVER_IP }} >> ~/.ssh/known_hosts 2>/dev/null
 
-      - name: Create dynamic inventory
-        run: |
-          cat > inventory/hosts.yml << EOF
-          all:
-            children:
-              app:
-                hosts:
-                  deal-haven-app:
-                    ansible_host: ${{ secrets.APP_SERVER_IP }}
-              db:
-                hosts:
-                  deal-haven-db:
-                    ansible_host: ${{ secrets.DB_SERVER_IP }}
-          EOF
-
-      - name: Update group_vars with secrets
-        run: |
-          cat > group_vars/secrets.yml << EOF
-          db_password: "${{ secrets.DB_PASSWORD }}"
-          jwt_secret: "${{ secrets.JWT_SECRET }}"
-          EOF
-
       - name: Run Ansible playbook
-        run: ansible-playbook playbooks/site.yml
+        run: >
+          ansible-playbook playbooks/site.yml
+          --extra-vars "db_password=${{ secrets.DB_PASSWORD }}"
+          --extra-vars "jwt_secret=${{ secrets.JWT_SECRET }}"
         env:
           ANSIBLE_HOST_KEY_CHECKING: "false"
           ANSIBLE_PRIVATE_KEY_FILE: "~/.ssh/id_ed25519"
