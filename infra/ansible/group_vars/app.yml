@@ -1,0 +1,4 @@
+---
+# App server specific vars
+domain_name: ""  # Set when you have a domain
+enable_ssl: false

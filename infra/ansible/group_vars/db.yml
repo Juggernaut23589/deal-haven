@@ -1,0 +1,15 @@
+---
+# DB server specific vars
+postgresql_version: "16"
+redis_version: "7"
+
+# PostgreSQL tuning for 1 GB RAM
+pg_shared_buffers: "256MB"
+pg_effective_cache_size: "512MB"
+pg_work_mem: "4MB"
+pg_maintenance_work_mem: "64MB"
+pg_max_connections: 50
+
+# Redis tuning for 1 GB RAM
+redis_maxmemory: "128mb"
+redis_maxmemory_policy: "allkeys-lru"

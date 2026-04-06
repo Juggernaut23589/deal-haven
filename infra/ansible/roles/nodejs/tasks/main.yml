@@ -1,0 +1,45 @@
+---
+- name: Add NodeSource GPG key
+  shell: |
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /usr/share/keyrings/nodesource.gpg
+  args:
+    creates: /usr/share/keyrings/nodesource.gpg
+
+- name: Add NodeSource repository
+  apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_{{ node_version }}.x nodistro main"
+    state: present
+    filename: nodesource
+
+- name: Install Node.js
+  apt:
+    name: nodejs
+    state: present
+    update_cache: yes
+
+- name: Install PM2 globally
+  npm:
+    name: pm2
+    global: yes
+    state: present
+
+- name: Set up PM2 startup script
+  command: "pm2 startup systemd -u {{ deploy_user }} --hp /home/{{ deploy_user }}"
+  environment:
+    HOME: "/home/{{ deploy_user }}"
+
+- name: Create app directory
+  file:
+    path: "/home/{{ deploy_user }}/{{ project_name }}"
+    state: directory
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+    mode: "0755"
+
+- name: Create app .env file
+  template:
+    src: app-env.j2
+    dest: "/home/{{ deploy_user }}/{{ project_name }}/.env"
+    owner: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+    mode: "0600"

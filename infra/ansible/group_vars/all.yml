@@ -1,0 +1,20 @@
+---
+# Shared variables across all servers
+project_name: deal-haven
+deploy_user: deploy
+node_version: "20"
+app_port: 3000
+api_port: 4000
+
+# DB connection (used by app server to connect to db server)
+db_host: "{{ hostvars['deal-haven-db']['ansible_host'] }}"
+db_private_ip: 10.0.1.155
+db_port: 5432
+db_name: deal_haven
+db_user: deal_haven_app
+# Override in vault: db_password
+db_password: "changeme_use_ansible_vault"
+
+redis_host: "{{ hostvars['deal-haven-db']['ansible_host'] }}"
+redis_private_ip: 10.0.1.155
+redis_port: 6379

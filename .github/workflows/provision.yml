@@ -1,0 +1,59 @@
+name: Provision Servers (Ansible)
+
+on:
+  push:
+    branches: [dev]
+    paths:
+      - 'infra/ansible/**'
+  workflow_dispatch:
+
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra/ansible
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Ansible
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ansible
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.APP_SERVER_IP }} >> ~/.ssh/known_hosts 2>/dev/null
+          ssh-keyscan -H ${{ secrets.DB_SERVER_IP }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Create dynamic inventory
+        run: |
+          cat > inventory/hosts.yml << EOF
+          all:
+            children:
+              app:
+                hosts:
+                  deal-haven-app:
+                    ansible_host: ${{ secrets.APP_SERVER_IP }}
+              db:
+                hosts:
+                  deal-haven-db:
+                    ansible_host: ${{ secrets.DB_SERVER_IP }}
+          EOF
+
+      - name: Update group_vars with secrets
+        run: |
+          cat > group_vars/secrets.yml << EOF
+          db_password: "${{ secrets.DB_PASSWORD }}"
+          jwt_secret: "${{ secrets.JWT_SECRET }}"
+          EOF
+
+      - name: Run Ansible playbook
+        run: ansible-playbook playbooks/site.yml
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "false"

@@ -1,0 +1,15 @@
+# Deal Haven — App Environment
+NODE_ENV=production
+
+# Backend
+API_PORT={{ api_port }}
+DATABASE_URL=postgresql://{{ db_user }}:{{ db_password }}@{{ db_private_ip }}:{{ db_port }}/{{ db_name }}
+REDIS_URL=redis://{{ redis_private_ip }}:{{ redis_port }}
+
+# Frontend
+NEXT_PUBLIC_API_URL=http://localhost:{{ api_port }}
+
+# Auth
+JWT_SECRET={{ jwt_secret | default('changeme_use_ansible_vault') }}
+JWT_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d

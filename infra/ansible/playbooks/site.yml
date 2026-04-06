@@ -1,0 +1,4 @@
+---
+# Run all playbooks: ansible-playbook playbooks/site.yml
+- import_playbook: db-server.yml
+- import_playbook: app-server.yml

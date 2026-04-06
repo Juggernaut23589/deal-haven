@@ -1,0 +1,9 @@
+---
+- name: Configure Deal Haven DB Server
+  hosts: db
+  become: yes
+
+  roles:
+    - common
+    - postgresql
+    - redis

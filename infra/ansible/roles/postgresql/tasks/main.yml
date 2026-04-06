@@ -1,0 +1,98 @@
+---
+- name: Add PostgreSQL APT key
+  shell: |
+    curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql.gpg
+  args:
+    creates: /usr/share/keyrings/postgresql.gpg
+
+- name: Add PostgreSQL repository
+  apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
+    state: present
+    filename: pgdg
+
+- name: Install PostgreSQL
+  apt:
+    name:
+      - "postgresql-{{ postgresql_version }}"
+      - "postgresql-client-{{ postgresql_version }}"
+      - python3-psycopg2
+    state: present
+    update_cache: yes
+
+- name: Configure PostgreSQL - listen on private IP
+  lineinfile:
+    path: "/etc/postgresql/{{ postgresql_version }}/main/postgresql.conf"
+    regexp: "^#?listen_addresses"
+    line: "listen_addresses = 'localhost,{{ db_private_ip }}'"
+  notify: restart postgresql
+
+- name: Configure PostgreSQL - shared_buffers
+  lineinfile:
+    path: "/etc/postgresql/{{ postgresql_version }}/main/postgresql.conf"
+    regexp: "^#?shared_buffers"
+    line: "shared_buffers = {{ pg_shared_buffers }}"
+  notify: restart postgresql
+
+- name: Configure PostgreSQL - effective_cache_size
+  lineinfile:
+    path: "/etc/postgresql/{{ postgresql_version }}/main/postgresql.conf"
+    regexp: "^#?effective_cache_size"
+    line: "effective_cache_size = {{ pg_effective_cache_size }}"
+  notify: restart postgresql
+
+- name: Configure PostgreSQL - work_mem
+  lineinfile:
+    path: "/etc/postgresql/{{ postgresql_version }}/main/postgresql.conf"
+    regexp: "^#?work_mem"
+    line: "work_mem = {{ pg_work_mem }}"
+  notify: restart postgresql
+
+- name: Configure PostgreSQL - maintenance_work_mem
+  lineinfile:
+    path: "/etc/postgresql/{{ postgresql_version }}/main/postgresql.conf"
+    regexp: "^#?maintenance_work_mem"
+    line: "maintenance_work_mem = {{ pg_maintenance_work_mem }}"
+  notify: restart postgresql
+
+- name: Configure PostgreSQL - max_connections
+  lineinfile:
+    path: "/etc/postgresql/{{ postgresql_version }}/main/postgresql.conf"
+    regexp: "^#?max_connections"
+    line: "max_connections = {{ pg_max_connections }}"
+  notify: restart postgresql
+
+- name: Allow app server to connect to PostgreSQL
+  lineinfile:
+    path: "/etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf"
+    line: "host    {{ db_name }}    {{ db_user }}    10.0.1.0/24    scram-sha-256"
+  notify: restart postgresql
+
+- name: Enable and start PostgreSQL
+  service:
+    name: postgresql
+    state: started
+    enabled: yes
+
+- name: Create application database
+  become_user: postgres
+  postgresql_db:
+    name: "{{ db_name }}"
+    encoding: UTF-8
+    state: present
+
+- name: Create application database user
+  become_user: postgres
+  postgresql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_password }}"
+    db: "{{ db_name }}"
+    priv: ALL
+    state: present
+
+- name: Allow PostgreSQL port through UFW from VCN only
+  ufw:
+    rule: allow
+    from_ip: 10.0.1.0/24
+    port: "{{ db_port }}"
+    proto: tcp

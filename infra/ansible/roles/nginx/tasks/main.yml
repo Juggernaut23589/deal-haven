@@ -1,0 +1,52 @@
+---
+- name: Install Nginx
+  apt:
+    name: nginx
+    state: present
+
+- name: Remove default Nginx site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Configure Deal Haven Nginx site
+  template:
+    src: deal-haven.conf.j2
+    dest: /etc/nginx/sites-available/deal-haven.conf
+  notify: reload nginx
+
+- name: Enable Deal Haven site
+  file:
+    src: /etc/nginx/sites-available/deal-haven.conf
+    dest: /etc/nginx/sites-enabled/deal-haven.conf
+    state: link
+  notify: reload nginx
+
+- name: Allow HTTP through UFW
+  ufw:
+    rule: allow
+    port: "80"
+    proto: tcp
+
+- name: Allow HTTPS through UFW
+  ufw:
+    rule: allow
+    port: "443"
+    proto: tcp
+
+- name: Test Nginx config
+  command: nginx -t
+  changed_when: false
+
+- name: Enable and start Nginx
+  service:
+    name: nginx
+    state: started
+    enabled: yes
+
+- name: Install Certbot (for SSL later)
+  apt:
+    name:
+      - certbot
+      - python3-certbot-nginx
+    state: present

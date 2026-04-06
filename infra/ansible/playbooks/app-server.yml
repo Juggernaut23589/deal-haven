@@ -1,0 +1,9 @@
+---
+- name: Configure Deal Haven App Server
+  hosts: app
+  become: yes
+
+  roles:
+    - common
+    - nodejs
+    - nginx
