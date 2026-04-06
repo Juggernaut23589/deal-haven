@@ -107,7 +107,7 @@ const SIDEBAR_LINKS: { href: Route; label: string; icon: React.ElementType }[] =
 function DashboardSidebar() {
   return (
     <aside
-      className="hidden md:flex flex-col w-56 shrink-0"
+      className="hidden lg:flex flex-col w-56 shrink-0"
       aria-label="Dashboard navigation"
     >
       <nav>
@@ -135,6 +135,38 @@ function DashboardSidebar() {
         </ul>
       </nav>
     </aside>
+  );
+}
+
+function DashboardMobileNav() {
+  return (
+    <nav
+      className="lg:hidden -mx-4 px-4 sm:-mx-6 sm:px-6 mb-6 overflow-x-auto scrollbar-hide"
+      aria-label="Dashboard navigation"
+    >
+      <ul className="flex gap-1.5 min-w-max pb-2" role="list">
+        {SIDEBAR_LINKS.map(({ href, label, icon: Icon }) => (
+          <li key={href}>
+            <Link
+              href={href}
+              className={cn(
+                'flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-medium whitespace-nowrap',
+                'border border-slate-200 dark:border-slate-700',
+                'text-slate-600 dark:text-slate-400',
+                'hover:bg-slate-100 dark:hover:bg-slate-800',
+                'transition-colors duration-100',
+                href === '/dashboard' &&
+                  'bg-primary/10 border-primary/30 text-primary dark:text-primary-light font-semibold'
+              )}
+              aria-current={href === '/dashboard' ? 'page' : undefined}
+            >
+              <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              {label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </nav>
   );
 }
 
@@ -252,7 +284,10 @@ export default function DashboardPage() {
         <div className="flex gap-8 items-start">
           <DashboardSidebar />
 
-          <main className="flex-1 min-w-0 space-y-8">
+          <main className="flex-1 min-w-0 space-y-6 sm:space-y-8">
+            {/* Mobile nav */}
+            <DashboardMobileNav />
+
             {/* Page header */}
             <div>
               <h1 className="text-2xl font-bold font-display text-slate-900 dark:text-slate-100">

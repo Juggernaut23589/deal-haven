@@ -150,7 +150,7 @@ function CategoriesMenu() {
           align="start"
           sideOffset={8}
           className={cn(
-            'z-dropdown w-[480px] rounded-xl border border-slate-100 bg-white p-4 shadow-xl',
+            'z-dropdown w-[min(480px,90vw)] rounded-xl border border-slate-100 bg-white p-4 shadow-xl',
             'dark:border-slate-700 dark:bg-slate-900',
             'animate-scale-in'
           )}

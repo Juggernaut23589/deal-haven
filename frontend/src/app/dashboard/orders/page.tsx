@@ -128,7 +128,7 @@ export default function OrdersPage() {
                 <div
                   key={order.id}
                   className={cn(
-                    'flex items-center gap-4 p-4 rounded-xl',
+                    'flex items-center gap-3 p-3 sm:gap-4 sm:p-4 rounded-xl',
                     'bg-white dark:bg-surface-dark',
                     'border border-slate-100 dark:border-slate-800',
                     'shadow-card hover:shadow-card-hover transition-shadow'
@@ -138,7 +138,7 @@ export default function OrdersPage() {
                   <img
                     src={order.itemImage}
                     alt={order.itemTitle}
-                    className="h-16 w-16 rounded-lg object-cover shrink-0"
+                    className="h-12 w-12 sm:h-16 sm:w-16 rounded-lg object-cover shrink-0"
                     loading="lazy"
                   />
                   <div className="flex-1 min-w-0">

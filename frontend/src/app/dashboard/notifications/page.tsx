@@ -119,7 +119,7 @@ export default function NotificationsPage() {
                 <div
                   key={n.id}
                   className={cn(
-                    'flex items-start gap-4 p-4 rounded-xl',
+                    'flex items-start gap-3 p-3 sm:gap-4 sm:p-4 rounded-xl',
                     'border border-slate-100 dark:border-slate-800',
                     'transition-colors',
                     n.read

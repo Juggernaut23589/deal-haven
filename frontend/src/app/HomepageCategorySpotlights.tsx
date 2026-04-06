@@ -61,7 +61,7 @@ function CategorySpotlight({
       aria-labelledby={`spotlight-${categorySlug}-heading`}
     >
       {/* Colored header with real photo background */}
-      <div className="relative h-36 sm:h-44 overflow-hidden">
+      <div className="relative h-40 sm:h-44 overflow-hidden">
         <Image
           src={headerImage}
           alt=""

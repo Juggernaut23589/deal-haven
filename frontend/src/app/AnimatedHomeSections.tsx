@@ -92,7 +92,7 @@ function CTABanner() {
         <div className="relative z-10 flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
           {/* Text side */}
           <div className="flex-1 text-center lg:text-left">
-            <h2 className="text-3xl sm:text-4xl font-bold font-display text-white leading-tight">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-display text-white leading-tight">
               Ready to find your next great deal?
             </h2>
             <p className="mt-3 text-lg text-white/75 max-w-lg mx-auto lg:mx-0">

@@ -435,7 +435,7 @@ export default function SellerDashboardPage() {
             </div>
 
             {/* Stats grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4" role="list" aria-label="Seller statistics">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4" role="list" aria-label="Seller statistics">
               {[
                 {
                   title: 'Total Revenue',
