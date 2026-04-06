@@ -623,8 +623,7 @@ export default function ListingDetailPage() {
 
   const handleMessageSeller = () => {
     if (!isAuthenticated) { router.push('/auth/login'); return; }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    router.push(`/dashboard/messages?listing=${params.id}` as any);
+    router.push(`/dashboard/messages?listing=${params.id}` as string & {});
   };
 
   const handleIsAvailable = () => {
