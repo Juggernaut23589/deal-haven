@@ -71,8 +71,8 @@ jobs:
             set -e
             cd ${{ env.APP_DIR }}
 
-            # Pull latest code
-            git fetch origin dev
+            # Pull latest code (--force to handle ref divergence)
+            git fetch --force origin dev
             git reset --hard origin/dev
 
             # Install backend dependencies
@@ -107,8 +107,8 @@ jobs:
             set -e
             cd ${{ env.APP_DIR }}
 
-            # Pull latest code
-            git fetch origin dev
+            # Pull latest code (--force to handle ref divergence)
+            git fetch --force origin dev
             git reset --hard origin/dev
 
             # Install and build frontend
