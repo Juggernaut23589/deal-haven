@@ -90,6 +90,30 @@ resource "oci_core_security_list" "public" {
     }
   }
 
+  # PostgreSQL (VCN internal only)
+  ingress_security_rules {
+    source      = var.subnet_cidr
+    source_type = "CIDR_BLOCK"
+    protocol    = "6"
+    stateless   = false
+    tcp_options {
+      min = 5432
+      max = 5432
+    }
+  }
+
+  # Redis (VCN internal only)
+  ingress_security_rules {
+    source      = var.subnet_cidr
+    source_type = "CIDR_BLOCK"
+    protocol    = "6"
+    stateless   = false
+    tcp_options {
+      min = 6379
+      max = 6379
+    }
+  }
+
   # ICMP (ping + path MTU)
   ingress_security_rules {
     source      = "0.0.0.0/0"
