@@ -57,3 +57,4 @@ jobs:
         run: ansible-playbook playbooks/site.yml
         env:
           ANSIBLE_HOST_KEY_CHECKING: "false"
+          ANSIBLE_PRIVATE_KEY_FILE: "~/.ssh/id_ed25519"
