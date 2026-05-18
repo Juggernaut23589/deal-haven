@@ -133,6 +133,9 @@ jobs:
             set -e
             cd ${{ env.APP_DIR }}/frontend
 
+            # Wipe old build to ensure no stale files are served
+            rm -rf .next
+
             # Unpack the pre-built artifact from CI
             tar -xzf /tmp/frontend-build.tar.gz -C .
             rm /tmp/frontend-build.tar.gz
