@@ -107,6 +107,14 @@ jobs:
             git reset --hard origin/dev
           ENDSSH
 
+      - name: Remove legacy PM2 processes
+        run: |
+          ssh ${{ env.DEPLOY_USER }}@${{ env.APP_SERVER }} << 'ENDSSH'
+            pm2 delete deal-haven-api 2>/dev/null || true
+            pm2 delete deal-haven-web 2>/dev/null || true
+            pm2 save
+          ENDSSH
+
       - name: Deploy backend
         run: |
           ssh ${{ env.DEPLOY_USER }}@${{ env.APP_SERVER }} << 'ENDSSH'
