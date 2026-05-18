@@ -65,6 +65,15 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ env.APP_SERVER }} >> ~/.ssh/known_hosts 2>/dev/null
 
+      - name: Migrate app directory name if needed
+        run: |
+          ssh ${{ env.DEPLOY_USER }}@${{ env.APP_SERVER }} << 'ENDSSH'
+            if [ -d "/home/deploy/deal-haven" ] && [ ! -d "/home/deploy/ashimarket" ]; then
+              mv /home/deploy/deal-haven /home/deploy/ashimarket
+              echo "Renamed deal-haven -> ashimarket"
+            fi
+          ENDSSH
+
       - name: Pull latest code on server
         run: |
           ssh ${{ env.DEPLOY_USER }}@${{ env.APP_SERVER }} << 'ENDSSH'
