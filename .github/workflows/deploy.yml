@@ -59,10 +59,9 @@ jobs:
           tar -czf frontend-build.tar.gz \
             -C frontend \
             .next \
-            public \
             package.json \
             package-lock.json \
-            next.config.ts
+            next.config.js
 
       - name: Upload frontend build artifact
         uses: actions/upload-artifact@v4
