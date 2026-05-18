@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   authors: [{ name: 'Ashimarket' }],
   creator: 'Ashimarket',
   publisher: 'Ashimarket',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   openGraph: {
     type: 'website',
     locale: 'en_US',
