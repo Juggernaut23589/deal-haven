@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Seeding Deal Haven database...');
+  console.log('🌱 Seeding Ashimarket database...');
 
   // ─── Clean slate ───
   await prisma.$executeRaw`TRUNCATE TABLE "users" CASCADE`;
@@ -186,7 +186,7 @@ async function main() {
 
   const adminUser = await prisma.user.create({
     data: {
-      email: 'admin@dealhaven.com',
+      email: 'admin@ashimarket.com',
       passwordHash,
       username: 'admin',
       roles: [UserRole.ADMIN, UserRole.BUYER, UserRole.SELLER],
@@ -544,7 +544,7 @@ async function main() {
     data: {
       userId: buyers[0].id,
       type: 'SYSTEM',
-      title: 'Welcome to Deal Haven!',
+      title: 'Welcome to Ashimarket!',
       message: 'Start browsing thousands of listings or sell your items today.',
       actionUrl: '/search',
     },
@@ -552,7 +552,7 @@ async function main() {
 
   console.log('✅ Seeding complete!');
   console.log('\n📋 Demo credentials (password: Password123!):');
-  console.log('  Admin:  admin@dealhaven.com');
+  console.log('  Admin:  admin@ashimarket.com');
   console.log('  Seller: techseller@example.com');
   console.log('  Seller: carseller@example.com');
   console.log('  Buyer:  buyer1@example.com');

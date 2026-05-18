@@ -16,7 +16,7 @@ export const AUTH_QUERY_KEY = ['auth', 'me'] as const;
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 /**
- * Primary authentication hook for Deal Haven.
+ * Primary authentication hook for Ashimarket.
  *
  * Wraps the Zustand auth store with React Query for server-state hydration.
  * Call this hook wherever authentication state or auth actions are needed.
@@ -126,7 +126,7 @@ export function useAuth() {
         queryClient.setQueryData(AUTH_QUERY_KEY, result.user);
         toast.success(
           'Account created!',
-          'Welcome to Deal Haven. Please verify your email address.'
+          'Welcome to Ashimarket. Please verify your email address.'
         );
         router.push('/dashboard');
       } catch (error: unknown) {

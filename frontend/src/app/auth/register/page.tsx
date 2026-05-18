@@ -137,7 +137,7 @@ const ACCOUNT_TYPES: {
   {
     value: 'both',
     title: 'Buyer & Seller',
-    description: 'The full Deal Haven experience — buy and sell.',
+    description: 'The full Ashimarket experience — buy and sell.',
     icon: Users,
     perks: ['Everything in Buyer', 'Everything in Seller', 'One unified dashboard'],
   },
@@ -262,7 +262,7 @@ export default function RegisterPage() {
             <Link
               href="/"
               className="flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
-              aria-label="Deal Haven home"
+              aria-label="Ashimarket home"
             >
               <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary shadow-sm">
                 <Tag className="h-5 w-5 text-white" aria-hidden="true" />
@@ -276,7 +276,7 @@ export default function RegisterPage() {
                 Create your account
               </h1>
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                Join millions of buyers and sellers on Deal Haven
+                Join millions of buyers and sellers on Ashimarket
               </p>
             </div>
           </div>
@@ -483,7 +483,7 @@ export default function RegisterPage() {
                       </p>
                     ) : (
                       <p id="username-hint" className="mt-1 text-xs text-slate-400">
-                        This will be your public profile URL: deal-haven.com/shop/username
+                        This will be your public profile URL: ashimarket.com/shop/username
                       </p>
                     )}
                   </div>
@@ -608,7 +608,7 @@ export default function RegisterPage() {
                         aria-describedby={errors.agreedToTerms ? 'terms-error' : undefined}
                       />
                       <span className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                        I agree to Deal Haven&apos;s{' '}
+                        I agree to Ashimarket&apos;s{' '}
                         <Link href={"/terms" as Route} target="_blank" className="font-medium text-primary hover:underline">
                           Terms of Service
                         </Link>{' '}

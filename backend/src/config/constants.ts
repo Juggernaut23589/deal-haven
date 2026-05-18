@@ -1,4 +1,4 @@
-// Deal Haven — Application Constants
+// Ashimarket — Application Constants
 
 export const AUTH = {
   ACCESS_TOKEN_EXPIRY: '15m',

@@ -75,7 +75,7 @@ function NavSearchBar() {
     >
       <div className="relative flex w-full">
         <label htmlFor="navbar-search" className="sr-only">
-          Search Deal Haven
+          Search Ashimarket
         </label>
         <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
           <Search className="h-4 w-4 text-slate-400" aria-hidden="true" />
@@ -605,7 +605,7 @@ export function Navbar() {
             <Link
               href="/"
               className="flex items-center gap-2 shrink-0"
-              aria-label="Deal Haven — home"
+              aria-label="Ashimarket — home"
             >
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary">
                 <Tag className="h-4.5 w-4.5 text-white" aria-hidden="true" />

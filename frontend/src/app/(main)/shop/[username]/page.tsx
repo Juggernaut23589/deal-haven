@@ -50,7 +50,7 @@ function useSellerProfile(username: string) {
     username,
     displayName: username.charAt(0).toUpperCase() + username.slice(1).replace(/([A-Z])/g, ' $1'),
     avatarUrl: `https://i.pravatar.cc/120?u=${username}`,
-    bio: 'Trusted seller on Deal Haven. Fast shipping, great prices, and quality items guaranteed. We stand behind every sale with our satisfaction promise.',
+    bio: 'Trusted seller on Ashimarket. Fast shipping, great prices, and quality items guaranteed. We stand behind every sale with our satisfaction promise.',
     location: 'New York, NY',
     memberSince: 'January 2024',
     verified: true,

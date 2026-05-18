@@ -26,32 +26,32 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Deal Haven — Find Amazing Deals, Sell With Ease',
-    template: '%s | Deal Haven',
+    default: 'Ashimarket — Find Amazing Deals, Sell With Ease',
+    template: '%s | Ashimarket',
   },
   description:
-    'Deal Haven is a modern multi-vendor marketplace where you can buy and sell everything from electronics to real estate. Make offers, bid at auction, and find unbeatable deals.',
+    'Ashimarket is a modern multi-vendor marketplace where you can buy and sell everything from electronics to real estate. Make offers, bid at auction, and find unbeatable deals.',
   keywords: [
     'marketplace', 'buy', 'sell', 'deals', 'electronics', 'cars', 'real estate',
-    'auction', 'make offer', 'online shopping', 'deal haven',
+    'auction', 'make offer', 'online shopping', 'ashimarket',
   ],
-  authors: [{ name: 'Deal Haven' }],
-  creator: 'Deal Haven',
-  publisher: 'Deal Haven',
+  authors: [{ name: 'Ashimarket' }],
+  creator: 'Ashimarket',
+  publisher: 'Ashimarket',
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
   openGraph: {
     type: 'website',
     locale: 'en_US',
     url: '/',
-    siteName: 'Deal Haven',
-    title: 'Deal Haven — Find Amazing Deals, Sell With Ease',
+    siteName: 'Ashimarket',
+    title: 'Ashimarket — Find Amazing Deals, Sell With Ease',
     description:
       'A modern marketplace for buying and selling everything. Auctions, offers, and incredible deals.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Deal Haven Marketplace' }],
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Ashimarket Marketplace' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Deal Haven',
+    title: 'Ashimarket',
     description: 'Find Amazing Deals. Sell With Ease.',
     images: ['/og-image.png'],
   },

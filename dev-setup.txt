@@ -1,5 +1,5 @@
 ================================================================================
-  DEAL HAVEN — DEV/TEST ENVIRONMENT SETUP GUIDE
+  ASHIMARKET — DEV/TEST ENVIRONMENT SETUP GUIDE
 ================================================================================
 
   Free Stack:
@@ -25,7 +25,7 @@
 
   3. Click "New Project"
        - Choose your organization
-       - Project name: deal-haven
+       - Project name: ashimarket
        - Database password: choose a strong password and SAVE IT
        - Region: pick the closest to you (e.g. US East, EU West)
        - Plan: Free
@@ -57,7 +57,7 @@
 
   3. Create a Redis database:
        - Click "Create database"
-       - Name: deal-haven-redis
+       - Name: ashimarket-redis
        - Type: Regional
        - Region: pick the closest to your Oracle Cloud VM (e.g. US-East-1)
        - Plan: Free (256 MB, 10,000 commands/day)
@@ -106,7 +106,7 @@
   3. Verify your email address when prompted
 
   4. Set up your Cloud Account:
-       - Cloud Account Name: choose a unique name (e.g. "dealhaven")
+       - Cloud Account Name: choose a unique name (e.g. "ashimarket")
        - Username and password for your account
        - You will be asked for a credit card for identity verification ONLY
          — Oracle states: "You will NOT be charged unless you manually
@@ -126,7 +126,7 @@
   3. Click "Create instance"
 
   4. Configure the instance:
-       - Name: deal-haven-dev
+       - Name: ashimarket-dev
        - Compartment: (root) — leave as default
 
        - Image and shape (IMPORTANT — must select ARM for Always Free):
@@ -262,19 +262,19 @@
   --- 5A. Clone the repository ---
 
   If your project is on GitHub:
-    git clone https://github.com/YOUR_USERNAME/deal-haven.git
-    cd deal-haven
+    git clone https://github.com/YOUR_USERNAME/ashimarket.git
+    cd ashimarket
 
   If not on GitHub yet, copy files from your local machine:
     # Run this on your LOCAL machine (not the Oracle VM):
     scp -i ~/Downloads/ssh-key-YYYY-MM-DD.key -r \
-      /Users/olumidearowolo/Desktop/web-projects/deal-haven \
-      ubuntu@YOUR_ORACLE_PUBLIC_IP:~/deal-haven
+      /Users/olumidearowolo/Desktop/web-projects/ashimarket \
+      ubuntu@YOUR_ORACLE_PUBLIC_IP:~/ashimarket
 
 
   --- 5B. Configure environment variables ---
 
-    cd ~/deal-haven/backend
+    cd ~/ashimarket/backend
     cp ../.env.example .env
     nano .env
 
@@ -305,7 +305,7 @@
 
   --- 5C. Install backend dependencies & run migrations ---
 
-    cd ~/deal-haven/backend
+    cd ~/ashimarket/backend
     npm install
     npx prisma generate
     npx prisma migrate deploy
@@ -314,7 +314,7 @@
 
   --- 5D. Configure frontend environment ---
 
-    cd ~/deal-haven/frontend
+    cd ~/ashimarket/frontend
     nano .env.local
 
   Add these lines:
@@ -337,15 +337,15 @@
 
   --- 6A. Start the backend with PM2 ---
 
-    cd ~/deal-haven/backend
-    pm2 start npm --name "deal-haven-api" -- run dev
+    cd ~/ashimarket/backend
+    pm2 start npm --name "ashimarket-api" -- run dev
     pm2 save
 
 
   --- 6B. Start the frontend with PM2 ---
 
-    cd ~/deal-haven/frontend
-    pm2 start npm --name "deal-haven-web" -- run start
+    cd ~/ashimarket/frontend
+    pm2 start npm --name "ashimarket-web" -- run start
     pm2 save
 
 
@@ -359,7 +359,7 @@
   --- 6D. Verify both are running ---
 
     pm2 status
-    # Both "deal-haven-api" and "deal-haven-web" should show "online"
+    # Both "ashimarket-api" and "ashimarket-web" should show "online"
 
 
 ================================================================================
@@ -376,7 +376,7 @@
   ┌──────────────┬────────────────────────────────┐
   │     Role     │             Email              │
   ├──────────────┼────────────────────────────────┤
-  │ Admin        │ admin@dealhaven.com            │
+  │ Admin        │ admin@ashimarket.com            │
   │ Seller       │ techseller@example.com         │
   │ Seller       │ carseller@example.com          │
   │ Buyer        │ buyer1@example.com             │
@@ -391,25 +391,25 @@
     pm2 status
 
   View backend logs:
-    pm2 logs deal-haven-api
+    pm2 logs ashimarket-api
 
   View frontend logs:
-    pm2 logs deal-haven-web
+    pm2 logs ashimarket-web
 
   Restart backend:
-    pm2 restart deal-haven-api
+    pm2 restart ashimarket-api
 
   Restart frontend:
-    pm2 restart deal-haven-web
+    pm2 restart ashimarket-web
 
   Stop everything:
     pm2 stop all
 
   Re-run database seed (resets demo data):
-    cd ~/deal-haven/backend && npm run db:seed
+    cd ~/ashimarket/backend && npm run db:seed
 
   Pull latest code changes and redeploy:
-    cd ~/deal-haven
+    cd ~/ashimarket
     git pull
     cd backend && npm install && npx prisma migrate deploy
     cd ../frontend && npm install && npm run build
@@ -438,7 +438,7 @@
            Check iptables rules: sudo iptables -L INPUT -n --line-numbers
 
   Problem: "PM2 process shows errored"
-  Fix:     Run: pm2 logs deal-haven-api --lines 50
+  Fix:     Run: pm2 logs ashimarket-api --lines 50
            Check the error output and verify your .env values
 
   Problem: "npm run build fails on frontend"
@@ -447,7 +447,7 @@
 
   Problem: Supabase project is paused after inactivity
   Fix:     Log in to supabase.com → select your project → click "Restore project"
-           Wait ~1 minute, then restart backend: pm2 restart deal-haven-api
+           Wait ~1 minute, then restart backend: pm2 restart ashimarket-api
 
   Problem: "Upstash rate limit exceeded" (10K commands/day)
   Fix:     This is a dev/testing limit. Wait until midnight UTC for reset.

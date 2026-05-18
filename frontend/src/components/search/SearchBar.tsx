@@ -421,7 +421,7 @@ export function SearchBar({
       <form
         onSubmit={handleSubmit}
         role="search"
-        aria-label="Search Deal Haven listings"
+        aria-label="Search Ashimarket listings"
       >
         <div
           className={cn(

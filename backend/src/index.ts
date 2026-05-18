@@ -23,7 +23,7 @@ async function start(): Promise<void> {
 
     // Start server
     await app.listen({ port: PORT, host: HOST });
-    logger.info({ port: PORT, host: HOST }, 'Deal Haven API started');
+    logger.info({ port: PORT, host: HOST }, 'Ashimarket API started');
 
     // Handle graceful shutdown
     const signals = ['SIGTERM', 'SIGINT'];

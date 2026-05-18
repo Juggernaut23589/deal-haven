@@ -1,4 +1,4 @@
-# Deal Haven — Infrastructure (Oracle Cloud)
+# Ashimarket — Infrastructure (Oracle Cloud)
 
 Terraform configuration that provisions the always-free Ampere A1 VM on
 Oracle Cloud Infrastructure (OCI) plus its networking (VCN, subnet, IGW,

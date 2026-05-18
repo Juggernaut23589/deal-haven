@@ -1,4 +1,4 @@
-# Deal Haven — Multi-Vendor Marketplace
+# Ashimarket — Multi-Vendor Marketplace
 
 A production-grade online marketplace platform with auctions, offers, escrow payments, real-time messaging, and intelligent deal scoring.
 
@@ -66,7 +66,7 @@ npm run dev        # starts on port 3000
 
 | Role | Email |
 |------|-------|
-| Admin | admin@dealhaven.com |
+| Admin | admin@ashimarket.com |
 | Seller (Tech) | techseller@example.com |
 | Seller (Cars) | carseller@example.com |
 | Seller (Fashion) | fashionseller@example.com |
@@ -98,7 +98,7 @@ npm run dev        # starts on port 3000
 ## Project Structure
 
 ```
-deal-haven/
+ashimarket/
 ├── backend/              # Node.js API
 │   ├── prisma/
 │   │   ├── schema.prisma # Database schema (30+ models)

@@ -734,7 +734,7 @@ export default function HomePage() {
                 id="how-it-works-heading"
                 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-display text-slate-900 dark:text-slate-100"
               >
-                How Deal Haven Works
+                How Ashimarket Works
               </h2>
               <p className="mt-2 text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
                 Three simple steps from browsing to buying — safely and securely.
@@ -743,7 +743,7 @@ export default function HomePage() {
 
             <ol
               className="grid grid-cols-1 md:grid-cols-3 gap-8"
-              aria-label="Steps to buy on Deal Haven"
+              aria-label="Steps to buy on Ashimarket"
             >
               {HOW_IT_WORKS.map(({ step, icon: Icon, title, description, image }) => (
                 <li
@@ -825,7 +825,7 @@ export default function HomePage() {
         >
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14">
             <h2 id="trust-heading" className="sr-only">
-              Why shoppers trust Deal Haven
+              Why shoppers trust Ashimarket
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {TRUST_ITEMS.map(({ icon: Icon, title, description }) => (

@@ -97,7 +97,7 @@ export async function buildApp() {
     void reply.status(200).send({
       status: 'ok',
       timestamp: new Date().toISOString(),
-      service: 'deal-haven-api',
+      service: 'ashimarket-api',
       version: '1.0.0',
     });
   });

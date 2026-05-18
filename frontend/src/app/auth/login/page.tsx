@@ -86,7 +86,7 @@ export default function LoginPage() {
             <Link
               href="/"
               className="flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
-              aria-label="Deal Haven home"
+              aria-label="Ashimarket home"
             >
               <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary shadow-sm">
                 <Tag className="h-5 w-5 text-white" aria-hidden="true" />
@@ -100,7 +100,7 @@ export default function LoginPage() {
                 Welcome back
               </h1>
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                Sign in to your Deal Haven account
+                Sign in to your Ashimarket account
               </p>
             </div>
           </div>

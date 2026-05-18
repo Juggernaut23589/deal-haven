@@ -27,7 +27,7 @@ export type PaymentStatus =
 export type PaymentMethod =
   | 'card'
   | 'bank_transfer'
-  | 'deal_haven_wallet'
+  | 'ashimarket_wallet'
   | 'paypal'
   | 'crypto';
 

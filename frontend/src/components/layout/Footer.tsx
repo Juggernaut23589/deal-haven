@@ -58,7 +58,7 @@ const footerColumns: { heading: string; links: { label: string; href: Route }[] 
   {
     heading: 'Company',
     links: [
-      { label: 'About Deal Haven', href: '/about' as Route },
+      { label: 'About Ashimarket', href: '/about' as Route },
       { label: 'Safety Tips', href: '/safety' as Route },
       { label: 'Help Center', href: '/help' as Route },
       { label: 'Contact Us', href: '/contact' as Route },
@@ -70,10 +70,10 @@ const footerColumns: { heading: string; links: { label: string; href: Route }[] 
 ];
 
 const socialLinks = [
-  { label: 'Twitter / X', href: 'https://twitter.com/dealhaven', Icon: Twitter },
-  { label: 'Instagram', href: 'https://instagram.com/dealhaven', Icon: Instagram },
-  { label: 'Facebook', href: 'https://facebook.com/dealhaven', Icon: Facebook },
-  { label: 'LinkedIn', href: 'https://linkedin.com/company/dealhaven', Icon: Linkedin },
+  { label: 'Twitter / X', href: 'https://twitter.com/ashimarket', Icon: Twitter },
+  { label: 'Instagram', href: 'https://instagram.com/ashimarket', Icon: Instagram },
+  { label: 'Facebook', href: 'https://facebook.com/ashimarket', Icon: Facebook },
+  { label: 'LinkedIn', href: 'https://linkedin.com/company/ashimarket', Icon: Linkedin },
 ];
 
 // ─── Newsletter Form ──────────────────────────────────────────────────────────
@@ -102,7 +102,7 @@ function NewsletterForm() {
       {submitted ? (
         <p className="flex items-center gap-2 text-success text-sm font-medium">
           <Shield className="h-4 w-4" aria-hidden="true" />
-          You&apos;re subscribed. Welcome to Deal Haven!
+          You&apos;re subscribed. Welcome to Ashimarket!
         </p>
       ) : (
         <form onSubmit={handleSubmit} className="flex gap-2" noValidate>
@@ -163,7 +163,7 @@ export function Footer() {
             <Link
               href="/"
               className="inline-flex items-center gap-2 group"
-              aria-label="Deal Haven home"
+              aria-label="Ashimarket home"
             >
               <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary group-hover:bg-primary-dark transition-colors">
                 <Tag className="h-5 w-5 text-white" aria-hidden="true" />
@@ -258,7 +258,7 @@ export function Footer() {
       <div className="border-t border-slate-800">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap items-center justify-between gap-4">
           <p className="text-xs text-slate-500">
-            &copy; {currentYear} Deal Haven, Inc. All rights reserved.
+            &copy; {currentYear} Ashimarket, Inc. All rights reserved.
           </p>
 
           <nav aria-label="Legal links">

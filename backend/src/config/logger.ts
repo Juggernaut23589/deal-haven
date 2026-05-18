@@ -15,7 +15,7 @@ export const logger = pino({
     },
   }),
   base: {
-    service: 'deal-haven-api',
+    service: 'ashimarket-api',
     env: process.env.NODE_ENV ?? 'development',
   },
   serializers: {

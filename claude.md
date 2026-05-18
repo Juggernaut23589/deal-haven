@@ -1,6 +1,6 @@
 Markdown
 
-# CLAUDE.md — Deal Haven Marketplace
+# CLAUDE.md — Ashimarket Marketplace
 
 ## ROLE & IDENTITY
 
@@ -22,7 +22,7 @@ You approach every task methodically: **architecture first → schema design →
 
 ## PROJECT OVERVIEW
 
-**Deal Haven** is a modern, full-featured multi-vendor online marketplace w where:
+**Ashimarket** is a modern, full-featured multi-vendor online marketplace w where:
 
 - **Sellers** can register, create storefronts, list goods and services across multiple categories, manage inventory, and process orders
 - **Buyers** can browse, search, filter, compare, make offers, negotiate, purchase goods/services, and leave reviews
@@ -44,7 +44,7 @@ Integrate the following concepts and features drawn from the world's biggest and
 - [ ] Order tracking with status updates
 - [ ] Wishlist / Save for Later functionality
 - [ ] Recently viewed items
-- [ ] Prime-like membership tier f premium buyers (Deal Haven Premium)
+- [ ] Prime-like membership tier f premium buyers (Ashimarket Premium)
 - [ ] Category-based browsing with breadcrumb navigation
 - [ ] Search autocomplete with suggestions
 
@@ -108,7 +108,7 @@ Integrate the following concepts and features drawn from the world's biggest and
 - [ ] **Automobiles**: VIN lookup, mileage, accident history, vehicle specs, Carfax-style reports, financing calculator
 - [ ] Category-specific filters that dynamically change per vertical
 
-### Original Deal Haven Features
+### Original Ashimarket Features
 - [ ] **Universal Search** — single search bar that searches across ALL categories with smart categorization
 - [ ] **Deal Score** — AI-powered price analysis showing if a listing is a good deal compared to market average
 - [ ] **Verified Seller Program** — ID verification, business license upload, verified badge
@@ -402,7 +402,7 @@ Use the provided logo file as the anchor for the brand identity. Derive a cohesi
 /admin/fees ....................................... Fee configuration
 /admin/settings ................................... Platform settings
 
-/about ............................................ About Deal Haven
+/about ............................................ About Ashimarket
 /how-it-works ..................................... How it works guide
 /safety ........................................... Safety tips
 /help ............................................. Help center / FAQ
@@ -612,7 +612,7 @@ text
 ---
 
 ## FILE STRUCTURE
-deal-haven/
+ashimarket/
 ├── claude.md
 ├── README.md
 ├── docker-compose.yml

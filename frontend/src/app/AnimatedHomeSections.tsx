@@ -96,7 +96,7 @@ function CTABanner() {
               Ready to find your next great deal?
             </h2>
             <p className="mt-3 text-lg text-white/75 max-w-lg mx-auto lg:mx-0">
-              Join millions of buyers and sellers on Deal Haven. Start shopping or list your first item in under 60 seconds.
+              Join millions of buyers and sellers on Ashimarket. Start shopping or list your first item in under 60 seconds.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center lg:justify-start gap-3">
               <Link

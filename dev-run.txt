@@ -1,5 +1,5 @@
 ================================================================================
-  DEAL HAVEN — COMPLETE DEPLOYMENT & RUN GUIDE
+  ASHIMARKET — COMPLETE DEPLOYMENT & RUN GUIDE
   (Backend Engineer + DevOps Reference)
 ================================================================================
 
@@ -39,7 +39,7 @@
   Install PostgreSQL locally (optional — skip if using Supabase):
     brew install postgresql@16
     brew services start postgresql@16
-    createdb deal_haven_dev
+    createdb ashimarket_dev
 
   Install Redis locally (optional — skip if using Upstash):
     brew install redis
@@ -48,7 +48,7 @@
 
   --- A1. Clone / Enter the project ---
 
-    cd /Users/olumidearowolo/Desktop/web-projects/deal-haven
+    cd /Users/olumidearowolo/Desktop/web-projects/ashimarket
 
 
   --- A2. Configure backend environment ---
@@ -67,7 +67,7 @@
     ALLOWED_ORIGINS=http://localhost:3000
 
     # Local PostgreSQL:
-    DATABASE_URL="postgresql://postgres:YOUR_PG_PASSWORD@localhost:5432/deal_haven_dev"
+    DATABASE_URL="postgresql://postgres:YOUR_PG_PASSWORD@localhost:5432/ashimarket_dev"
     # -OR- Supabase URL (from dev-setup.txt Step 1):
     # DATABASE_URL="postgresql://postgres:PASSWORD@db.XXXX.supabase.co:5432/postgres"
 
@@ -101,7 +101,7 @@
     SMTP_SECURE=false
     SMTP_USER=<ethereal user>
     SMTP_PASS=<ethereal pass>
-    EMAIL_FROM="Deal Haven <noreply@dealhaven.com>"
+    EMAIL_FROM="Ashimarket <noreply@ashimarket.com>"
 
     # Leave Stripe/Google/Mapbox blank if not testing those features
     UPLOAD_DIR=uploads
@@ -122,7 +122,7 @@
 
   --- A3. Install backend dependencies ---
 
-    cd /path/to/deal-haven/backend
+    cd /path/to/ashimarket/backend
     npm install
 
   NOTE: The `sharp` package (image processing) builds a native binary.
@@ -160,7 +160,7 @@
 
   --- A6. Configure frontend environment ---
 
-    cd /path/to/deal-haven/frontend
+    cd /path/to/ashimarket/frontend
     # Create .env.local (Next.js reads this automatically):
     cat > .env.local << 'EOF'
     NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1
@@ -172,7 +172,7 @@
 
   --- A7. Install frontend dependencies ---
 
-    cd /path/to/deal-haven/frontend
+    cd /path/to/ashimarket/frontend
     npm install
 
 
@@ -191,7 +191,7 @@
     http://localhost:4000/health   → {"status":"ok"} (Fastify health check)
 
   Demo login credentials (password for all: Password123!):
-    admin@dealhaven.com      → Admin
+    admin@ashimarket.com      → Admin
     techseller@example.com   → Seller
     carseller@example.com    → Seller
     buyer1@example.com       → Buyer
@@ -219,16 +219,16 @@
   Option A — SCP from your Mac (if not on GitHub):
     # Run on your LOCAL Mac:
     scp -i ~/Downloads/ssh-key.key -r \
-      /Users/olumidearowolo/Desktop/web-projects/deal-haven \
-      ubuntu@YOUR_ORACLE_IP:~/deal-haven
+      /Users/olumidearowolo/Desktop/web-projects/ashimarket \
+      ubuntu@YOUR_ORACLE_IP:~/ashimarket
 
   Option B — Clone from GitHub (if pushed):
-    git clone https://github.com/YOUR_USERNAME/deal-haven.git ~/deal-haven
+    git clone https://github.com/YOUR_USERNAME/ashimarket.git ~/ashimarket
 
 
   --- B2. Configure backend .env on the server ---
 
-    cd ~/deal-haven/backend
+    cd ~/ashimarket/backend
     cp ../.env.example .env
     nano .env
 
@@ -259,7 +259,7 @@
 
   --- B3. Install backend dependencies ---
 
-    cd ~/deal-haven/backend
+    cd ~/ashimarket/backend
     npm install --omit=dev
 
   NOTE: --omit=dev skips test/lint packages to keep the install lean.
@@ -272,7 +272,7 @@
   The `npm run start` script runs `node dist/index.js` — it requires a
   compiled build. Run:
 
-    cd ~/deal-haven/backend
+    cd ~/ashimarket/backend
     npm install           # needs devDependencies (tsc, tsx) to compile
     npm run build         # tsc → compiles src/ → dist/
     # Verify:
@@ -281,7 +281,7 @@
 
   --- B5. Run Prisma migrations and seed ---
 
-    cd ~/deal-haven/backend
+    cd ~/ashimarket/backend
     npx prisma generate
     npx prisma migrate deploy
     npm run db:seed
@@ -289,7 +289,7 @@
 
   --- B6. Configure frontend .env on the server ---
 
-    cd ~/deal-haven/frontend
+    cd ~/ashimarket/frontend
     nano .env.local
 
   Add:
@@ -301,7 +301,7 @@
 
   --- B7. Install and build the frontend ---
 
-    cd ~/deal-haven/frontend
+    cd ~/ashimarket/frontend
     npm install
     npm run build
     # Next.js produces an optimized production build in .next/
@@ -314,13 +314,13 @@
   --- B8. Start both services with PM2 ---
 
   Backend (compiled production build — NOT dev mode):
-    cd ~/deal-haven/backend
-    pm2 start npm --name "deal-haven-api" -- run start
+    cd ~/ashimarket/backend
+    pm2 start npm --name "ashimarket-api" -- run start
     # This runs: node dist/index.js
 
   Frontend (Next.js production server):
-    cd ~/deal-haven/frontend
-    pm2 start npm --name "deal-haven-web" -- run start
+    cd ~/ashimarket/frontend
+    pm2 start npm --name "ashimarket-web" -- run start
     # This runs: next start (serves the .next/ build)
 
   Save PM2 process list and enable auto-start on reboot:
@@ -340,11 +340,11 @@
     # Expected: {"status":"ok","timestamp":"..."}
 
   Check logs for errors:
-    pm2 logs deal-haven-api --lines 50
-    pm2 logs deal-haven-web --lines 50
+    pm2 logs ashimarket-api --lines 50
+    pm2 logs ashimarket-web --lines 50
 
   Open in browser:
-    http://YOUR_ORACLE_IP:3000    → Deal Haven frontend
+    http://YOUR_ORACLE_IP:3000    → Ashimarket frontend
     http://YOUR_ORACLE_IP:4000    → Fastify API root
 
 
@@ -392,40 +392,40 @@
     pm2 logs
 
   View logs for specific process:
-    pm2 logs deal-haven-api
-    pm2 logs deal-haven-web
+    pm2 logs ashimarket-api
+    pm2 logs ashimarket-web
 
   Tail last N lines then stream live:
-    pm2 logs deal-haven-api --lines 100
+    pm2 logs ashimarket-api --lines 100
 
   Restart a process (picks up code changes if using dist/):
-    pm2 restart deal-haven-api
-    pm2 restart deal-haven-web
+    pm2 restart ashimarket-api
+    pm2 restart ashimarket-web
     pm2 restart all
 
   Stop all processes:
     pm2 stop all
 
   Delete a process from PM2 list:
-    pm2 delete deal-haven-api
+    pm2 delete ashimarket-api
 
   Monitor CPU/RAM in real time:
     pm2 monit
 
   Full redeploy after a code update:
-    cd ~/deal-haven
+    cd ~/ashimarket
     git pull
     # Backend:
     cd backend
     npm install
     npm run build
     npx prisma migrate deploy
-    pm2 restart deal-haven-api
+    pm2 restart ashimarket-api
     # Frontend:
     cd ../frontend
     npm install
     npm run build
-    pm2 restart deal-haven-web
+    pm2 restart ashimarket-web
 
 
 ================================================================================
@@ -452,12 +452,12 @@
   ISSUE 2 — PM2 using `npm run dev` in production
   -------------------------------------------------
   Symptom:  dev-setup.txt Step 6A says:
-              pm2 start npm --name "deal-haven-api" -- run dev
+              pm2 start npm --name "ashimarket-api" -- run dev
             This starts tsx watch which is a dev-only tool. It works but is
             wasteful (tsx compiles on each change) and not suitable for prod.
   Fix:      Always use the compiled production build for PM2 in production:
               npm run build                 # compile first
-              pm2 start npm --name "deal-haven-api" -- run start
+              pm2 start npm --name "ashimarket-api" -- run start
             The `start` script runs `node dist/index.js` — no compilation at
             runtime, much faster and more stable.
 
@@ -470,7 +470,7 @@
               npm install --cpu=wasm32 sharp
             Or use the generic ARM-compatible build:
               npm install --ignore-scripts=false sharp
-            Then re-run: npm run build && pm2 restart deal-haven-api
+            Then re-run: npm run build && pm2 restart ashimarket-api
 
   ISSUE 4 — Supabase paused database
   ------------------------------------
@@ -478,17 +478,17 @@
             or "ECONNREFUSED" against db.XXXX.supabase.co.
   Fix:      Log into https://supabase.com → select your project → click
             "Restore project". Wait ~60 seconds, then:
-              pm2 restart deal-haven-api
+              pm2 restart ashimarket-api
 
   ISSUE 5 — Frontend build fails with missing env vars
   -----------------------------------------------------
   Symptom:  `npm run build` outputs warnings about undefined NEXT_PUBLIC_ vars
             or the built app cannot reach the API.
-  Fix:      Ensure ~/deal-haven/frontend/.env.local exists with all 3 vars:
+  Fix:      Ensure ~/ashimarket/frontend/.env.local exists with all 3 vars:
               NEXT_PUBLIC_API_URL=http://YOUR_ORACLE_IP:4000/api/v1
               NEXT_PUBLIC_SOCKET_URL=http://YOUR_ORACLE_IP:4000
               NEXT_PUBLIC_APP_URL=http://YOUR_ORACLE_IP:3000
-            Then re-run: npm run build && pm2 restart deal-haven-web
+            Then re-run: npm run build && pm2 restart ashimarket-web
 
   ISSUE 6 — Port 3000 / 4000 not reachable from browser
   -------------------------------------------------------
@@ -587,8 +587,8 @@
   SMTP_SECURE                   yes       false (587) or true (465)
   SMTP_USER                     yes       SMTP username
   SMTP_PASS                     yes       SMTP password
-  EMAIL_FROM                    yes       "Deal Haven <noreply@dealhaven.com>"
-  EMAIL_REPLY_TO                no        support@dealhaven.com
+  EMAIL_FROM                    yes       "Ashimarket <noreply@ashimarket.com>"
+  EMAIL_REPLY_TO                no        support@ashimarket.com
 
   GOOGLE_CLIENT_ID              no        OAuth2 client ID (optional feature)
   GOOGLE_CLIENT_SECRET          no        OAuth2 client secret
@@ -636,11 +636,11 @@
   Daily local dev startup (after first setup):
   ─────────────────────────────────────────────
   Terminal 1 (backend):
-    cd /Users/olumidearowolo/Desktop/web-projects/deal-haven/backend
+    cd /Users/olumidearowolo/Desktop/web-projects/ashimarket/backend
     npm run dev
 
   Terminal 2 (frontend):
-    cd /Users/olumidearowolo/Desktop/web-projects/deal-haven/frontend
+    cd /Users/olumidearowolo/Desktop/web-projects/ashimarket/frontend
     npm run dev
 
   Then open: http://localhost:3000

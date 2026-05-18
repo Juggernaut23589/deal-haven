@@ -1,4 +1,4 @@
-// Deal Haven — Custom Error Classes
+// Ashimarket — Custom Error Classes
 
 export class AppError extends Error {
   public readonly statusCode: number;

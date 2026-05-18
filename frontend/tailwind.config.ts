@@ -10,7 +10,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Deal Haven Brand Colors
+        // Ashimarket Brand Colors
         primary: {
           DEFAULT: '#0D7377',
           light: '#14A3A8',
