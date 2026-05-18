@@ -16,7 +16,7 @@ env:
   APP_DIR: /home/deploy/ashimarket
 
 jobs:
-  test:
+  test-and-build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -50,13 +50,38 @@ jobs:
       - name: Build frontend
         run: npm run build
         working-directory: frontend
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+
+      - name: Package frontend build artifact
+        run: |
+          tar -czf frontend-build.tar.gz \
+            -C frontend \
+            .next \
+            public \
+            package.json \
+            package-lock.json \
+            next.config.ts
+
+      - name: Upload frontend build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend-build.tar.gz
+          retention-days: 1
 
   deploy:
-    needs: test
+    needs: test-and-build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Download frontend build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
 
       - name: Set up SSH
         run: |
@@ -88,7 +113,7 @@ jobs:
           ssh ${{ env.DEPLOY_USER }}@${{ env.APP_SERVER }} << 'ENDSSH'
             set -e
             cd ${{ env.APP_DIR }}/backend
-            npm ci --production
+            npm ci --omit=dev
 
             # Baseline existing DB if needed, then run migrations
             npx prisma migrate resolve --applied 0_init 2>/dev/null || true
@@ -99,13 +124,22 @@ jobs:
             pm2 save
           ENDSSH
 
+      - name: Ship frontend build to server
+        run: |
+          scp frontend-build.tar.gz ${{ env.DEPLOY_USER }}@${{ env.APP_SERVER }}:/tmp/frontend-build.tar.gz
+
       - name: Deploy frontend
         run: |
           ssh ${{ env.DEPLOY_USER }}@${{ env.APP_SERVER }} << 'ENDSSH'
             set -e
             cd ${{ env.APP_DIR }}/frontend
-            npm ci
-            npm run build
+
+            # Unpack the pre-built artifact from CI
+            tar -xzf /tmp/frontend-build.tar.gz -C .
+            rm /tmp/frontend-build.tar.gz
+
+            # Install production deps only (no build needed)
+            npm ci --omit=dev
 
             # Restart frontend via PM2
             pm2 restart ashimarket-web || pm2 start npm --name ashimarket-web -- start
