@@ -4,12 +4,12 @@ services:
   # ─── PostgreSQL ───
   postgres:
     image: postgres:16-alpine
-    container_name: deal-haven-postgres
+    container_name: ashimarket-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: deal_haven_dev
+      POSTGRES_DB: ashimarket_dev
     ports:
       - '5432:5432'
     volumes:
@@ -23,7 +23,7 @@ services:
   # ─── Redis ───
   redis:
     image: redis:7-alpine
-    container_name: deal-haven-redis
+    container_name: ashimarket-redis
     restart: unless-stopped
     command: redis-server --appendonly yes
     ports:
@@ -41,7 +41,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: deal-haven-backend
+    container_name: ashimarket-backend
     restart: unless-stopped
     depends_on:
       postgres:
@@ -51,7 +51,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 4000
-      DATABASE_URL: postgresql://postgres:password@postgres:5432/deal_haven_dev
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/ashimarket_dev
       REDIS_HOST: redis
       REDIS_PORT: 6379
       JWT_SECRET: ${JWT_SECRET}
@@ -74,7 +74,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: deal-haven-frontend
+    container_name: ashimarket-frontend
     restart: unless-stopped
     depends_on:
       - backend

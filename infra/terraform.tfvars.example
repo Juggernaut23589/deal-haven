@@ -14,7 +14,7 @@ compartment_ocid = "ocid1.tenancy.oc1..xxxxx"
 ssh_public_key_path = "~/.ssh/id_ed25519.pub"
 
 # --- Optional overrides ---
-# project_name        = "deal-haven"
+# project_name        = "ashimarket"
 # environment         = "staging"
 # ssh_ingress_cidr    = "YOUR.PUBLIC.IP.HERE/32"   # restrict SSH to your IP
 # instance_ocpus      = 4

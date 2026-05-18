@@ -9,16 +9,16 @@
     path: /etc/nginx/sites-enabled/default
     state: absent
 
-- name: Configure Deal Haven Nginx site
+- name: Configure Ashimarket Nginx site
   template:
-    src: deal-haven.conf.j2
-    dest: /etc/nginx/sites-available/deal-haven.conf
+    src: ashimarket.conf.j2
+    dest: /etc/nginx/sites-available/ashimarket.conf
   notify: reload nginx
 
-- name: Enable Deal Haven site
+- name: Enable Ashimarket site
   file:
-    src: /etc/nginx/sites-available/deal-haven.conf
-    dest: /etc/nginx/sites-enabled/deal-haven.conf
+    src: /etc/nginx/sites-available/ashimarket.conf
+    dest: /etc/nginx/sites-enabled/ashimarket.conf
     state: link
   notify: reload nginx
 

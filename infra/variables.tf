@@ -37,7 +37,7 @@ variable "compartment_ocid" {
 variable "project_name" {
   description = "Short project identifier used as a prefix for resource names"
   type        = string
-  default     = "deal-haven"
+  default     = "ashimarket"
 }
 
 variable "environment" {

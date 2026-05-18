@@ -13,7 +13,7 @@ env:
   APP_SERVER: ${{ secrets.APP_SERVER_IP }}
   DB_SERVER: ${{ secrets.DB_SERVER_IP }}
   DEPLOY_USER: deploy
-  APP_DIR: /home/deploy/deal-haven
+  APP_DIR: /home/deploy/ashimarket
 
 jobs:
   test:
@@ -86,7 +86,7 @@ jobs:
             npx prisma migrate deploy
 
             # Restart backend via PM2
-            pm2 restart deal-haven-api || pm2 start npm --name deal-haven-api -- start
+            pm2 restart ashimarket-api || pm2 start npm --name ashimarket-api -- start
             pm2 save
           ENDSSH
 
@@ -99,6 +99,6 @@ jobs:
             npm run build
 
             # Restart frontend via PM2
-            pm2 restart deal-haven-web || pm2 start npm --name deal-haven-web -- start
+            pm2 restart ashimarket-web || pm2 start npm --name ashimarket-web -- start
             pm2 save
           ENDSSH

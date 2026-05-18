@@ -1,5 +1,5 @@
 ---
-- name: Configure Deal Haven DB Server
+- name: Configure Ashimarket DB Server
   hosts: db
   become: yes
 

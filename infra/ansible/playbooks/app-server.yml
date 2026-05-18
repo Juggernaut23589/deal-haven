@@ -1,5 +1,5 @@
 ---
-- name: Configure Deal Haven App Server
+- name: Configure Ashimarket App Server
   hosts: app
   become: yes
 

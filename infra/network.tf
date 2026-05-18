@@ -12,7 +12,7 @@ resource "oci_core_vcn" "this" {
   compartment_id = var.compartment_ocid
   display_name   = "${local.name_prefix}-vcn"
   cidr_blocks    = [var.vcn_cidr]
-  dns_label      = "dealhaven"
+  dns_label      = "ashimarket"
   freeform_tags  = local.common_tags
 }
 
