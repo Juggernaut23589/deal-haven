@@ -1,11 +1,20 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { Suspense, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import apiClient, { storeTokens } from '@/lib/api';
 
-export default function OAuthCallbackPage() {
+const Spinner = () => (
+  <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+    <div className="flex flex-col items-center gap-4">
+      <div className="h-10 w-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+      <p className="text-sm text-slate-500 dark:text-slate-400">Signing you in…</p>
+    </div>
+  </div>
+);
+
+function OAuthCallbackInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const setAuth = useAuthStore((s) => s.setAuth);
@@ -25,10 +34,8 @@ export default function OAuthCallbackPage() {
       return;
     }
 
-    // Persist tokens using the shared helper so keys match the API client
     storeTokens({ accessToken, refreshToken, expiresIn: 0 });
 
-    // Fetch user profile with the new access token
     apiClient
       .get('/auth/me', { headers: { Authorization: `Bearer ${accessToken}` } })
       .then((res) => {
@@ -42,12 +49,13 @@ export default function OAuthCallbackPage() {
       });
   }, [router, searchParams, setAuth]);
 
+  return <Spinner />;
+}
+
+export default function OAuthCallbackPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
-      <div className="flex flex-col items-center gap-4">
-        <div className="h-10 w-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-        <p className="text-sm text-slate-500 dark:text-slate-400">Signing you in…</p>
-      </div>
-    </div>
+    <Suspense fallback={<Spinner />}>
+      <OAuthCallbackInner />
+    </Suspense>
   );
 }
