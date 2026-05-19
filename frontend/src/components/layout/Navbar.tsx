@@ -427,7 +427,7 @@ function MobileMenuDrawer({
                   <Tag className="h-4 w-4 text-white" aria-hidden="true" />
                 </div>
                 <span className="text-lg font-bold text-slate-900 dark:text-white">
-                  Deal<span className="text-primary">Haven</span>
+                  Ashi<span className="text-primary">market</span>
                 </span>
               </Link>
               <button
@@ -611,7 +611,7 @@ export function Navbar() {
                 <Tag className="h-4.5 w-4.5 text-white" aria-hidden="true" />
               </div>
               <span className="text-xl font-bold hidden sm:block text-slate-900 dark:text-white">
-                Deal<span className="text-primary">Haven</span>
+                Ashi<span className="text-primary">market</span>
               </span>
             </Link>
 

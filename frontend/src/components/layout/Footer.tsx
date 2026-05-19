@@ -169,7 +169,7 @@ export function Footer() {
                 <Tag className="h-5 w-5 text-white" aria-hidden="true" />
               </div>
               <span className="text-xl font-bold text-white">
-                Deal<span className="text-primary-light">Haven</span>
+                Ashi<span className="text-primary-light">market</span>
               </span>
             </Link>
 

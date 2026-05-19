@@ -92,7 +92,7 @@ export default function LoginPage() {
                 <Tag className="h-5 w-5 text-white" aria-hidden="true" />
               </div>
               <span className="text-xl font-bold text-slate-900 dark:text-white">
-                Deal<span className="text-primary">Haven</span>
+                Ashi<span className="text-primary">market</span>
               </span>
             </Link>
             <div className="text-center">
