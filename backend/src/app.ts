@@ -19,11 +19,12 @@ import { searchRoutes } from './modules/search/search.routes';
 import { FILE_UPLOAD } from './config/constants';
 import { nanoid } from 'nanoid';
 
-export async function buildApp() {
+export async function buildApp(options?: { https?: { key: Buffer; cert: Buffer } }) {
   const fastify = Fastify({
     logger: logger as never,
     genReqId: () => nanoid(),
     trustProxy: true,
+    ...(options?.https ? { https: options.https } : {}),
   });
 
   // Security headers

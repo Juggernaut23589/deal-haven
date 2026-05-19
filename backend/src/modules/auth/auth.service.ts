@@ -329,7 +329,7 @@ export class AuthService {
     logger.info({ userId }, 'Password reset successfully');
   }
 
-  private generateAccessToken(user: {
+  generateAccessToken(user: {
     id: string;
     email: string;
     username: string;
@@ -347,7 +347,7 @@ export class AuthService {
     } as jwt.SignOptions);
   }
 
-  private generateRefreshToken(userId: string, tokenId: string): string {
+  generateRefreshToken(userId: string, tokenId: string): string {
     const payload: Omit<RefreshTokenPayload, 'iat' | 'exp'> = {
       sub: userId,
       tokenId,

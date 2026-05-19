@@ -221,15 +221,14 @@ export default function RegisterPage() {
 
   const onSubmit = async (values: RegisterFormValues) => {
     setServerError(null);
-    const role = accountType === 'both' ? 'seller' : accountType;
     try {
       await registerUser({
         email: values.email,
         password: values.password,
         username: values.username,
-        displayName: `${values.firstName} ${values.lastName}`.trim(),
-        role,
-        agreedToTerms: values.agreedToTerms,
+        firstName: values.firstName,
+        lastName: values.lastName,
+        asSeller: accountType === 'seller' || accountType === 'both',
       });
     } catch (err: unknown) {
       const msg =

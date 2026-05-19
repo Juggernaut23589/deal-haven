@@ -64,7 +64,7 @@ export default function LoginPage() {
   };
 
   const handleGoogleOAuth = () => {
-    toast.info('Coming soon', 'Google sign-in will be available soon.');
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1'}/auth/google`;
   };
 
   const isPending = isLoading || isSubmitting;

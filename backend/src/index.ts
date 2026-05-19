@@ -1,4 +1,6 @@
 import 'dotenv/config';
+import fs from 'fs';
+import path from 'path';
 import { buildApp } from './app';
 import { connectDatabase, disconnectDatabase } from './config/database';
 import { disconnectRedis } from './config/redis';
@@ -9,21 +11,33 @@ import { startBackgroundJobs, stopBackgroundJobs } from './jobs/notification.job
 const PORT = parseInt(process.env.PORT ?? '4000', 10);
 const HOST = process.env.HOST ?? '0.0.0.0';
 
+const CERTS_DIR = path.resolve(__dirname, '../../../certs');
+const certPath = path.join(CERTS_DIR, 'localhost.pem');
+const keyPath = path.join(CERTS_DIR, 'localhost-key.pem');
+const useHttps =
+  process.env.NODE_ENV !== 'production' &&
+  fs.existsSync(certPath) &&
+  fs.existsSync(keyPath);
+
 async function start(): Promise<void> {
   try {
     // Connect to databases
     await connectDatabase();
     await ensureUploadDirs();
 
-    // Build Fastify app
-    const app = await buildApp();
+    // Build Fastify app (with HTTPS in dev if certs exist)
+    const httpsOptions = useHttps
+      ? { key: fs.readFileSync(keyPath), cert: fs.readFileSync(certPath) }
+      : undefined;
+    const app = await buildApp(httpsOptions ? { https: httpsOptions } : undefined);
 
     // Start background jobs
     await startBackgroundJobs();
 
     // Start server
     await app.listen({ port: PORT, host: HOST });
-    logger.info({ port: PORT, host: HOST }, 'Ashimarket API started');
+    const protocol = useHttps ? 'https' : 'http';
+    logger.info({ port: PORT, host: HOST, protocol }, `Ashimarket API started (${protocol.toUpperCase()})`);
 
     // Handle graceful shutdown
     const signals = ['SIGTERM', 'SIGINT'];

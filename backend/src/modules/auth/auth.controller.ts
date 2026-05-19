@@ -1,6 +1,8 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import { UserRole } from '@prisma/client';
 import { authService } from './auth.service';
+import { getGoogleAuthUrl, handleGoogleCallback } from './google.oauth';
+import { authConfig } from '../../config/auth';
 import {
   registerSchema,
   loginSchema,
@@ -150,6 +152,42 @@ export class AuthController {
       success: true,
       data: safeUser,
     });
+  }
+
+  async googleRedirect(_request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    if (!authConfig.googleClientId || !authConfig.googleClientSecret) {
+      void reply.status(503).send({
+        success: false,
+        error: { code: 'OAUTH_UNAVAILABLE', message: 'Google sign-in is not configured' },
+      });
+      return;
+    }
+    const url = getGoogleAuthUrl();
+    void reply.redirect(url);
+  }
+
+  async googleCallback(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    const { code, error } = request.query as { code?: string; error?: string };
+    const frontendUrl = authConfig.frontendUrl;
+
+    if (error || !code) {
+      void reply.redirect(`${frontendUrl}/auth/login?error=google_cancelled`);
+      return;
+    }
+
+    try {
+      const result = await handleGoogleCallback(code);
+      const params = new URLSearchParams({
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+        expiresIn: String(result.expiresIn),
+        newUser: String(result.isNewUser),
+      });
+      void reply.redirect(`${frontendUrl}/auth/callback?${params.toString()}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'google_error';
+      void reply.redirect(`${frontendUrl}/auth/login?error=${encodeURIComponent(message)}`);
+    }
   }
 }
 

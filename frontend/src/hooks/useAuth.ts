@@ -95,9 +95,11 @@ export function useAuth() {
       try {
         const result = await authApi.login(payload);
         storeTokens(result.tokens);
-        setAuth(result.user, result.tokens.accessToken);
-        queryClient.setQueryData(AUTH_QUERY_KEY, result.user);
-        toast.success('Welcome back!', `Signed in as ${result.user.profile.displayName}`);
+        // Fetch full user profile — the login response only returns minimal fields
+        const fullUser = await authApi.me();
+        setAuth(fullUser, result.tokens.accessToken);
+        queryClient.setQueryData(AUTH_QUERY_KEY, fullUser);
+        toast.success('Welcome back!', `Signed in as ${fullUser.profile?.displayName ?? fullUser.username}`);
 
         // Redirect to dashboard or originally requested page
         const params = new URLSearchParams(window.location.search);
@@ -122,8 +124,10 @@ export function useAuth() {
       try {
         const result = await authApi.register(payload);
         storeTokens(result.tokens);
-        setAuth(result.user, result.tokens.accessToken);
-        queryClient.setQueryData(AUTH_QUERY_KEY, result.user);
+        // Fetch full user profile — the register response only returns minimal fields
+        const fullUser = await authApi.me();
+        setAuth(fullUser, result.tokens.accessToken);
+        queryClient.setQueryData(AUTH_QUERY_KEY, fullUser);
         toast.success(
           'Account created!',
           'Welcome to Ashimarket. Please verify your email address.'

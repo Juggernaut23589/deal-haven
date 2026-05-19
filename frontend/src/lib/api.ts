@@ -115,7 +115,18 @@ function processQueue(error: unknown, token: string | null = null): void {
 }
 
 apiClient.interceptors.response.use(
-  (response: AxiosResponse) => response,
+  (response: AxiosResponse) => {
+    // Unwrap the backend's { success, data } envelope
+    if (
+      response.data &&
+      typeof response.data === 'object' &&
+      'success' in response.data &&
+      'data' in response.data
+    ) {
+      return { ...response, data: response.data.data };
+    }
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean;
@@ -162,15 +173,16 @@ apiClient.interceptors.response.use(
       }
 
       try {
-        const { data } = await axios.post<{ tokens: TokenPair }>(
+        const { data } = await axios.post<{ success: boolean; data: TokenPair }>(
           `${BASE_URL}/auth/refresh`,
           { refreshToken }
         );
-        storeTokens(data.tokens);
-        apiClient.defaults.headers.common.Authorization = `Bearer ${data.tokens.accessToken}`;
-        processQueue(null, data.tokens.accessToken);
+        const tokens = data.data ?? (data as unknown as TokenPair);
+        storeTokens(tokens);
+        apiClient.defaults.headers.common.Authorization = `Bearer ${tokens.accessToken}`;
+        processQueue(null, tokens.accessToken);
         if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${data.tokens.accessToken}`;
+          originalRequest.headers.Authorization = `Bearer ${tokens.accessToken}`;
         }
         return apiClient(originalRequest);
       } catch (refreshError) {

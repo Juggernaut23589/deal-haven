@@ -178,9 +178,9 @@ export interface RegisterPayload {
   email: string;
   password: string;
   username: string;
-  displayName: string;
-  role?: 'buyer' | 'seller';
-  agreedToTerms: boolean;
+  firstName?: string;
+  lastName?: string;
+  asSeller?: boolean;
 }
 
 export interface UpdateProfilePayload {

@@ -59,4 +59,8 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
     { preHandler: [requireAuth] },
     (req, reply) => authController.me(req, reply),
   );
+
+  // Google OAuth
+  fastify.get('/google', (req, reply) => authController.googleRedirect(req, reply));
+  fastify.get('/google/callback', (req, reply) => authController.googleCallback(req, reply));
 }
