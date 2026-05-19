@@ -9,11 +9,10 @@ dayjs.extend(calendar);
 
 /**
  * Formats a numeric amount as a localized price string.
- * @example formatPrice(1299) → "$1,299.00"
- * @example formatPrice(1299, 'EUR') → "€1,299.00"
+ * @example formatPrice(1299) → "₦1,299.00"
  */
-export function formatPrice(amount: number, currency: string = 'USD'): string {
-  return new Intl.NumberFormat('en-US', {
+export function formatPrice(amount: number, currency: string = 'NGN'): string {
+  return new Intl.NumberFormat('en-NG', {
     style: 'currency',
     currency,
     minimumFractionDigits: 2,
@@ -23,11 +22,10 @@ export function formatPrice(amount: number, currency: string = 'USD'): string {
 
 /**
  * Formats a numeric amount as a compact price string.
- * @example formatPriceCompact(1300) → "$1.3K"
- * @example formatPriceCompact(2100000) → "$2.1M"
+ * @example formatPriceCompact(1300) → "₦1.3K"
  */
-export function formatPriceCompact(amount: number, currency: string = 'USD'): string {
-  return new Intl.NumberFormat('en-US', {
+export function formatPriceCompact(amount: number, currency: string = 'NGN'): string {
+  return new Intl.NumberFormat('en-NG', {
     style: 'currency',
     currency,
     notation: 'compact',

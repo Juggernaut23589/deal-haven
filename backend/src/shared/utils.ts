@@ -56,8 +56,8 @@ export function sanitizeHtml(input: string): string {
 
 export function formatCurrency(
   amount: number,
-  currency = 'USD',
-  locale = 'en-US',
+  currency = 'NGN',
+  locale = 'en-NG',
 ): string {
   return new Intl.NumberFormat(locale, {
     style: 'currency',

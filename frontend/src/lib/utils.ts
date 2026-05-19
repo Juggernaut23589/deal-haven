@@ -14,13 +14,12 @@ export function cn(...inputs: ClassValue[]): string {
 
 /**
  * Formats a number as a localized currency string.
- * @example formatCurrency(1299.99) → "$1,299.99"
- * @example formatCurrency(1299.99, 'EUR') → "€1,299.99"
+ * @example formatCurrency(1299.99) → "₦1,299.99"
  */
 export function formatCurrency(
   amount: number,
-  currency: string = 'USD',
-  locale: string = 'en-US'
+  currency: string = 'NGN',
+  locale: string = 'en-NG'
 ): string {
   return new Intl.NumberFormat(locale, {
     style: 'currency',
@@ -32,13 +31,12 @@ export function formatCurrency(
 
 /**
  * Formats a number as a compact currency string.
- * @example formatCurrencyCompact(1299) → "$1.3K"
- * @example formatCurrencyCompact(2100000) → "$2.1M"
+ * @example formatCurrencyCompact(1299) → "₦1.3K"
  */
 export function formatCurrencyCompact(
   amount: number,
-  currency: string = 'USD',
-  locale: string = 'en-US'
+  currency: string = 'NGN',
+  locale: string = 'en-NG'
 ): string {
   return new Intl.NumberFormat(locale, {
     style: 'currency',

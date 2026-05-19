@@ -34,7 +34,7 @@ export const createListingSchema = z.object({
   listingType: z.enum(['FIXED_PRICE', 'AUCTION', 'FIXED_AND_OFFER']),
   price: z.number().positive('Price must be greater than 0'),
   originalPrice: z.number().positive().optional(),
-  currency: z.string().length(3).optional().default('USD'),
+  currency: z.string().length(3).optional().default('NGN'),
   quantity: z.number().int().min(1).optional().default(1),
   offersEnabled: z.boolean().optional().default(false),
   autoAcceptPrice: z.number().positive().optional(),
