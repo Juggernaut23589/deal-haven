@@ -73,6 +73,11 @@
     state: started
     enabled: yes
 
+- name: Reload nginx to apply latest config
+  service:
+    name: nginx
+    state: reloaded
+
 - name: Set up Certbot auto-renewal cron
   cron:
     name: certbot-renew
