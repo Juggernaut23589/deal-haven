@@ -16,6 +16,16 @@
     path: /etc/nginx/sites-enabled/default
     state: absent
 
+- name: Remove legacy deal-haven Nginx config (sites-available)
+  file:
+    path: /etc/nginx/sites-available/deal-haven.conf
+    state: absent
+
+- name: Remove legacy deal-haven Nginx config (sites-enabled)
+  file:
+    path: /etc/nginx/sites-enabled/deal-haven.conf
+    state: absent
+
 - name: Obtain Let's Encrypt certificate
   command: >
     certbot certonly --nginx
