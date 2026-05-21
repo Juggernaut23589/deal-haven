@@ -4,14 +4,33 @@
     name: nginx
     state: present
 
+- name: Install Certbot
+  apt:
+    name:
+      - certbot
+      - python3-certbot-nginx
+    state: present
+
 - name: Remove default Nginx site
   file:
     path: /etc/nginx/sites-enabled/default
     state: absent
 
+- name: Obtain Let's Encrypt certificate
+  command: >
+    certbot certonly --nginx
+    --non-interactive
+    --agree-tos
+    --email {{ certbot_email }}
+    -d {{ domain_name }}
+    -d www.{{ domain_name }}
+  args:
+    creates: /etc/letsencrypt/live/{{ domain_name }}/fullchain.pem
+  when: enable_ssl
+
 - name: Configure Ashimarket Nginx site
   template:
-    src: ashimarket.conf.j2
+    src: deal-haven.conf.j2
     dest: /etc/nginx/sites-available/ashimarket.conf
   notify: reload nginx
 
@@ -44,9 +63,11 @@
     state: started
     enabled: yes
 
-- name: Install Certbot (for SSL later)
-  apt:
-    name:
-      - certbot
-      - python3-certbot-nginx
-    state: present
+- name: Set up Certbot auto-renewal cron
+  cron:
+    name: certbot-renew
+    job: "certbot renew --quiet --nginx"
+    minute: "0"
+    hour: "3"
+    weekday: "1"
+  when: enable_ssl

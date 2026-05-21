@@ -32,7 +32,7 @@ const MOCK_NOTIFICATIONS = [
     id: 'n2',
     icon: Tag,
     title: 'New Offer Received',
-    description: 'Sarah M. made an offer of $420 on your "Vintage Coffee Table" listing.',
+    description: 'Sarah M. made an offer of ₦650,000 on your "Vintage Coffee Table" listing.',
     time: '5 hours ago',
     read: false,
   },

@@ -27,9 +27,23 @@ import {
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Badge } from '@/components/ui/Badge';
+import { CardCarousel } from '@/components/ui/card-carousel';
 import { cn } from '@/lib/utils';
 
 // ─── Static data ─────────────────────────────────────────────────────────────
+
+const HERO_CAROUSEL_IMAGES = [
+  { src: 'https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=440&h=600&fit=crop', alt: 'Red sports car' },
+  { src: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=440&h=600&fit=crop', alt: 'Nike sneakers' },
+  { src: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=440&h=600&fit=crop', alt: 'Modern apartment' },
+  { src: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=440&h=600&fit=crop', alt: 'Laptop computer' },
+  { src: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=440&h=600&fit=crop', alt: 'Designer handbag' },
+  { src: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=440&h=600&fit=crop', alt: 'Luxury watch' },
+  { src: 'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=440&h=600&fit=crop', alt: 'Perfume collection' },
+  { src: 'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=440&h=600&fit=crop', alt: 'Gaming laptop' },
+  { src: 'https://images.unsplash.com/photo-1471478331149-c72f17e33c73?w=440&h=600&fit=crop', alt: 'Acoustic guitar' },
+  { src: 'https://images.unsplash.com/photo-1560343776-97e7d202ff0e?w=440&h=600&fit=crop', alt: 'Running shoes' },
+];
 
 const HERO_CATEGORIES: { label: string; href: Route; icon: React.ElementType }[] = [
   { label: 'Cars', href: '/category/automobiles' as Route, icon: Car },
@@ -290,7 +304,7 @@ function HeroStats() {
   const stats = [
     { value: '2M+', label: 'Listings' },
     { value: '500K+', label: 'Sellers' },
-    { value: '$50M+', label: 'Saved' },
+    { value: '₦50B+', label: 'Saved' },
   ];
 
   return (
@@ -477,12 +491,12 @@ function SellerCard({
 /** Trending product showcase — visual banner with real product images */
 function TrendingBanner() {
   const products = [
-    { src: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=300&h=300&fit=crop', label: 'Nike Air Max', price: '$129', badge: 'Hot' },
-    { src: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=300&h=300&fit=crop', label: 'MacBook Pro', price: '$1,899', badge: 'Deal' },
-    { src: 'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=300&h=300&fit=crop', label: 'Gold Watch', price: '$349', badge: null },
-    { src: 'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=300&h=300&fit=crop', label: 'Designer Bag', price: '$275', badge: 'New' },
-    { src: 'https://images.unsplash.com/photo-1546868871-af0de0ae72be?w=300&h=300&fit=crop', label: 'Mountain Bike', price: '$899', badge: 'Hot' },
-    { src: 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=300&h=300&fit=crop', label: 'Laptop Stand', price: '$49', badge: 'Deal' },
+    { src: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=300&h=300&fit=crop', label: 'Nike Air Max', price: '₦199,000', badge: 'Hot' },
+    { src: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=300&h=300&fit=crop', label: 'MacBook Pro', price: '₦2,950,000', badge: 'Deal' },
+    { src: 'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=300&h=300&fit=crop', label: 'Gold Watch', price: '₦540,000', badge: null },
+    { src: 'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=300&h=300&fit=crop', label: 'Designer Bag', price: '₦425,000', badge: 'New' },
+    { src: 'https://images.unsplash.com/photo-1546868871-af0de0ae72be?w=300&h=300&fit=crop', label: 'Mountain Bike', price: '₦1,390,000', badge: 'Hot' },
+    { src: 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=300&h=300&fit=crop', label: 'Laptop Stand', price: '₦75,000', badge: 'Deal' },
   ];
 
   return (
@@ -570,6 +584,19 @@ export default function HomePage() {
             }}
           />
 
+          {/* Background card carousel — faded so it doesn't compete with foreground content */}
+          <div
+            className="pointer-events-none absolute inset-0 flex items-center opacity-[0.28]"
+            aria-hidden="true"
+          >
+            <CardCarousel
+              images={HERO_CAROUSEL_IMAGES}
+              autoplayDelay={2200}
+              showPagination={false}
+              showNavigation={false}
+            />
+          </div>
+
           {/* Floating product images — hidden on mobile for performance */}
           <div className="hidden lg:block pointer-events-none" aria-hidden="true">
             {HERO_PRODUCTS.map((p, i) => (
@@ -598,7 +625,7 @@ export default function HomePage() {
             ))}
           </div>
 
-          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24 lg:py-28">
+          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24 lg:py-28 opacity-90">
             <div className="flex flex-col items-center text-center gap-8">
               {/* Spark badge */}
               <div className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 backdrop-blur-sm">

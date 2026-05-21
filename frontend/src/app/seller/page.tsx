@@ -439,7 +439,7 @@ export default function SellerDashboardPage() {
               {[
                 {
                   title: 'Total Revenue',
-                  value: '$14,820',
+                  value: '₦22,950,000',
                   icon: DollarSign,
                   trend: 12,
                   trendLabel: 'vs last month',
@@ -447,7 +447,7 @@ export default function SellerDashboardPage() {
                 },
                 {
                   title: 'This Month',
-                  value: '$3,190',
+                  value: '₦4,940,000',
                   icon: TrendingUp,
                   trend: 8,
                   colorClass: 'bg-primary/10 text-primary',

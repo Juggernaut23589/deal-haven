@@ -42,7 +42,7 @@ function buildSchema(listingPrice: number) {
   return z.object({
     amount: z
       .number({ invalid_type_error: 'Please enter a valid amount' })
-      .min(1, 'Offer must be at least $1')
+      .min(1, 'Offer must be at least ₦1')
       .max(listingPrice * 0.99, `Offer must be less than the listed price (${formatPrice(listingPrice)})`)
       .refine(
         (v) => v > 0,

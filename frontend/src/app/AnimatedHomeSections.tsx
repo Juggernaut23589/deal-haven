@@ -162,7 +162,7 @@ function SocialProofStrip() {
     {
       avatar: 'https://i.pravatar.cc/48?img=3',
       name: 'Marcus T.',
-      text: 'Found a MacBook Pro for $400 less than retail. Deal Score is a game changer.',
+      text: 'Found a MacBook Pro for ₦620,000 less than retail. Deal Score is a game changer.',
       rating: 5,
     },
     {

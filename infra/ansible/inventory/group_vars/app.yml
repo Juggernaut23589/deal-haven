@@ -1,4 +1,5 @@
 ---
 # App server specific vars
-domain_name: ""  # Set when you have a domain
-enable_ssl: false
+domain_name: "ashimarket.com"
+enable_ssl: true
+certbot_email: "j.oarowolo@gmail.com"
