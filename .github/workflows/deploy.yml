@@ -124,8 +124,7 @@ jobs:
             cd ${{ env.APP_DIR }}/backend
             npm ci --omit=dev
 
-            # Baseline existing DB if needed, then run migrations
-            npx prisma migrate resolve --applied 0_init 2>/dev/null || true
+            # Run migrations
             npx prisma migrate deploy
 
             # Restart backend via PM2
