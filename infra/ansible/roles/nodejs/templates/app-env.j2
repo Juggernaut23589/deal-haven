@@ -7,7 +7,9 @@ DATABASE_URL=postgresql://{{ db_user }}:{{ db_password }}@{{ db_private_ip }}:{{
 REDIS_URL=redis://{{ redis_private_ip }}:{{ redis_port }}
 
 # Frontend
-NEXT_PUBLIC_API_URL=http://localhost:{{ api_port }}
+NEXT_PUBLIC_API_URL=https://{{ domain_name }}/api/v1
+API_URL=https://{{ domain_name }}
+FRONTEND_URL=https://{{ domain_name }}
 
 # Auth
 JWT_SECRET={{ jwt_secret | default('changeme_use_ansible_vault') }}
