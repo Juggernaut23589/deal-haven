@@ -105,6 +105,8 @@ jobs:
             cd ${{ env.APP_DIR }}
             git fetch --prune --force origin dev
             git reset --hard origin/dev
+            # Sync root .env (written by Ansible) into backend so Prisma and the app can read it
+            cp /home/deploy/ashimarket/.env /home/deploy/ashimarket/backend/.env
           ENDSSH
 
       - name: Remove legacy PM2 processes
