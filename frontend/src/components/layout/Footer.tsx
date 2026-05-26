@@ -3,6 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
+import { Logo } from '@/components/ui/Logo';
 import {
   Tag,
   Twitter,
@@ -160,18 +161,7 @@ export function Footer() {
           {/* Brand column */}
           <div className="lg:col-span-2 space-y-6">
             {/* Logo */}
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 group"
-              aria-label="Ashimarket home"
-            >
-              <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary group-hover:bg-primary-dark transition-colors">
-                <Tag className="h-5 w-5 text-white" aria-hidden="true" />
-              </div>
-              <span className="text-xl font-bold text-white">
-                Ashi<span className="text-primary-light">market</span>
-              </span>
-            </Link>
+            <Logo height={44} />
 
             <p className="text-sm text-slate-400 leading-relaxed max-w-xs">
               Your trusted marketplace for buying and selling everything — from everyday essentials

@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { Logo } from '@/components/ui/Logo';
 import type { Route } from 'next';
 import { usePathname, useRouter } from 'next/navigation';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
@@ -602,18 +603,7 @@ export function Navbar() {
             </button>
 
             {/* Logo */}
-            <Link
-              href="/"
-              className="flex items-center gap-2 shrink-0"
-              aria-label="Ashimarket — home"
-            >
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary">
-                <Tag className="h-4.5 w-4.5 text-white" aria-hidden="true" />
-              </div>
-              <span className="text-xl font-bold hidden sm:block text-slate-900 dark:text-white">
-                Ashi<span className="text-primary">market</span>
-              </span>
-            </Link>
+            <Logo height={38} />
 
             {/* Categories */}
             <CategoriesMenu />

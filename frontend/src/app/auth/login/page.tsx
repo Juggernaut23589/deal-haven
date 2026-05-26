@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Eye, EyeOff, Tag, AlertCircle, Chrome } from 'lucide-react';
+import { Logo } from '@/components/ui/Logo';
 import { cn } from '@/lib/utils';
 import { useAuth, useRedirectIfAuthenticated } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
@@ -83,18 +84,7 @@ export default function LoginPage() {
         >
           {/* Logo */}
           <div className="flex flex-col items-center gap-3 mb-8">
-            <Link
-              href="/"
-              className="flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
-              aria-label="Ashimarket home"
-            >
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary shadow-sm">
-                <Tag className="h-5 w-5 text-white" aria-hidden="true" />
-              </div>
-              <span className="text-xl font-bold text-slate-900 dark:text-white">
-                Ashi<span className="text-primary">market</span>
-              </span>
-            </Link>
+            <Logo height={52} />
             <div className="text-center">
               <h1 className="text-2xl font-bold font-display text-slate-900 dark:text-slate-100">
                 Welcome back
