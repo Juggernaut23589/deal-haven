@@ -5,6 +5,10 @@ NODE_ENV=production
 API_PORT={{ api_port }}
 DATABASE_URL=postgresql://{{ db_user }}:{{ db_password }}@{{ db_private_ip }}:{{ db_port }}/{{ db_name }}
 REDIS_URL=redis://{{ redis_private_ip }}:{{ redis_port }}
+REDIS_HOST={{ redis_private_ip }}
+REDIS_PORT={{ redis_port }}
+REDIS_PASSWORD=
+REDIS_DB=0
 
 # Frontend
 NEXT_PUBLIC_API_URL=https://{{ domain_name }}/api/v1
@@ -13,8 +17,10 @@ FRONTEND_URL=https://{{ domain_name }}
 
 # Auth
 JWT_SECRET={{ jwt_secret | default('changeme_use_ansible_vault') }}
-JWT_EXPIRES_IN=15m
-JWT_REFRESH_EXPIRES_IN=7d
+JWT_REFRESH_SECRET={{ jwt_refresh_secret | default(jwt_secret | default('changeme_refresh_secret')) }}
+COOKIE_SECRET={{ cookie_secret | default(jwt_secret | default('changeme_cookie_secret')) }}
+ACCESS_TOKEN_EXPIRY=15m
+REFRESH_TOKEN_EXPIRY=7d
 
 # Google OAuth
 GOOGLE_CLIENT_ID={{ google_client_id }}

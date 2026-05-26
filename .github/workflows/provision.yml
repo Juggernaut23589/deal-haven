@@ -38,6 +38,8 @@ jobs:
           ansible-playbook playbooks/site.yml
           --extra-vars "db_password=${{ secrets.DB_PASSWORD }}"
           --extra-vars "jwt_secret=${{ secrets.JWT_SECRET }}"
+          --extra-vars "jwt_refresh_secret=${{ secrets.JWT_REFRESH_SECRET }}"
+          --extra-vars "cookie_secret=${{ secrets.COOKIE_SECRET }}"
           --extra-vars "google_client_id=${{ secrets.GOOGLE_CLIENT_ID }}"
           --extra-vars "google_client_secret=${{ secrets.GOOGLE_CLIENT_SECRET }}"
         env:
