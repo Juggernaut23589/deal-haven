@@ -3,3 +3,5 @@
 domain_name: "ashimarket.com"
 enable_ssl: true
 certbot_email: "j.oarowolo@gmail.com"
+google_client_id: "{{ lookup('env', 'GOOGLE_CLIENT_ID') }}"
+google_client_secret: "{{ lookup('env', 'GOOGLE_CLIENT_SECRET') }}"
