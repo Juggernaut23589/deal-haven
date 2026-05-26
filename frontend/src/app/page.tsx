@@ -21,37 +21,42 @@ import {
   TrendingUp,
   Info,
   Flame,
-  Sparkles,
   Zap,
+  ChevronRight,
+  Bike,
+  BookOpen,
+  Gamepad2,
+  PawPrint,
+  Palette,
 } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Badge } from '@/components/ui/Badge';
-import { CardCarousel } from '@/components/ui/card-carousel';
 import { cn } from '@/lib/utils';
 
 // ─── Static data ─────────────────────────────────────────────────────────────
 
-const HERO_CAROUSEL_IMAGES = [
-  { src: 'https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=440&h=600&fit=crop', alt: 'Red sports car' },
-  { src: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=440&h=600&fit=crop', alt: 'Nike sneakers' },
-  { src: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=440&h=600&fit=crop', alt: 'Modern apartment' },
-  { src: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=440&h=600&fit=crop', alt: 'Laptop computer' },
-  { src: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=440&h=600&fit=crop', alt: 'Designer handbag' },
-  { src: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=440&h=600&fit=crop', alt: 'Luxury watch' },
-  { src: 'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=440&h=600&fit=crop', alt: 'Perfume collection' },
-  { src: 'https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=440&h=600&fit=crop', alt: 'Gaming laptop' },
-  { src: 'https://images.unsplash.com/photo-1471478331149-c72f17e33c73?w=440&h=600&fit=crop', alt: 'Acoustic guitar' },
-  { src: 'https://images.unsplash.com/photo-1560343776-97e7d202ff0e?w=440&h=600&fit=crop', alt: 'Running shoes' },
+const SIDEBAR_CATEGORIES: { label: string; href: Route; icon: React.ElementType; count: string; thumb: string }[] = [
+  { label: 'Vehicles', href: '/category/automobiles' as Route, icon: Car, count: '24,512', thumb: 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=56&h=56&fit=crop' },
+  { label: 'Real Estate', href: '/category/real-estate' as Route, icon: Home, count: '8,240', thumb: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=56&h=56&fit=crop' },
+  { label: 'Phones & Tablets', href: '/category/electronics' as Route, icon: Smartphone, count: '68,787', thumb: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=56&h=56&fit=crop' },
+  { label: 'Electronics', href: '/category/electronics' as Route, icon: Smartphone, count: '265,961', thumb: 'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=56&h=56&fit=crop' },
+  { label: 'Home & Furniture', href: '/category/furniture-home' as Route, icon: Home, count: '51,002', thumb: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=56&h=56&fit=crop' },
+  { label: 'Fashion', href: '/category/clothing' as Route, icon: Shirt, count: '143,777', thumb: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=56&h=56&fit=crop' },
+  { label: 'Sports & Outdoors', href: '/category/sports-outdoors' as Route, icon: Bike, count: '7,630', thumb: 'https://images.unsplash.com/photo-1461896836934-bd45ba8a0281?w=56&h=56&fit=crop' },
+  { label: 'Books & Media', href: '/category/books-media' as Route, icon: BookOpen, count: '4,920', thumb: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=56&h=56&fit=crop' },
+  { label: 'Toys & Games', href: '/category/toys-games' as Route, icon: Gamepad2, count: '6,140', thumb: 'https://images.unsplash.com/photo-1558060370-d644479cb6f7?w=56&h=56&fit=crop' },
+  { label: 'Pet Supplies', href: '/category/pet-supplies' as Route, icon: PawPrint, count: '3,410', thumb: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=56&h=56&fit=crop' },
+  { label: 'Services', href: '/category/services' as Route, icon: Wrench, count: '9,700', thumb: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=56&h=56&fit=crop' },
+  { label: 'Jobs & Gigs', href: '/category/jobs-gigs' as Route, icon: Briefcase, count: '5,310', thumb: 'https://images.unsplash.com/photo-1497032628192-86f99bcd76bc?w=56&h=56&fit=crop' },
+  { label: 'Collectibles & Art', href: '/category/collectibles-art' as Route, icon: Palette, count: '2,800', thumb: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=56&h=56&fit=crop' },
 ];
 
-const HERO_CATEGORIES: { label: string; href: Route; icon: React.ElementType }[] = [
-  { label: 'Cars', href: '/category/automobiles' as Route, icon: Car },
-  { label: 'Electronics', href: '/category/electronics' as Route, icon: Smartphone },
-  { label: 'Real Estate', href: '/category/real-estate' as Route, icon: Home },
-  { label: 'Fashion', href: '/category/clothing' as Route, icon: Shirt },
-  { label: 'Services', href: '/category/services' as Route, icon: Wrench },
-  { label: 'Jobs', href: '/category/jobs-gigs' as Route, icon: Briefcase },
+const QUICK_ACTIONS: { icon: React.ElementType; label: string; description: string; href: Route; iconBg: string; iconColor: string }[] = [
+  { icon: TrendingUp, label: 'Browse Deals', description: 'Find the best prices near you', href: '/search' as Route, iconBg: 'bg-purple-100', iconColor: 'text-purple-600' },
+  { icon: Briefcase, label: 'Post a Listing', description: 'Sell your item in 60 seconds', href: '/listing/create' as Route, iconBg: 'bg-green-100', iconColor: 'text-green-600' },
+  { icon: Package, label: 'How to Sell', description: 'Tips to get the best price', href: '/how-it-works' as Route, iconBg: 'bg-orange-100', iconColor: 'text-orange-600' },
+  { icon: ShieldCheck, label: 'How to Buy', description: 'Safe buying guide', href: '/how-it-works' as Route, iconBg: 'bg-blue-100', iconColor: 'text-blue-600' },
 ];
 
 /** Category cards with real Unsplash photos for visual richness */
@@ -148,13 +153,6 @@ const CATEGORIES_GRID: {
   },
 ];
 
-/** Hero floating product images that give an instant "marketplace" feel */
-const HERO_PRODUCTS = [
-  { src: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop', alt: 'Watch', rotate: '-6deg', top: '12%', left: '2%' },
-  { src: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200&fit=crop', alt: 'Headphones', rotate: '4deg', top: '55%', left: '5%' },
-  { src: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop', alt: 'Sneaker', rotate: '-3deg', top: '18%', right: '2%' },
-  { src: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=200&h=200&fit=crop', alt: 'Camera', rotate: '5deg', top: '60%', right: '4%' },
-];
 
 const HOW_IT_WORKS = [
   {
@@ -260,67 +258,103 @@ function HeroSearchBar() {
     <form
       action="/search"
       method="GET"
-      className="relative flex w-full max-w-2xl"
+      className="flex w-full max-w-2xl shadow-xl rounded-lg overflow-hidden"
       role="search"
       aria-label="Search all listings"
     >
-      <label htmlFor="hero-search" className="sr-only">
-        Search for anything
-      </label>
-      <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center">
-        <Search className="h-5 w-5 text-slate-400" aria-hidden="true" />
+      {/* Location selector */}
+      <div className="relative flex items-center border-r border-slate-200 bg-white">
+        <select
+          name="location"
+          className="h-13 appearance-none bg-white pl-4 pr-8 text-sm font-medium text-slate-700 focus:outline-none cursor-pointer"
+          aria-label="Select location"
+          style={{ height: '52px' }}
+        >
+          <option>All Nigeria</option>
+          <option>Lagos</option>
+          <option>Abuja</option>
+          <option>Kano</option>
+          <option>Port Harcourt</option>
+          <option>Ibadan</option>
+        </select>
+        <ChevronRight className="pointer-events-none absolute right-2 h-3.5 w-3.5 rotate-90 text-slate-400" />
       </div>
+
+      {/* Search input */}
       <input
         id="hero-search"
         name="q"
         type="search"
-        placeholder="Search for anything — cars, electronics, homes, services..."
-        className={cn(
-          'h-14 w-full rounded-l-xl border-0 pl-12 pr-4',
-          'bg-white text-slate-900 placeholder:text-slate-400',
-          'text-base shadow-lg',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset'
-        )}
+        placeholder="I am looking for..."
+        className="h-13 flex-1 bg-white px-4 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
+        style={{ height: '52px' }}
       />
+
+      {/* Search button */}
       <button
         type="submit"
-        className={cn(
-          'flex items-center gap-2 rounded-r-xl bg-accent px-6',
-          'text-base font-semibold text-white whitespace-nowrap',
-          'hover:bg-accent-dark active:bg-accent-dark',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-inset',
-          'transition-colors duration-150 shadow-lg'
-        )}
+        className="flex items-center justify-center bg-accent px-5 text-white hover:bg-amber-500 transition-colors"
         aria-label="Search listings"
       >
-        Search
-        <ArrowRight className="h-4 w-4" aria-hidden="true" />
+        <Search className="h-5 w-5" />
       </button>
     </form>
   );
 }
 
-function HeroStats() {
-  const stats = [
-    { value: '2M+', label: 'Listings' },
-    { value: '500K+', label: 'Sellers' },
-    { value: '₦50B+', label: 'Saved' },
-  ];
-
+function CategorySidebar() {
   return (
-    <div
-      className="flex flex-wrap items-center gap-6 sm:gap-10"
-      role="list"
-      aria-label="Platform statistics"
-    >
-      {stats.map((stat) => (
-        <div key={stat.label} className="text-center" role="listitem">
-          <p className="text-2xl font-bold font-display text-white">{stat.value}</p>
-          <p className="text-sm text-primary-200 mt-0.5" style={{ color: 'rgb(153 228 231)' }}>
-            {stat.label}
-          </p>
-        </div>
-      ))}
+    <aside className="hidden lg:block w-56 xl:w-64 flex-shrink-0">
+      <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+        {SIDEBAR_CATEGORIES.map((cat, i) => {
+          const Icon = cat.icon;
+          return (
+            <Link
+              key={i}
+              href={cat.href}
+              className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 group"
+            >
+              <div className="relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-lg">
+                <Image src={cat.thumb} alt="" fill className="object-cover" sizes="36px" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-slate-800 truncate group-hover:text-primary transition-colors">
+                  {cat.label}
+                </p>
+                <p className="text-xs text-slate-400">{cat.count} ads</p>
+              </div>
+              <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-slate-300 group-hover:text-primary transition-colors" />
+            </Link>
+          );
+        })}
+      </div>
+    </aside>
+  );
+}
+
+function QuickActions() {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+      {QUICK_ACTIONS.map((action) => {
+        const Icon = action.icon;
+        return (
+          <Link
+            key={action.label}
+            href={action.href}
+            className="flex flex-col items-center gap-2 rounded-xl border border-slate-100 bg-white p-4 text-center shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group"
+          >
+            <div className={cn('flex h-11 w-11 items-center justify-center rounded-xl', action.iconBg)}>
+              <Icon className={cn('h-5 w-5', action.iconColor)} />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-800 group-hover:text-primary transition-colors">
+                {action.label}
+              </p>
+              <p className="text-xs text-slate-400 mt-0.5 leading-tight">{action.description}</p>
+            </div>
+          </Link>
+        );
+      })}
     </div>
   );
 }
@@ -568,157 +602,38 @@ export default function HomePage() {
       <Navbar />
 
       <main id="main-content">
-        {/* ── Hero ─────────────────────────���────────────────────────────── */}
+        {/* ── Hero ──────────────────────────────────────────────────────── */}
         <section
-          className="relative overflow-hidden bg-gradient-to-br from-[#0D7377] via-[#0a6163] to-[#062e30]"
-          aria-label="Hero — search and discover deals"
+          className="bg-gradient-to-br from-[#0D7377] via-[#0a6163] to-[#095456] py-10 sm:py-14"
+          aria-label="Search and discover deals"
         >
-          {/* Decorative pattern */}
-          <div
-            className="pointer-events-none absolute inset-0 opacity-[0.04]"
-            aria-hidden="true"
-            style={{
-              backgroundImage:
-                'radial-gradient(circle at 25% 50%, white 1px, transparent 1px), radial-gradient(circle at 75% 50%, white 1px, transparent 1px)',
-              backgroundSize: '40px 40px',
-            }}
-          />
-
-          {/* Background card carousel — faded so it doesn't compete with foreground content */}
-          <div
-            className="pointer-events-none absolute inset-0 flex items-center opacity-[0.28]"
-            aria-hidden="true"
-          >
-            <CardCarousel
-              images={HERO_CAROUSEL_IMAGES}
-              autoplayDelay={2200}
-              showPagination={false}
-              showNavigation={false}
-            />
-          </div>
-
-          {/* Floating product images — hidden on mobile for performance */}
-          <div className="hidden lg:block pointer-events-none" aria-hidden="true">
-            {HERO_PRODUCTS.map((p, i) => (
-              <div
-                key={i}
-                className="absolute animate-float"
-                style={{
-                  top: p.top,
-                  left: p.left,
-                  right: p.right,
-                  transform: `rotate(${p.rotate})`,
-                  animationDelay: `${i * 1.2}s`,
-                  animationDuration: `${6 + i * 0.8}s`,
-                }}
-              >
-                <div className="h-24 w-24 xl:h-28 xl:w-28 overflow-hidden rounded-2xl shadow-2xl opacity-20 hover:opacity-40 transition-opacity duration-700">
-                  <Image
-                    src={p.src}
-                    alt={p.alt}
-                    width={112}
-                    height={112}
-                    className="object-cover h-full w-full"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24 lg:py-28 opacity-90">
-            <div className="flex flex-col items-center text-center gap-8">
-              {/* Spark badge */}
-              <div className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 backdrop-blur-sm">
-                <Sparkles className="h-4 w-4 text-accent" />
-                <span className="text-sm font-medium text-white/90">Over 2 million listings &mdash; new deals every minute</span>
-              </div>
-
-              {/* Headline */}
-              <div className="space-y-3">
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold font-display tracking-tight leading-[1.08]">
-                  <span className="text-white">Find Amazing </span>
-                  <span
-                    className="bg-gradient-to-r from-accent to-[#fbbf24] bg-clip-text text-transparent"
-                    aria-label="Deals"
-                  >
-                    Deals.
-                  </span>
-                  <br />
-                  <span className="text-white">Sell With Ease.</span>
-                </h1>
-                <p className="mx-auto max-w-xl text-lg text-primary-100" style={{ color: 'rgb(186 240 242)' }}>
-                  The marketplace where buyers save big and sellers thrive.
-                </p>
-              </div>
-
-              {/* Search bar */}
-              <HeroSearchBar />
-
-              {/* Quick category links */}
-              <nav
-                aria-label="Popular categories"
-                className="flex flex-wrap items-center justify-center gap-2"
-              >
-                {HERO_CATEGORIES.map(({ label, href, icon: Icon }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    className={cn(
-                      'flex items-center gap-1.5 rounded-full px-4 py-2',
-                      'bg-white/15 hover:bg-white/25',
-                      'text-sm font-medium text-white',
-                      'border border-white/20',
-                      'transition-all duration-200 hover:scale-105',
-                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white'
-                    )}
-                  >
-                    <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                    {label}
-                  </Link>
-                ))}
-              </nav>
-
-              {/* CTA buttons */}
-              <div className="flex flex-wrap items-center gap-3">
-                <Link
-                  href="/search"
-                  className={cn(
-                    'flex items-center gap-2 rounded-xl bg-accent px-7 py-3.5',
-                    'text-base font-semibold text-white shadow-lg shadow-accent/25',
-                    'hover:bg-accent-dark hover:shadow-accent/40 hover:-translate-y-0.5',
-                    'transition-all duration-200',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white'
-                  )}
-                >
-                  Start Shopping
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
-                <Link
-                  href="/listing/create"
-                  className={cn(
-                    'flex items-center gap-2 rounded-xl border border-white/50 px-7 py-3.5',
-                    'text-base font-semibold text-white',
-                    'hover:bg-white/10 hover:-translate-y-0.5',
-                    'transition-all duration-200',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white'
-                  )}
-                >
-                  Sell an Item
-                </Link>
-              </div>
-
-              {/* Stats */}
-              <HeroStats />
-            </div>
-          </div>
-
-          {/* Bottom wave */}
-          <div className="absolute bottom-0 left-0 right-0 h-16 overflow-hidden" aria-hidden="true">
-            <svg viewBox="0 0 1440 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute bottom-0 w-full">
-              <path d="M0 50L48 45C96 40 192 30 288 28C384 26 480 32 576 40C672 48 768 58 864 55C960 52 1056 36 1152 30C1248 24 1344 28 1392 30L1440 32V100H1392C1344 100 1248 100 1152 100C1056 100 960 100 864 100C768 100 672 100 576 100C480 100 384 100 288 100C192 100 96 100 48 100H0V50Z" className="fill-background" />
-            </svg>
+          <div className="mx-auto max-w-3xl px-4 sm:px-6 text-center">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6 tracking-tight">
+              What are you looking for?
+            </h1>
+            <HeroSearchBar />
           </div>
         </section>
+
+        {/* ── Two-column body ───────────────────────────────────────────── */}
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <div className="flex gap-6 items-start">
+
+            {/* Left: category sidebar */}
+            <CategorySidebar />
+
+            {/* Right: quick actions + recommended listings */}
+            <div className="min-w-0 flex-1">
+              <QuickActions />
+
+              {/* Recommended for you */}
+              <div>
+                <h2 className="text-lg font-bold text-slate-800 mb-4">Recommended for you</h2>
+                <HomepageListingSections />
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* ── Trending Now strip ─────────────────────────────────────────── */}
         <TrendingBanner />
@@ -746,9 +661,6 @@ export default function HomePage() {
             ))}
           </div>
         </section>
-
-        {/* ── Featured Listings & Recently Added (Client island) ──────────── */}
-        <HomepageListingSections />
 
         {/* ── How It Works ───────────────────────────────────────────────── */}
         <section

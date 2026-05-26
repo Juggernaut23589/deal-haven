@@ -173,7 +173,7 @@ export class ListingsService {
           status: ListingStatus.DRAFT,
           price: input.price,
           originalPrice: input.originalPrice,
-          currency: input.currency ?? 'USD',
+          currency: input.currency ?? 'NGN',
           quantity: input.quantity ?? 1,
           offersEnabled: input.offersEnabled ?? false,
           autoAcceptPrice: input.autoAcceptPrice,
