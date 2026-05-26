@@ -184,8 +184,13 @@ export interface RegisterPayload {
 }
 
 export interface UpdateProfilePayload {
+  username?: string;
   displayName?: string;
+  firstName?: string;
+  lastName?: string;
   bio?: string;
+  city?: string;
+  state?: string;
   location?: string;
   website?: string;
   phoneNumber?: string;
