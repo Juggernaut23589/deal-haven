@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { prisma } from '../../config/database';
-import { authenticate } from '../../middleware/auth';
+import { requireAuth } from '../../middleware/auth';
 import { processAndSaveImage } from '../../middleware/upload';
 import { NotFoundError, ValidationError } from '../../shared/errors';
 import type { AuthenticatedRequest } from '../../shared/types';
@@ -16,11 +16,6 @@ async function updateProfile(request: FastifyRequest, reply: FastifyReply): Prom
     'city', 'state', 'phoneNumber',
     'preferredCurrency', 'preferredLocale',
   ];
-
-  // Map camelCase frontend fields to Prisma model fields
-  const fieldMap: Record<string, string> = {
-    phoneNumber: 'phoneNumber', // stored in User table
-  };
 
   const profileData: Record<string, unknown> = {};
   const userData: Record<string, unknown> = {};
@@ -132,7 +127,7 @@ async function getMe(request: FastifyRequest, reply: FastifyReply): Promise<void
 // ─── Route registration ───────────────────────────────────────────────────────
 
 export async function userRoutes(fastify: FastifyInstance): Promise<void> {
-  fastify.get('/me', { preHandler: [authenticate] }, getMe);
-  fastify.patch('/me/profile', { preHandler: [authenticate] }, updateProfile);
-  fastify.post('/me/avatar', { preHandler: [authenticate] }, uploadAvatar);
+  fastify.get('/me', { preHandler: [requireAuth] }, getMe);
+  fastify.patch('/me/profile', { preHandler: [requireAuth] }, updateProfile);
+  fastify.post('/me/avatar', { preHandler: [requireAuth] }, uploadAvatar);
 }
