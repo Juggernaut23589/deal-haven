@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { NIGERIA_STATES } from '@/lib/nigeriaLocations';
+import { CardCarousel } from '@/components/ui/card-carousel';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Route } from 'next';
@@ -51,6 +52,17 @@ const SIDEBAR_CATEGORIES: { label: string; href: Route; icon: React.ElementType;
   { label: 'Services', href: '/category/services' as Route, icon: Wrench, count: '9,700', thumb: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=56&h=56&fit=crop' },
   { label: 'Jobs & Gigs', href: '/category/jobs-gigs' as Route, icon: Briefcase, count: '5,310', thumb: 'https://images.unsplash.com/photo-1497032628192-86f99bcd76bc?w=56&h=56&fit=crop' },
   { label: 'Collectibles & Art', href: '/category/collectibles-art' as Route, icon: Palette, count: '2,800', thumb: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=56&h=56&fit=crop' },
+];
+
+const HERO_CAROUSEL_IMAGES = [
+  { src: 'https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=220&h=160&fit=crop', alt: 'Red sports car' },
+  { src: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=220&h=160&fit=crop', alt: 'Nike sneakers' },
+  { src: 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=220&h=160&fit=crop', alt: 'Laptop computer' },
+  { src: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=220&h=160&fit=crop', alt: 'Home furniture' },
+  { src: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=220&h=160&fit=crop', alt: 'Fashion clothing' },
+  { src: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=220&h=160&fit=crop', alt: 'Real estate property' },
+  { src: 'https://images.unsplash.com/photo-1546868871-af0de0ae72be?w=220&h=160&fit=crop', alt: 'Mountain bike' },
+  { src: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=220&h=160&fit=crop', alt: 'Electronics' },
 ];
 
 const QUICK_ACTIONS: { icon: React.ElementType; label: string; description: string; href: Route; iconBg: string; iconColor: string }[] = [
@@ -603,10 +615,21 @@ export default function HomePage() {
       <main id="main-content">
         {/* ── Hero ──────────────────────────────────────────────────────── */}
         <section
-          className="bg-gradient-to-br from-[#0D7377] via-[#0a6163] to-[#095456] py-10 sm:py-14"
+          className="relative overflow-hidden bg-gradient-to-br from-[#0D7377] via-[#0a6163] to-[#095456] py-10 sm:py-14"
           aria-label="Search and discover deals"
         >
-          <div className="mx-auto max-w-3xl px-4 sm:px-6 text-center">
+          {/* Background carousel */}
+          <div className="pointer-events-none absolute inset-0 flex items-center opacity-[0.28]" aria-hidden="true">
+            <CardCarousel
+              images={HERO_CAROUSEL_IMAGES}
+              autoplayDelay={2200}
+              showPagination={false}
+              showNavigation={false}
+              slideHeight={160}
+            />
+          </div>
+
+          <div className="relative z-10 mx-auto max-w-3xl px-4 sm:px-6 text-center">
             <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6 tracking-tight">
               What are you looking for?
             </h1>

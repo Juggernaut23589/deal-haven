@@ -21,6 +21,7 @@ interface CarouselProps {
   autoplayDelay?: number
   showPagination?: boolean
   showNavigation?: boolean
+  slideHeight?: number
 }
 
 export const CardCarousel: React.FC<CarouselProps> = ({
@@ -28,26 +29,27 @@ export const CardCarousel: React.FC<CarouselProps> = ({
   autoplayDelay = 1500,
   showPagination = false,
   showNavigation = false,
+  slideHeight = 480,
 }) => {
   return (
     <div className="w-full">
       <style>{`
         .hero-swiper { width: 100%; padding-bottom: 0 !important; }
-        .hero-swiper .swiper-slide { width: 320px; }
+        .hero-swiper .swiper-slide { width: 160px; }
         .hero-swiper .swiper-slide img { display: block; width: 100%; }
         .hero-swiper .swiper-3d .swiper-slide-shadow-left { background-image: none; }
         .hero-swiper .swiper-3d .swiper-slide-shadow-right { background: none; }
       `}</style>
       <Swiper
         className="hero-swiper"
-        spaceBetween={24}
+        spaceBetween={16}
         autoplay={{ delay: autoplayDelay, disableOnInteraction: false }}
         effect="coverflow"
         grabCursor={false}
         centeredSlides={true}
         loop={true}
         slidesPerView="auto"
-        coverflowEffect={{ rotate: 0, stretch: 0, depth: 100, modifier: 2.5 }}
+        coverflowEffect={{ rotate: 0, stretch: 0, depth: 80, modifier: 2 }}
         pagination={showPagination}
         navigation={
           showNavigation
@@ -58,12 +60,13 @@ export const CardCarousel: React.FC<CarouselProps> = ({
       >
         {[...images, ...images].map((image, index) => (
           <SwiperSlide key={index}>
-            <div className="overflow-hidden rounded-2xl">
+            <div className="overflow-hidden rounded-xl">
               <Image
                 src={image.src}
-                width={220}
-                height={300}
-                className="h-[480px] w-full object-cover"
+                width={160}
+                height={slideHeight}
+                style={{ height: slideHeight }}
+                className="w-full object-cover"
                 alt={image.alt}
               />
             </div>
