@@ -215,6 +215,8 @@ export default function RegisterPage() {
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
+    mode: 'onBlur',
+    reValidateMode: 'onBlur',
   });
 
   const passwordValue = watch('password', '');
@@ -466,7 +468,9 @@ export default function RegisterPage() {
                       autoComplete="username"
                       aria-invalid={!!errors.username}
                       aria-describedby={errors.username ? 'username-error' : 'username-hint'}
-                      {...register('username')}
+                      {...register('username', {
+                        setValueAs: (v: string) => v.toLowerCase().trim(),
+                      })}
                       placeholder="janedoe123"
                       className={cn(
                         'w-full rounded-lg border px-3 py-2.5 text-sm',
