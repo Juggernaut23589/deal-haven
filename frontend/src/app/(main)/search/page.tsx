@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { NIGERIA_STATES, getLGAs } from '@/lib/nigeriaLocations';
 import { useListings } from '@/hooks/useListings';
 import { ListingGrid } from '@/components/listings/ListingGrid';
 import { Button } from '@/components/ui/Button';
@@ -50,13 +51,6 @@ const LISTING_TYPE_OPTIONS: { value: ListingType; label: string }[] = [
   { value: 'free', label: 'Free' },
 ];
 
-const RADIUS_OPTIONS = [
-  { value: '8', label: '5 miles' },
-  { value: '16', label: '10 miles' },
-  { value: '40', label: '25 miles' },
-  { value: '80', label: '50 miles' },
-  { value: '160', label: '100 miles' },
-];
 
 const CATEGORIES = [
   { label: 'Automobiles', slug: 'automobiles', icon: '🚗' },
@@ -254,8 +248,8 @@ interface FilterState {
   maxPrice: string;
   conditions: ListingCondition[];
   types: ListingType[];
-  location: string;
-  radiusKm: string;
+  state: string;
+  lga: string;
   minRating: number;
 }
 
@@ -371,31 +365,11 @@ function FilterSidebar({
       <FilterSection title="Location">
         <div className="space-y-3">
           <div>
-            <label htmlFor="location-filter" className="sr-only">
-              City or zip code
-            </label>
-            <input
-              id="location-filter"
-              type="text"
-              value={filters.location}
-              onChange={(e) => setFilter('location', e.target.value)}
-              placeholder="City or zip code"
-              className={cn(
-                'w-full rounded-md border border-slate-200 dark:border-slate-700',
-                'bg-white dark:bg-slate-900 px-3 py-1.5 text-sm',
-                'text-slate-900 dark:text-slate-100 placeholder:text-slate-400',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
-              )}
-            />
-          </div>
-          <div>
-            <label htmlFor="radius-filter" className="text-xs text-slate-500 mb-1 block">
-              Radius
-            </label>
+            <label htmlFor="state-filter" className="text-xs text-slate-500 mb-1 block">State</label>
             <select
-              id="radius-filter"
-              value={filters.radiusKm}
-              onChange={(e) => setFilter('radiusKm', e.target.value)}
+              id="state-filter"
+              value={filters.state}
+              onChange={(e) => { setFilter('state', e.target.value); setFilter('lga', ''); }}
               className={cn(
                 'w-full rounded-md border border-slate-200 dark:border-slate-700',
                 'bg-white dark:bg-slate-900 px-3 py-1.5 text-sm',
@@ -403,11 +377,30 @@ function FilterSidebar({
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
               )}
             >
-              <option value="">Any distance</option>
-              {RADIUS_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
+              <option value="">All states</option>
+              {NIGERIA_STATES.map((s) => (
+                <option key={s.name} value={s.name}>{s.name}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="lga-filter" className="text-xs text-slate-500 mb-1 block">Local Government Area</label>
+            <select
+              id="lga-filter"
+              value={filters.lga}
+              onChange={(e) => setFilter('lga', e.target.value)}
+              disabled={!filters.state}
+              className={cn(
+                'w-full rounded-md border border-slate-200 dark:border-slate-700',
+                'bg-white dark:bg-slate-900 px-3 py-1.5 text-sm',
+                'text-slate-900 dark:text-slate-100',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                !filters.state && 'opacity-50 cursor-not-allowed'
+              )}
+            >
+              <option value="">{filters.state ? 'All LGAs' : 'Select state first'}</option>
+              {getLGAs(filters.state).map((l) => (
+                <option key={l} value={l}>{l}</option>
               ))}
             </select>
           </div>
@@ -539,8 +532,8 @@ function SearchPageInner() {
     maxPrice: searchParams.get('maxPrice') ?? '',
     conditions: (searchParams.getAll('condition') as ListingCondition[]),
     types: (searchParams.getAll('type') as ListingType[]),
-    location: searchParams.get('location') ?? '',
-    radiusKm: searchParams.get('radius') ?? '',
+    state: searchParams.get('state') ?? '',
+    lga: searchParams.get('lga') ?? '',
     minRating: parseIntParam(searchParams.get('minRating')) ?? 0,
   });
 
@@ -563,8 +556,7 @@ function SearchPageInner() {
       maxPrice: parseFloatParam(filters.maxPrice),
       condition: filters.conditions.length > 0 ? filters.conditions : undefined,
       type: filters.types.length > 0 ? filters.types : undefined,
-      location: filters.location || undefined,
-      radiusKm: parseFloatParam(filters.radiusKm),
+      location: filters.lga || filters.state || undefined,
       minRating: filters.minRating > 0 ? filters.minRating : undefined,
       sort: currentSort,
       page,
@@ -584,8 +576,8 @@ function SearchPageInner() {
       if (filters.maxPrice) params.set('maxPrice', filters.maxPrice);
       filters.conditions.forEach((c) => params.append('condition', c));
       filters.types.forEach((t) => params.append('type', t));
-      if (filters.location) params.set('location', filters.location);
-      if (filters.radiusKm) params.set('radius', filters.radiusKm);
+      if (filters.state) params.set('state', filters.state);
+      if (filters.lga) params.set('lga', filters.lga);
       if (filters.minRating > 0) params.set('minRating', String(filters.minRating));
       if (currentSort !== 'relevance') params.set('sort', currentSort);
       if (page > 1) params.set('page', String(page));
@@ -607,8 +599,8 @@ function SearchPageInner() {
     filters.maxPrice,
     ...filters.conditions,
     ...filters.types,
-    filters.location,
-    filters.radiusKm,
+    filters.state,
+    filters.lga,
     filters.minRating > 0 ? 'rating' : '',
   ].filter(Boolean).length;
 
@@ -619,8 +611,8 @@ function SearchPageInner() {
       maxPrice: '',
       conditions: [],
       types: [],
-      location: '',
-      radiusKm: '',
+      state: '',
+      lga: '',
       minRating: 0,
     });
     setCurrentSort('relevance');
@@ -652,8 +644,11 @@ function SearchPageInner() {
       label: LISTING_TYPE_OPTIONS.find((o) => o.value === t)?.label ?? t,
       remove: () => setFilter('types', filters.types.filter((v) => v !== t)),
     })),
-    ...(filters.location
-      ? [{ label: `📍 ${filters.location}`, remove: () => setFilter('location', '') }]
+    ...(filters.state
+      ? [{
+          label: `📍 ${filters.lga ? `${filters.lga}, ` : ''}${filters.state}`,
+          remove: () => { setFilter('state', ''); setFilter('lga', ''); },
+        }]
       : []),
     ...(filters.minRating > 0
       ? [

@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { NIGERIA_STATES, getLGAs } from '@/lib/nigeriaLocations';
 import { useRouter } from 'next/navigation';
 import type { Route } from 'next';
 import Image from 'next/image';
@@ -18,8 +19,7 @@ import {
   ChevronRight,
   ChevronLeft,
   AlertCircle,
-  MapPin,
-  Navigation,
+
   Plus,
   Trash2,
   Eye,
@@ -885,8 +885,10 @@ function Step4Pricing({
 // ─── Step 5 — Shipping & Location ─────────────────────────────────────────────
 
 function Step5Shipping({
-  location,
-  setLocation,
+  locationState,
+  setLocationState,
+  locationLga,
+  setLocationLga,
   localPickup,
   setLocalPickup,
   shipsNationally,
@@ -894,8 +896,10 @@ function Step5Shipping({
   shippingOptions,
   setShippingOptions,
 }: {
-  location: string;
-  setLocation: (v: string) => void;
+  locationState: string;
+  setLocationState: (v: string) => void;
+  locationLga: string;
+  setLocationLga: (v: string) => void;
   localPickup: boolean;
   setLocalPickup: (v: boolean) => void;
   shipsNationally: boolean;
@@ -939,42 +943,52 @@ function Step5Shipping({
 
       {/* Location */}
       <div>
-        <label htmlFor="item-location" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+        <p className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
           Item Location <span className="text-error" aria-hidden="true">*</span>
-        </label>
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <MapPin className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" aria-hidden="true" />
-            <input
-              id="item-location"
-              type="text"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="City, State or Zip Code"
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="item-state" className="block text-xs text-slate-500 mb-1">State</label>
+            <select
+              id="item-state"
+              value={locationState}
+              onChange={(e) => { setLocationState(e.target.value); setLocationLga(''); }}
+              required
               className={cn(
                 'w-full rounded-lg border border-slate-200 dark:border-slate-700',
-                'bg-white dark:bg-slate-900 pl-9 pr-3 py-2.5 text-sm',
-                'text-slate-900 dark:text-slate-100 placeholder:text-slate-400',
+                'bg-white dark:bg-slate-900 px-3 py-2.5 text-sm',
+                'text-slate-900 dark:text-slate-100',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
               )}
-            />
+            >
+              <option value="">Select state</option>
+              {NIGERIA_STATES.map((s) => (
+                <option key={s.name} value={s.name}>{s.name}</option>
+              ))}
+            </select>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            leftIcon={<Navigation className="h-3.5 w-3.5" />}
-            onClick={() => {
-              if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                  () => setLocation('Current Location'),
-                  () => {}
-                );
-              }
-            }}
-          >
-            Use my location
-          </Button>
+          <div>
+            <label htmlFor="item-lga" className="block text-xs text-slate-500 mb-1">Local Government Area</label>
+            <select
+              id="item-lga"
+              value={locationLga}
+              onChange={(e) => setLocationLga(e.target.value)}
+              disabled={!locationState}
+              required
+              className={cn(
+                'w-full rounded-lg border border-slate-200 dark:border-slate-700',
+                'bg-white dark:bg-slate-900 px-3 py-2.5 text-sm',
+                'text-slate-900 dark:text-slate-100',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                !locationState && 'opacity-50 cursor-not-allowed'
+              )}
+            >
+              <option value="">{locationState ? 'Select LGA' : 'Select state first'}</option>
+              {getLGAs(locationState).map((l) => (
+                <option key={l} value={l}>{l}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -1337,7 +1351,8 @@ export default function CreateListingPage() {
   });
 
   // Step 5 — Shipping
-  const [location, setLocation] = React.useState('');
+  const [locationState, setLocationState] = React.useState('');
+  const [locationLga, setLocationLga] = React.useState('');
   const [localPickup, setLocalPickup] = React.useState(false);
   const [shipsNationally, setShipsNationally] = React.useState(true);
   const [shippingOptions, setShippingOptions] = React.useState<ShippingOption[]>([]);
@@ -1419,7 +1434,7 @@ export default function CreateListingPage() {
       offersEnabled: pricing.offersEnabled || pricing.type === 'make_offer',
       offerAutoAcceptThreshold: pricing.offerAutoAccept ? Number(pricing.offerAutoAccept) : undefined,
       offerAutoDeclineThreshold: pricing.offerAutoDecline ? Number(pricing.offerAutoDecline) : undefined,
-      location,
+      location: locationLga ? `${locationLga}, ${locationState}` : locationState,
       tags: [],
       imageIds: images.filter((i) => i.id !== null).map((i) => i.id as string),
       shippingOptions: [
@@ -1475,7 +1490,7 @@ export default function CreateListingPage() {
       case 4: return pricing.type === 'auction'
         ? !!pricing.auctionStartPrice
         : !!pricing.price;
-      case 5: return !!location;
+      case 5: return !!locationState && !!locationLga;
       default: return true;
     }
   }
@@ -1551,8 +1566,10 @@ export default function CreateListingPage() {
               )}
               {step === 5 && (
                 <Step5Shipping
-                  location={location}
-                  setLocation={setLocation}
+                  locationState={locationState}
+                  setLocationState={setLocationState}
+                  locationLga={locationLga}
+                  setLocationLga={setLocationLga}
                   localPickup={localPickup}
                   setLocalPickup={setLocalPickup}
                   shipsNationally={shipsNationally}
@@ -1572,7 +1589,7 @@ export default function CreateListingPage() {
                     condition: details.condition.replace(/_/g, ' '),
                     type: pricing.type.replace(/_/g, ' '),
                     price: pricing.price,
-                    location,
+                    location: locationLga ? `${locationLga}, ${locationState}` : locationState,
                     localPickup,
                     shipsNationally,
                     shippingOptions,

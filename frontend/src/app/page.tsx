@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { NIGERIA_STATES } from '@/lib/nigeriaLocations';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Route } from 'next';
@@ -271,42 +272,9 @@ function HeroSearchBar() {
           style={{ height: '52px' }}
         >
           <option value="">All Nigeria</option>
-          <option>Abia</option>
-          <option>Adamawa</option>
-          <option>Akwa Ibom</option>
-          <option>Anambra</option>
-          <option>Bauchi</option>
-          <option>Bayelsa</option>
-          <option>Benue</option>
-          <option>Borno</option>
-          <option>Cross River</option>
-          <option>Delta</option>
-          <option>Ebonyi</option>
-          <option>Edo</option>
-          <option>Ekiti</option>
-          <option>Enugu</option>
-          <option>Gombe</option>
-          <option>Imo</option>
-          <option>Jigawa</option>
-          <option>Kaduna</option>
-          <option>Kano</option>
-          <option>Katsina</option>
-          <option>Kebbi</option>
-          <option>Kogi</option>
-          <option>Kwara</option>
-          <option>Lagos</option>
-          <option>Nasarawa</option>
-          <option>Niger</option>
-          <option>Ogun</option>
-          <option>Ondo</option>
-          <option>Osun</option>
-          <option>Oyo</option>
-          <option>Plateau</option>
-          <option>Rivers</option>
-          <option>Sokoto</option>
-          <option>Taraba</option>
-          <option>Yobe</option>
-          <option>Zamfara</option>
+          {NIGERIA_STATES.map((s) => (
+            <option key={s.name} value={s.name}>{s.name}</option>
+          ))}
         </select>
         <ChevronRight className="pointer-events-none absolute right-2 h-3.5 w-3.5 rotate-90 text-slate-400" />
       </div>
