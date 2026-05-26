@@ -65,7 +65,8 @@ export default function LoginPage() {
   };
 
   const handleGoogleOAuth = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1'}/auth/google`;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'https://ashimarket.com/api/v1';
+    window.location.href = `${apiUrl}/auth/google`;
   };
 
   const isPending = isLoading || isSubmitting;

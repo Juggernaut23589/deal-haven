@@ -43,7 +43,7 @@ import type {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'https://ashimarket.com/api/v1';
 const STORAGE_ACCESS_TOKEN = 'dh_access_token';
 const STORAGE_REFRESH_TOKEN = 'dh_refresh_token';
 
