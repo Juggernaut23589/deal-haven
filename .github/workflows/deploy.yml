@@ -39,6 +39,26 @@ jobs:
         run: npm run lint --if-present
         working-directory: backend
 
+      - name: Build backend
+        run: npm run build
+        working-directory: backend
+
+      - name: Package backend build artifact
+        run: |
+          tar -czf backend-build.tar.gz \
+            -C backend \
+            dist \
+            package.json \
+            package-lock.json \
+            prisma
+
+      - name: Upload backend build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-build
+          path: backend-build.tar.gz
+          retention-days: 1
+
       - name: Install frontend dependencies
         run: npm ci
         working-directory: frontend
@@ -77,10 +97,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download frontend build artifact
+      - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: frontend-build
+          pattern: '*-build'
+          merge-multiple: true
 
       - name: Set up SSH
         run: |
@@ -117,24 +138,31 @@ jobs:
             pm2 save
           ENDSSH
 
+      - name: Ship build artifacts to server
+        run: |
+          scp backend-build.tar.gz ${{ env.DEPLOY_USER }}@${{ env.APP_SERVER }}:/tmp/backend-build.tar.gz
+          scp frontend-build.tar.gz ${{ env.DEPLOY_USER }}@${{ env.APP_SERVER }}:/tmp/frontend-build.tar.gz
+
       - name: Deploy backend
         run: |
           ssh ${{ env.DEPLOY_USER }}@${{ env.APP_SERVER }} << 'ENDSSH'
             set -e
             cd ${{ env.APP_DIR }}/backend
+
+            # Unpack pre-built artifact from CI (includes compiled dist/)
+            tar -xzf /tmp/backend-build.tar.gz -C .
+            rm /tmp/backend-build.tar.gz
+
+            # Install production deps only (tsc not needed — dist already built)
             npm ci --omit=dev
 
             # Run migrations
             npx prisma migrate deploy
 
             # Restart backend via PM2
-            pm2 restart ashimarket-api || pm2 start npm --name ashimarket-api -- start
+            pm2 restart ashimarket-api --update-env || pm2 start npm --name ashimarket-api -- start
             pm2 save
           ENDSSH
-
-      - name: Ship frontend build to server
-        run: |
-          scp frontend-build.tar.gz ${{ env.DEPLOY_USER }}@${{ env.APP_SERVER }}:/tmp/frontend-build.tar.gz
 
       - name: Deploy frontend
         run: |
