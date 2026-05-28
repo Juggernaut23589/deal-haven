@@ -192,6 +192,30 @@ function CategoriesMenu() {
               </DropdownMenu.Item>
             ))}
           </div>
+
+          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 grid grid-cols-3 gap-1">
+            <DropdownMenu.Item asChild>
+              <Link href="/listing/create" onClick={() => setOpen(false)}
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-primary hover:bg-primary/5 focus-visible:outline-none transition-colors">
+                <Plus className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <span className="truncate">Post a Listing</span>
+              </Link>
+            </DropdownMenu.Item>
+            <DropdownMenu.Item asChild>
+              <Link href={"/how-it-works" as import("next").Route} onClick={() => setOpen(false)}
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 focus-visible:outline-none transition-colors">
+                <ShoppingBag className="h-4 w-4 shrink-0 text-blue-500" aria-hidden="true" />
+                <span className="truncate">How to Buy</span>
+              </Link>
+            </DropdownMenu.Item>
+            <DropdownMenu.Item asChild>
+              <Link href={"/how-it-works" as import("next").Route} onClick={() => setOpen(false)}
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 focus-visible:outline-none transition-colors">
+                <Tag className="h-4 w-4 shrink-0 text-orange-500" aria-hidden="true" />
+                <span className="truncate">How to Sell</span>
+              </Link>
+            </DropdownMenu.Item>
+          </div>
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
     </DropdownMenu.Root>
@@ -634,7 +658,7 @@ export function Navbar() {
             </button>
 
             {/* Logo */}
-            <Logo height={38} />
+            <Logo height={46} />
 
             {/* Categories */}
             <CategoriesMenu />

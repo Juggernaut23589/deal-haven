@@ -65,11 +65,39 @@ const HERO_CAROUSEL_IMAGES = [
   { src: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=220&h=160&fit=crop', alt: 'Electronics' },
 ];
 
-const QUICK_ACTIONS: { icon: React.ElementType; label: string; description: string; href: Route; iconBg: string; iconColor: string }[] = [
-  { icon: TrendingUp, label: 'Browse Deals', description: 'Find the best prices near you', href: '/search' as Route, iconBg: 'bg-purple-100', iconColor: 'text-purple-600' },
-  { icon: Briefcase, label: 'Post a Listing', description: 'Sell your item in 60 seconds', href: '/listing/create' as Route, iconBg: 'bg-green-100', iconColor: 'text-green-600' },
-  { icon: Package, label: 'How to Sell', description: 'Tips to get the best price', href: '/how-it-works' as Route, iconBg: 'bg-orange-100', iconColor: 'text-orange-600' },
-  { icon: ShieldCheck, label: 'How to Buy', description: 'Safe buying guide', href: '/how-it-works' as Route, iconBg: 'bg-blue-100', iconColor: 'text-blue-600' },
+const TOP_CATEGORIES: { label: string; description: string; href: Route; icon: string; image: string; gradient: string }[] = [
+  {
+    label: 'Vehicles',
+    description: 'Cars, trucks & motorcycles',
+    href: '/category/automobiles' as Route,
+    icon: '🚗',
+    image: 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=400&h=260&fit=crop',
+    gradient: 'from-slate-900/70 to-slate-900/20',
+  },
+  {
+    label: 'Real Estate',
+    description: 'Houses, land & rentals',
+    href: '/category/real-estate' as Route,
+    icon: '🏠',
+    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=260&fit=crop',
+    gradient: 'from-emerald-900/70 to-emerald-900/20',
+  },
+  {
+    label: 'Phones & Tablets',
+    description: 'Smartphones, iPads & more',
+    href: '/category/electronics' as Route,
+    icon: '📱',
+    image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=260&fit=crop',
+    gradient: 'from-blue-900/70 to-blue-900/20',
+  },
+  {
+    label: 'Electronics',
+    description: 'Laptops, TVs & gadgets',
+    href: '/category/electronics' as Route,
+    icon: '💻',
+    image: 'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=400&h=260&fit=crop',
+    gradient: 'from-violet-900/70 to-violet-900/20',
+  },
 ];
 
 /** Category cards with real Unsplash photos for visual richness */
@@ -343,29 +371,33 @@ function CategorySidebar() {
   );
 }
 
-function QuickActions() {
+function TopCategories() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-      {QUICK_ACTIONS.map((action) => {
-        const Icon = action.icon;
-        return (
-          <Link
-            key={action.label}
-            href={action.href}
-            className="flex flex-col items-center gap-2 rounded-xl border border-slate-100 bg-white p-4 text-center shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group"
-          >
-            <div className={cn('flex h-11 w-11 items-center justify-center rounded-xl', action.iconBg)}>
-              <Icon className={cn('h-5 w-5', action.iconColor)} />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-slate-800 group-hover:text-primary transition-colors">
-                {action.label}
-              </p>
-              <p className="text-xs text-slate-400 mt-0.5 leading-tight">{action.description}</p>
-            </div>
-          </Link>
-        );
-      })}
+    <div className="grid grid-cols-2 gap-3 mb-6">
+      {TOP_CATEGORIES.map((cat) => (
+        <Link
+          key={cat.label}
+          href={cat.href}
+          className="group relative flex flex-col justify-end overflow-hidden rounded-xl aspect-[4/3] shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
+          {/* Background image */}
+          <Image
+            src={cat.image}
+            alt={cat.label}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            sizes="(max-width: 640px) 45vw, 200px"
+          />
+          {/* Gradient overlay */}
+          <div className={cn('absolute inset-0 bg-gradient-to-t', cat.gradient)} />
+          {/* Content */}
+          <div className="relative z-10 p-3">
+            <span className="text-lg leading-none" aria-hidden="true">{cat.icon}</span>
+            <p className="text-sm font-bold text-white mt-1 leading-tight">{cat.label}</p>
+            <p className="text-[11px] text-white/70 mt-0.5 leading-tight">{cat.description}</p>
+          </div>
+        </Link>
+      ))}
     </div>
   );
 }
@@ -646,7 +678,7 @@ export default function HomePage() {
 
             {/* Right: quick actions + recommended listings */}
             <div className="min-w-0 flex-1">
-              <QuickActions />
+              <TopCategories />
 
               {/* Recommended for you */}
               <div>
