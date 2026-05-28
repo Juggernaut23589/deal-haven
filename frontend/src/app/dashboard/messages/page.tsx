@@ -272,7 +272,7 @@ function MessageThread({
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function MessagesPage() {
+function MessagesInner() {
   const { user, isLoading: authLoading } = useRequireAuth();
   const searchParams = useSearchParams();
   const [conversations, setConversations] = React.useState<Conversation[]>([]);
@@ -334,5 +334,13 @@ export default function MessagesPage() {
       </main>
       <Footer />
     </>
+  );
+}
+
+export default function MessagesPage() {
+  return (
+    <React.Suspense fallback={null}>
+      <MessagesInner />
+    </React.Suspense>
   );
 }
