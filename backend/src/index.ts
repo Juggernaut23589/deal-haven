@@ -1,7 +1,9 @@
 import 'dotenv/config';
 import fs from 'fs';
+import http from 'http';
 import path from 'path';
 import { buildApp } from './app';
+import { initSocket } from './socket';
 import { connectDatabase, disconnectDatabase } from './config/database';
 import { disconnectRedis } from './config/redis';
 import { logger } from './config/logger';
@@ -21,25 +23,23 @@ const useHttps =
 
 async function start(): Promise<void> {
   try {
-    // Connect to databases
     await connectDatabase();
     await ensureUploadDirs();
 
-    // Build Fastify app (with HTTPS in dev if certs exist)
     const httpsOptions = useHttps
       ? { key: fs.readFileSync(keyPath), cert: fs.readFileSync(certPath) }
       : undefined;
+
     const app = await buildApp(httpsOptions ? { https: httpsOptions } : undefined);
 
-    // Start background jobs
     await startBackgroundJobs();
 
-    // Start server
+    initSocket(app.server as unknown as http.Server);
+
     await app.listen({ port: PORT, host: HOST });
     const protocol = useHttps ? 'https' : 'http';
     logger.info({ port: PORT, host: HOST, protocol }, `Ashimarket API started (${protocol.toUpperCase()})`);
 
-    // Handle graceful shutdown
     const signals = ['SIGTERM', 'SIGINT'];
     for (const signal of signals) {
       process.on(signal, async () => {

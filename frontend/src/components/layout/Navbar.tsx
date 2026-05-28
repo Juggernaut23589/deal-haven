@@ -35,6 +35,9 @@ import { useUIStore } from '@/store/uiStore';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { messagesApi, notificationsApi } from '@/lib/api';
+import { getSocket } from '@/lib/socket';
+import { useAuthStore } from '@/store/authStore';
 
 // ─── Category Links ───────────────────────────────────────────────────────────
 
@@ -575,9 +578,37 @@ export function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Fake unread counts (would come from real query in production)
-  const unreadMessages = 0;
-  const unreadNotifications = 0;
+  const { isAuthenticated: isAuth, accessToken } = useAuthStore();
+  const [unreadMessages, setUnreadMessages] = React.useState(0);
+  const [unreadNotifications, setUnreadNotifications] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!isAuth) return;
+    messagesApi.getConversations(1)
+      .then((res) => {
+        const total = (res.data ?? []).reduce((sum: number, c: { unreadCount?: number }) => sum + (c.unreadCount ?? 0), 0);
+        setUnreadMessages(total);
+      })
+      .catch(() => {});
+    notificationsApi.getUnreadCount()
+      .then((res: { count?: number; data?: { count?: number } }) => setUnreadNotifications((res as { count?: number }).count ?? (res as { data?: { count?: number } }).data?.count ?? 0))
+      .catch(() => {});
+  }, [isAuthenticated]);
+
+  React.useEffect(() => {
+    if (!isAuth || !accessToken) return;
+    const socket = getSocket(accessToken);
+    const onUnread = () => {
+      messagesApi.getConversations(1)
+        .then((res) => {
+          const total = (res.data ?? []).reduce((sum: number, c: { unreadCount?: number }) => sum + (c.unreadCount ?? 0), 0);
+          setUnreadMessages(total);
+        })
+        .catch(() => {});
+    };
+    socket.on('unread_count_changed', onUnread);
+    return () => { socket.off('unread_count_changed', onUnread); };
+  }, [isAuth, accessToken]);
 
   return (
     <>
