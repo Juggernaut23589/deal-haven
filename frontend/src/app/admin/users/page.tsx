@@ -168,7 +168,7 @@ export default function AdminUsersPage() {
         {actionUser && (
           <div className="space-y-4">
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              You are about to set <strong>{actionUser.profile?.displayName ?? actionUser.username}</strong>'s status to <strong>{newStatus}</strong>.
+              You are about to set <strong>{actionUser.profile?.displayName ?? actionUser.username}</strong>&apos;s status to <strong>{newStatus}</strong>.
             </p>
             <div>
               <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Reason (optional)</label>

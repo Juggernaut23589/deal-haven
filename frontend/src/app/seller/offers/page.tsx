@@ -172,14 +172,14 @@ export default function SellerOffersPage() {
 
                         {offer.message && (
                           <p className="mt-2 text-xs text-slate-500 italic border-l-2 border-slate-200 dark:border-slate-700 pl-2">
-                            "{offer.message}"
+                            &ldquo;{offer.message}&rdquo;
                           </p>
                         )}
 
                         {offer.counterAmount && (
                           <p className="mt-2 text-xs text-primary">
                             Your counter: {formatPrice(offer.counterAmount)}
-                            {offer.counterMessage && ` — "${offer.counterMessage}"`}
+                            {offer.counterMessage && <> &mdash; &ldquo;{offer.counterMessage}&rdquo;</>}
                           </p>
                         )}
                       </div>

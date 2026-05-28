@@ -184,7 +184,7 @@ export default function SellerOrderDetailPage() {
                       <Truck className="h-4 w-4 text-primary" />
                       Mark as Shipped
                     </h3>
-                    <p className="text-xs text-slate-500 mt-1">Enter tracking info once you've dispatched this order.</p>
+                    <p className="text-xs text-slate-500 mt-1">Enter tracking info once you&apos;ve dispatched this order.</p>
                   </div>
                   {!showShipForm && (
                     <Button size="sm" onClick={() => setShowShipForm(true)} leftIcon={<Truck className="h-3.5 w-3.5" />}>

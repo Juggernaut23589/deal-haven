@@ -171,7 +171,7 @@ export default function AdminListingsPage() {
         {actionListing && (
           <div className="space-y-4">
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              Setting "<strong>{actionListing.title}</strong>" to <strong>{newStatus}</strong>.
+              Setting &ldquo;<strong>{actionListing.title}</strong>&rdquo; to <strong>{newStatus}</strong>.
             </p>
             {newStatus === 'REJECTED' && (
               <div>

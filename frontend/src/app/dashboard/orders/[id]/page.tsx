@@ -257,7 +257,7 @@ export default function BuyerOrderDetailPage() {
                     <AlertCircle className="h-5 w-5 text-error shrink-0 mt-0.5" />
                     <div className="flex-1">
                       <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Problem with your order?</p>
-                      <p className="text-xs text-slate-500 mt-0.5">Open a dispute if the item didn't arrive or isn't as described.</p>
+                      <p className="text-xs text-slate-500 mt-0.5">Open a dispute if the item didn&apos;t arrive or isn&apos;t as described.</p>
                     </div>
                     <Button size="sm" variant="outline" onClick={() => setDisputeOpen(true)} className="text-error border-error/30 hover:bg-error/5">
                       Open Dispute
@@ -327,7 +327,7 @@ export default function BuyerOrderDetailPage() {
           <div className="flex items-start gap-3 rounded-lg bg-success/5 border border-success/20 p-4">
             <ShieldCheck className="h-5 w-5 text-success shrink-0 mt-0.5" />
             <p className="text-sm text-slate-700 dark:text-slate-300">
-              By confirming receipt, you release the escrowed funds to the seller. Only do this if you've received your item and are satisfied.
+              By confirming receipt, you release the escrowed funds to the seller. Only do this if you&apos;ve received your item and are satisfied.
             </p>
           </div>
           <div className="flex gap-3 justify-end">
