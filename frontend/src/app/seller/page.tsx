@@ -43,38 +43,38 @@ import { formatPrice, formatDate, formatOrderStatus } from '@/lib/formatters';
 // ─── Mock revenue chart data ──────────────────────────────────────────────────
 
 const REVENUE_DATA_7D = [
-  { date: 'Mar 16', revenue: 320 },
-  { date: 'Mar 17', revenue: 480 },
-  { date: 'Mar 18', revenue: 260 },
-  { date: 'Mar 19', revenue: 590 },
-  { date: 'Mar 20', revenue: 820 },
-  { date: 'Mar 21', revenue: 430 },
-  { date: 'Mar 22', revenue: 710 },
+  { date: 'Mar 16', revenue: 45_000 },
+  { date: 'Mar 17', revenue: 72_500 },
+  { date: 'Mar 18', revenue: 38_000 },
+  { date: 'Mar 19', revenue: 91_000 },
+  { date: 'Mar 20', revenue: 125_000 },
+  { date: 'Mar 21', revenue: 64_000 },
+  { date: 'Mar 22', revenue: 108_500 },
 ];
 
 const REVENUE_DATA_30D = Array.from({ length: 30 }, (_, i) => ({
   date: `Mar ${i + 1}`,
-  revenue: Math.floor(Math.random() * 1200 + 200),
+  revenue: Math.floor(Math.random() * 180_000 + 30_000),
 }));
 
 const REVENUE_DATA_90D = Array.from({ length: 12 }, (_, i) => ({
   date: `Week ${i + 1}`,
-  revenue: Math.floor(Math.random() * 5000 + 1000),
+  revenue: Math.floor(Math.random() * 750_000 + 150_000),
 }));
 
 const REVENUE_DATA_1Y = [
-  { date: 'Apr 25', revenue: 12400 },
-  { date: 'May 25', revenue: 18900 },
-  { date: 'Jun 25', revenue: 22100 },
-  { date: 'Jul 25', revenue: 19800 },
-  { date: 'Aug 25', revenue: 24500 },
-  { date: 'Sep 25', revenue: 21300 },
-  { date: 'Oct 25', revenue: 27800 },
-  { date: 'Nov 25', revenue: 31200 },
-  { date: 'Dec 25', revenue: 38400 },
-  { date: 'Jan 26', revenue: 24100 },
-  { date: 'Feb 26', revenue: 29800 },
-  { date: 'Mar 26', revenue: 14600 },
+  { date: 'Apr 25', revenue: 1_860_000 },
+  { date: 'May 25', revenue: 2_835_000 },
+  { date: 'Jun 25', revenue: 3_315_000 },
+  { date: 'Jul 25', revenue: 2_970_000 },
+  { date: 'Aug 25', revenue: 3_675_000 },
+  { date: 'Sep 25', revenue: 3_195_000 },
+  { date: 'Oct 25', revenue: 4_170_000 },
+  { date: 'Nov 25', revenue: 4_680_000 },
+  { date: 'Dec 25', revenue: 5_760_000 },
+  { date: 'Jan 26', revenue: 3_615_000 },
+  { date: 'Feb 26', revenue: 4_470_000 },
+  { date: 'Mar 26', revenue: 2_190_000 },
 ];
 
 const CHART_DATA_MAP = {
@@ -94,7 +94,7 @@ const MOCK_SELLER_ORDERS = [
     orderNumber: 'DH-20260010',
     buyerName: 'Michael Chen',
     itemTitle: 'iPhone 14 Pro 256GB Purple',
-    amount: 649,
+    amount: 975_000,
     status: 'processing',
     date: '2026-03-22',
     canShip: true,
@@ -104,7 +104,7 @@ const MOCK_SELLER_ORDERS = [
     orderNumber: 'DH-20260011',
     buyerName: 'Sarah Williams',
     itemTitle: 'AirPods Pro 2nd Gen',
-    amount: 189,
+    amount: 285_000,
     status: 'shipped',
     date: '2026-03-20',
     canShip: false,
@@ -114,7 +114,7 @@ const MOCK_SELLER_ORDERS = [
     orderNumber: 'DH-20260012',
     buyerName: 'James Thompson',
     itemTitle: 'MacBook Air M2 Space Gray',
-    amount: 1_049,
+    amount: 1_575_000,
     status: 'delivered',
     date: '2026-03-15',
     canShip: false,
@@ -124,7 +124,7 @@ const MOCK_SELLER_ORDERS = [
     orderNumber: 'DH-20260013',
     buyerName: 'Aisha Patel',
     itemTitle: 'iPad Pro 11" Wi-Fi 256GB',
-    amount: 799,
+    amount: 1_200_000,
     status: 'payment_confirmed',
     date: '2026-03-22',
     canShip: true,
@@ -352,7 +352,7 @@ function RevenueChart() {
               tick={{ fontSize: 11, fill: '#94a3b8' }}
               tickLine={false}
               axisLine={false}
-              tickFormatter={(v: number) => `$${v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v}`}
+              tickFormatter={(v: number) => `₦${v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v}`}
             />
             <Tooltip
               contentStyle={{
