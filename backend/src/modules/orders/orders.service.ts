@@ -128,7 +128,8 @@ export class OrdersService {
         data: {
           orderNumber,
           buyerId,
-          shippingAddressId: input.shippingAddressId,
+          shippingAddressId: input.shippingAddressId ?? null,
+          // Start as PENDING — seller confirms payment received privately
           status: OrderStatus.PENDING,
           subtotal,
           shippingCost,
@@ -155,20 +156,29 @@ export class OrdersService {
         select: orderDetailSelect,
       });
 
-      // Payment intent created externally (Stripe) — we just create the record
-      await tx.payment.create({
-        data: {
-          orderId: created.id,
-          amount: total,
-          currency: listing.currency,
-          status: PaymentStatus.PENDING,
-        },
-      });
-
       return created;
     });
 
     return order;
+  }
+
+  // Seller confirms they received private payment — moves order to PROCESSING
+  async sellerConfirmPayment(orderId: string, sellerId: string) {
+    const order = await prisma.order.findFirst({
+      where: {
+        id: orderId,
+        status: OrderStatus.PENDING,
+        items: { some: { sellerId } },
+      },
+    });
+
+    if (!order) throw new NotFoundError('Order', orderId);
+
+    return prisma.order.update({
+      where: { id: orderId },
+      data: { status: OrderStatus.PROCESSING },
+      select: orderDetailSelect,
+    });
   }
 
   async confirmPayment(orderId: string, stripePaymentIntentId: string) {
@@ -269,13 +279,12 @@ export class OrdersService {
       where: {
         id: orderId,
         buyerId,
-        status: { in: [OrderStatus.SHIPPED, OrderStatus.IN_TRANSIT] },
+        status: { in: [OrderStatus.SHIPPED, OrderStatus.IN_TRANSIT, OrderStatus.PROCESSING] },
       },
-      include: { escrow: true },
+      include: { items: true },
     });
 
     if (!order) throw new NotFoundError('Order', orderId);
-    if (!order.escrow) throw new BusinessRuleError('No escrow record found for order');
 
     await prisma.$transaction(async (tx) => {
       await tx.order.update({
@@ -286,17 +295,7 @@ export class OrdersService {
         },
       });
 
-      await tx.escrowTransaction.update({
-        where: { orderId },
-        data: {
-          status: EscrowStatus.RELEASED,
-          releasedAt: new Date(),
-        },
-      });
-
-      // Mark listing as sold
-      const orderItems = await tx.orderItem.findMany({ where: { orderId } });
-      for (const item of orderItems) {
+      for (const item of order.items) {
         await tx.listing.update({
           where: { id: item.listingId },
           data: { status: ListingStatus.SOLD },
@@ -453,6 +452,38 @@ export class OrdersService {
     if (!isBuyer && !isSeller) throw new AuthorizationError();
 
     return order;
+  }
+
+  async openDispute(orderId: string, userId: string, reason: string, description: string) {
+    const order = await prisma.order.findFirst({
+      where: { id: orderId, OR: [{ buyerId: userId }, { items: { some: { sellerId: userId } } }] },
+      select: { id: true, status: true, buyerId: true, items: { select: { sellerId: true } } },
+    });
+
+    if (!order) throw new NotFoundError('Order', orderId);
+
+    const existingDispute = await prisma.dispute.findUnique({ where: { orderId } });
+    if (existingDispute) throw new BusinessRuleError('A dispute already exists for this order');
+
+    const sellerId = order.items[0]?.sellerId;
+    if (!sellerId) throw new BusinessRuleError('Cannot find seller for this order');
+
+    const dispute = await prisma.dispute.create({
+      data: {
+        orderId,
+        buyerId: order.buyerId,
+        reason: reason as never,
+        description,
+        evidenceDeadline: addDays(new Date(), 7),
+      },
+    });
+
+    await prisma.order.update({
+      where: { id: orderId },
+      data: { status: OrderStatus.DISPUTED },
+    });
+
+    return dispute;
   }
 }
 

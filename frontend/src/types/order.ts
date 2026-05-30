@@ -4,6 +4,18 @@ import type { PublicUser } from './user';
 // ─── Order Enums ──────────────────────────────────────────────────────────────
 
 export type OrderStatus =
+  | 'PENDING'
+  | 'PAID'
+  | 'PROCESSING'
+  | 'SHIPPED'
+  | 'IN_TRANSIT'
+  | 'DELIVERED'
+  | 'COMPLETED'
+  | 'CANCELLED'
+  | 'REFUNDED'
+  | 'DISPUTED'
+  // legacy lowercase aliases kept for compatibility
+  | 'pending'
   | 'pending_payment'
   | 'payment_confirmed'
   | 'processing'
@@ -163,6 +175,7 @@ export interface OrderItem {
   totalPrice: number;
   condition: ListingCondition;
   sellerId: string;
+  sellerUsername: string;
 }
 
 // ─── Shipping Tracking ────────────────────────────────────────────────────────

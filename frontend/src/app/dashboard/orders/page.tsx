@@ -2,14 +2,10 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import type { Route } from 'next';
 import {
-  Package,
-  Truck,
-  CheckCircle2,
-  Clock,
-  ChevronRight,
-  Search,
-  Filter,
+  Package, Truck, CheckCircle2, Clock, ChevronRight,
+  XCircle, AlertTriangle, RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Navbar } from '@/components/layout/Navbar';
@@ -18,146 +14,182 @@ import { useRequireAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { formatPrice, formatDate } from '@/lib/formatters';
+import { formatPrice, formatDate, formatOrderStatus } from '@/lib/formatters';
+import { ordersApi } from '@/lib/api';
+import { useToast } from '@/store/uiStore';
+import type { Order, OrderStatus } from '@/types/order';
 
-// ─── Mock orders ─────────────────────────────────────────────────────────────
-
-const MOCK_ORDERS = [
-  {
-    id: 'ord_1',
-    orderNumber: 'DH-20260001',
-    itemTitle: 'Apple MacBook Pro 14" M3 Pro',
-    itemImage: 'https://picsum.photos/seed/mbp/80',
-    price: 1_799.99,
-    status: 'shipped' as const,
-    date: '2026-03-18',
-    seller: 'TechHub Store',
-  },
-  {
-    id: 'ord_2',
-    orderNumber: 'DH-20260002',
-    itemTitle: 'Sony WH-1000XM5 Headphones',
-    itemImage: 'https://picsum.photos/seed/sony/80',
-    price: 279.95,
-    status: 'delivered' as const,
-    date: '2026-03-10',
-    seller: 'AudioPhile',
-  },
-  {
-    id: 'ord_3',
-    orderNumber: 'DH-20260003',
-    itemTitle: 'Herman Miller Aeron Chair',
-    itemImage: 'https://picsum.photos/seed/chair/80',
-    price: 1_395.00,
-    status: 'pending' as const,
-    date: '2026-03-22',
-    seller: 'HomeStyle Boutique',
-  },
-  {
-    id: 'ord_4',
-    orderNumber: 'DH-20260004',
-    itemTitle: 'Nintendo Switch OLED',
-    itemImage: 'https://picsum.photos/seed/switch/80',
-    price: 349.99,
-    status: 'completed' as const,
-    date: '2026-02-15',
-    seller: 'GameWorld',
-  },
+const TABS: { key: string; label: string }[] = [
+  { key: '', label: 'All' },
+  { key: 'pending', label: 'Pending' },
+  { key: 'processing', label: 'Processing' },
+  { key: 'shipped', label: 'Shipped' },
+  { key: 'delivered', label: 'Delivered' },
+  { key: 'completed', label: 'Completed' },
+  { key: 'cancelled', label: 'Cancelled' },
 ];
 
-const STATUS_CONFIG = {
-  pending: { label: 'Pending', icon: Clock, color: 'warning' as const },
-  shipped: { label: 'Shipped', icon: Truck, color: 'info' as const },
-  delivered: { label: 'Delivered', icon: Package, color: 'success' as const },
-  completed: { label: 'Completed', icon: CheckCircle2, color: 'success' as const },
-};
-
 export default function OrdersPage() {
-  const { user, isLoading: authLoading } = useRequireAuth();
+  const { isLoading: authLoading } = useRequireAuth();
+  const { toast } = useToast();
+  const [orders, setOrders] = React.useState<Order[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [activeTab, setActiveTab] = React.useState('');
+  const [confirming, setConfirming] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 500);
-    return () => clearTimeout(timer);
-  }, []);
+  const fetchOrders = React.useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const res = await ordersApi.getMyOrders('buying');
+      setOrders(res.data);
+    } catch {
+      toast.error('Failed to load orders');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+
+  React.useEffect(() => { fetchOrders(); }, [fetchOrders]);
+
+  const handleConfirmDelivery = async (orderId: string) => {
+    setConfirming(orderId);
+    try {
+      await ordersApi.confirmDelivery(orderId);
+      toast.success('Delivery confirmed — transaction complete');
+      fetchOrders();
+    } catch {
+      toast.error('Failed to confirm delivery');
+    } finally {
+      setConfirming(null);
+    }
+  };
 
   if (authLoading) return null;
+
+  const filtered = activeTab
+    ? orders.filter((o) => o.status.toLowerCase() === activeTab)
+    : orders;
+
+  const getItemImage = (order: Order) =>
+    order.items[0]?.listingImageUrl ?? `https://picsum.photos/seed/${order.id}/80/80`;
 
   return (
     <>
       <Navbar />
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        {/* Breadcrumb */}
+      <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
         <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm mb-6">
-          <Link href="/dashboard" className="text-slate-500 hover:text-primary transition-colors">
-            Dashboard
-          </Link>
-          <ChevronRight className="h-3.5 w-3.5 text-slate-300" aria-hidden="true" />
+          <Link href="/dashboard" className="text-slate-500 hover:text-primary transition-colors">Dashboard</Link>
+          <ChevronRight className="h-3.5 w-3.5 text-slate-300" />
           <span className="font-medium text-slate-900 dark:text-slate-100">My Orders</span>
         </nav>
 
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold font-display text-slate-900 dark:text-slate-100">
             My Orders
+            {!isLoading && orders.length > 0 && (
+              <span className="ml-2 text-lg font-normal text-slate-400">({orders.length})</span>
+            )}
           </h1>
+          <Button variant="outline" size="sm" onClick={fetchOrders} leftIcon={<RefreshCw className="h-3.5 w-3.5" />}>
+            Refresh
+          </Button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-1 flex-wrap mb-6 overflow-x-auto pb-1">
+          {TABS.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={cn(
+                'px-3.5 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors',
+                activeTab === tab.key
+                  ? 'bg-primary text-white'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+              )}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
         {isLoading ? (
-          <div className="space-y-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-24 rounded-xl" />
-            ))}
+          <div className="space-y-3">
+            {[1,2,3,4].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
           </div>
-        ) : MOCK_ORDERS.length === 0 ? (
-          <div className="text-center py-16">
-            <Package className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
-              No orders yet
-            </h3>
-            <p className="text-slate-500 mb-6">Start shopping to see your orders here.</p>
-            <Button asChild>
-              <Link href="/search">Browse Listings</Link>
-            </Button>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-20">
+            <Package className="h-14 w-14 text-slate-200 dark:text-slate-700 mx-auto mb-4" />
+            <p className="text-lg font-semibold text-slate-700 dark:text-slate-300">
+              {activeTab ? `No ${activeTab} orders` : 'No orders yet'}
+            </p>
+            <p className="text-sm text-slate-500 mt-1 mb-6">
+              When you request to buy a listing, it will appear here.
+            </p>
+            <Button asChild><Link href="/search">Browse Listings</Link></Button>
           </div>
         ) : (
           <div className="space-y-3">
-            {MOCK_ORDERS.map((order) => {
-              const statusCfg = STATUS_CONFIG[order.status];
-              const StatusIcon = statusCfg.icon;
+            {filtered.map((order) => {
+              const { label, colorClass } = formatOrderStatus(order.status);
+              const item = order.items[0];
+              const canConfirm = ['SHIPPED','IN_TRANSIT','PROCESSING','shipped','in_transit','processing'].includes(order.status);
               return (
                 <div
                   key={order.id}
                   className={cn(
-                    'flex items-center gap-3 p-3 sm:gap-4 sm:p-4 rounded-xl',
-                    'bg-white dark:bg-surface-dark',
-                    'border border-slate-100 dark:border-slate-800',
-                    'shadow-card hover:shadow-card-hover transition-shadow'
+                    'rounded-xl bg-white dark:bg-surface-dark',
+                    'border border-slate-100 dark:border-slate-800 shadow-card',
+                    'p-4 flex gap-4 items-start'
                   )}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={order.itemImage}
-                    alt={order.itemTitle}
-                    className="h-12 w-12 sm:h-16 sm:w-16 rounded-lg object-cover shrink-0"
-                    loading="lazy"
+                    src={getItemImage(order)}
+                    alt=""
+                    className="h-16 w-16 rounded-lg object-cover shrink-0"
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-slate-900 dark:text-slate-100 truncate">
-                      {order.itemTitle}
-                    </p>
+                    <div className="flex items-start justify-between gap-2 flex-wrap">
+                      <p className="font-semibold text-slate-900 dark:text-slate-100 line-clamp-1">
+                        {item?.listingTitle ?? 'Order Item'}
+                      </p>
+                      <span className={cn('inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold shrink-0', colorClass)}>
+                        {label}
+                      </span>
+                    </div>
                     <p className="text-sm text-slate-500 mt-0.5">
-                      {order.orderNumber} &middot; {order.seller}
+                      {order.orderNumber} &middot; Seller: @{item?.sellerUsername ?? '—'}
                     </p>
-                    <p className="text-xs text-slate-400 mt-0.5">{formatDate(order.date)}</p>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <p className="font-bold font-mono text-slate-900 dark:text-slate-100">
-                      {formatPrice(order.price)}
-                    </p>
-                    <Badge variant={statusCfg.color} size="sm" className="mt-1">
-                      <StatusIcon className="h-3 w-3 mr-1" aria-hidden="true" />
-                      {statusCfg.label}
-                    </Badge>
+                    <div className="flex items-center justify-between mt-2 flex-wrap gap-2">
+                      <p className="font-bold font-mono text-primary text-sm">{formatPrice(order.total)}</p>
+                      <p className="text-xs text-slate-400">{formatDate(order.createdAt)}</p>
+                    </div>
+                    <div className="flex gap-2 mt-3 flex-wrap">
+                      <Link
+                        href={`/dashboard/orders/${order.id}` as Route}
+                        className="text-xs font-medium text-primary hover:text-primary-dark transition-colors"
+                      >
+                        View Details →
+                      </Link>
+                      {canConfirm && (
+                        <button
+                          onClick={() => handleConfirmDelivery(order.id)}
+                          disabled={confirming === order.id}
+                          className="text-xs font-medium text-success hover:text-emerald-700 transition-colors"
+                        >
+                          {confirming === order.id ? 'Confirming…' : 'Confirm Receipt'}
+                        </button>
+                      )}
+                      {['PENDING','pending'].includes(order.status) && (
+                        <Link
+                          href={`/dashboard/messages?listing=${order.items[0]?.listingId}` as Route}
+                          className="text-xs font-medium text-slate-500 hover:text-slate-700 transition-colors"
+                        >
+                          Contact Seller
+                        </Link>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

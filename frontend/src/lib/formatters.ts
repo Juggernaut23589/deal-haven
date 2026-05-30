@@ -145,8 +145,19 @@ export function formatOrderStatus(status: OrderStatus): {
   colorClass: string;
 } {
   const map: Record<string, { label: string; colorClass: string }> = {
+    PENDING: { label: 'Awaiting Payment', colorClass: 'bg-warning/10 text-warning' },
+    PAID: { label: 'Paid', colorClass: 'bg-primary/10 text-primary' },
+    PROCESSING: { label: 'Processing', colorClass: 'bg-primary/10 text-primary' },
+    SHIPPED: { label: 'Shipped', colorClass: 'bg-accent/10 text-accent-dark' },
+    IN_TRANSIT: { label: 'In Transit', colorClass: 'bg-accent/10 text-accent-dark' },
+    DELIVERED: { label: 'Delivered', colorClass: 'bg-success/10 text-success' },
+    COMPLETED: { label: 'Completed', colorClass: 'bg-success/10 text-success' },
+    CANCELLED: { label: 'Cancelled', colorClass: 'bg-slate-100 text-slate-500' },
+    REFUNDED: { label: 'Refunded', colorClass: 'bg-error/10 text-error' },
+    DISPUTED: { label: 'Disputed', colorClass: 'bg-error/10 text-error' },
+    pending: { label: 'Awaiting Payment', colorClass: 'bg-warning/10 text-warning' },
     pending_payment: {
-      label: 'Pending Payment',
+      label: 'Awaiting Payment',
       colorClass: 'bg-warning/10 text-warning',
     },
     payment_confirmed: {

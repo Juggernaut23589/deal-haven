@@ -392,14 +392,12 @@ export const offersApi = {
 export const ordersApi = {
   create: (payload: {
     listingId: string;
-    variantId?: string;
-    quantity: number;
-    shippingOptionId: string;
-    shippingAddressId: string;
-    offerId?: string;
-    notes?: string;
-  }): Promise<{ order: Order; clientSecret: string }> =>
-    post('/orders', payload),
+    quantity?: number;
+    shippingOptionId?: string;
+    shippingAddressId?: string;
+    buyerNote?: string;
+  }): Promise<Order> =>
+    post<Order>('/orders', payload),
 
   get: (orderId: string): Promise<Order> => get<Order>(`/orders/${orderId}`),
 
@@ -410,6 +408,10 @@ export const ordersApi = {
   ): Promise<PaginatedResponse<Order>> =>
     get<PaginatedResponse<Order>>('/orders/me', { params: { type, status, page } }),
 
+  // Seller confirms they received private payment — moves order to PROCESSING
+  sellerConfirmPayment: (orderId: string): Promise<Order> =>
+    post<Order>(`/orders/${orderId}/confirm-payment-received`),
+
   ship: (
     orderId: string,
     payload: {
@@ -418,20 +420,17 @@ export const ordersApi = {
       trackingUrl?: string;
       estimatedDelivery?: string;
     }
-  ): Promise<Order> => patch<Order>(`/orders/${orderId}/ship`, payload),
+  ): Promise<Order> => post<Order>(`/orders/${orderId}/ship`, payload),
 
   confirmDelivery: (orderId: string): Promise<Order> =>
-    patch<Order>(`/orders/${orderId}/confirm-delivery`),
+    post<Order>(`/orders/${orderId}/confirm-delivery`),
 
   cancel: (orderId: string, reason: string): Promise<Order> =>
-    patch<Order>(`/orders/${orderId}/cancel`, { reason }),
+    post<Order>(`/orders/${orderId}/cancel`, { reason }),
 
   openDispute: (
     orderId: string,
-    payload: {
-      reason: string;
-      description: string;
-    }
+    payload: { reason: string; description: string }
   ): Promise<Dispute> => post<Dispute>(`/orders/${orderId}/dispute`, payload),
 };
 

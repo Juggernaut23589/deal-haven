@@ -21,11 +21,11 @@ export async function orderRoutes(fastify: FastifyInstance): Promise<void> {
     void reply.status(200).send({ success: true, data: order });
   });
 
-  // Confirm payment (called after Stripe payment succeeds)
-  fastify.post('/:id/confirm-payment', { preHandler: [requireAuth] }, async (req, reply) => {
+  // Seller: confirm they received private payment
+  fastify.post('/:id/confirm-payment-received', { preHandler: [requireAuth] }, async (req, reply) => {
+    const user = (req as AuthenticatedRequest).user;
     const { id } = req.params as { id: string };
-    const { stripePaymentIntentId } = req.body as { stripePaymentIntentId: string };
-    const order = await ordersService.confirmPayment(id, stripePaymentIntentId);
+    const order = await ordersService.sellerConfirmPayment(id, user.id);
     void reply.status(200).send({ success: true, data: order });
   });
 
@@ -55,7 +55,19 @@ export async function orderRoutes(fastify: FastifyInstance): Promise<void> {
     void reply.status(200).send({ success: true, data: order });
   });
 
-  // Buyer: my orders
+  // Unified: my orders (type = 'buying' | 'selling')
+  fastify.get('/me', { preHandler: [requireAuth] }, async (req, reply) => {
+    const user = (req as AuthenticatedRequest).user;
+    const q = req.query as { type?: string; page?: string; limit?: string };
+    const page = parseInt(q.page ?? '1', 10);
+    const limit = parseInt(q.limit ?? '20', 10);
+    const result = q.type === 'selling'
+      ? await ordersService.getSellerOrders(user.id, page, limit)
+      : await ordersService.getBuyerOrders(user.id, page, limit);
+    void reply.status(200).send({ success: true, ...result });
+  });
+
+  // Legacy routes kept for compatibility
   fastify.get('/me/purchases', { preHandler: [requireAuth] }, async (req, reply) => {
     const user = (req as AuthenticatedRequest).user;
     const q = req.query as { page?: string; limit?: string };
@@ -67,8 +79,7 @@ export async function orderRoutes(fastify: FastifyInstance): Promise<void> {
     void reply.status(200).send({ success: true, ...result });
   });
 
-  // Seller: my orders
-  fastify.get('/me/sales', { preHandler: [requireSeller] }, async (req, reply) => {
+  fastify.get('/me/sales', { preHandler: [requireAuth] }, async (req, reply) => {
     const user = (req as AuthenticatedRequest).user;
     const q = req.query as { page?: string; limit?: string };
     const result = await ordersService.getSellerOrders(
@@ -77,5 +88,14 @@ export async function orderRoutes(fastify: FastifyInstance): Promise<void> {
       parseInt(q.limit ?? '20', 10),
     );
     void reply.status(200).send({ success: true, ...result });
+  });
+
+  // Open dispute
+  fastify.post('/:id/dispute', { preHandler: [requireAuth] }, async (req, reply) => {
+    const user = (req as AuthenticatedRequest).user;
+    const { id } = req.params as { id: string };
+    const { reason, description } = req.body as { reason: string; description: string };
+    const order = await ordersService.openDispute(id, user.id, reason, description);
+    void reply.status(200).send({ success: true, data: order });
   });
 }

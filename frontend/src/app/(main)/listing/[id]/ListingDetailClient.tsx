@@ -42,7 +42,9 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { MakeOfferModal } from '@/components/offers/MakeOfferModal';
+import { reviewsApi, ordersApi } from '@/lib/api';
 import type { ListingImage, ListingShippingOption } from '@/types/listing';
+import type { Review } from '@/types/order';
 
 // ─── Image Gallery ─────────────────────────────────────────────────────────────
 
@@ -596,6 +598,138 @@ function QASection({ listingId }: { listingId: string }) {
   );
 }
 
+// ─── Request to Buy Button ────────────────────────────────────────────────────
+
+function BuyButton({
+  listingId, isAuthenticated, sellerId, onLoginRequired,
+}: {
+  listingId: string;
+  isAuthenticated: boolean;
+  sellerId: string;
+  onLoginRequired: () => void;
+}) {
+  const router = useRouter();
+  const [loading, setLoading] = React.useState(false);
+  const [ordered, setOrdered] = React.useState(false);
+
+  const handleBuy = async () => {
+    if (!isAuthenticated) { onLoginRequired(); return; }
+    setLoading(true);
+    try {
+      const order = await ordersApi.create({ listingId, quantity: 1 });
+      setOrdered(true);
+      router.push(`/dashboard/orders/${order.id}` as Route);
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      alert(msg ?? 'Could not create order. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (ordered) {
+    return (
+      <Button className="w-full" size="lg" variant="outline" disabled>
+        <CheckCircle2 className="h-4 w-4 mr-2" />
+        Order Requested
+      </Button>
+    );
+  }
+
+  return (
+    <Button className="w-full" size="lg" onClick={handleBuy} disabled={loading}>
+      {loading ? 'Placing request…' : 'Request to Buy'}
+    </Button>
+  );
+}
+
+// ─── Reviews Section ──────────────────────────────────────────────────────────
+
+function ReviewsSection({ listingId, sellerId }: { listingId: string; sellerId: string }) {
+  const [reviews, setReviews] = React.useState<Review[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    reviewsApi.getForListing(listingId)
+      .then((res) => setReviews(res.data))
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
+  }, [listingId]);
+
+  if (isLoading) {
+    return (
+      <section className="mt-12">
+        <Skeleton className="h-6 w-32 mb-4" />
+        <div className="space-y-3">
+          {[1,2,3].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
+        </div>
+      </section>
+    );
+  }
+
+  if (reviews.length === 0) return null;
+
+  const avg = (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1);
+
+  return (
+    <section className="mt-12" aria-labelledby="reviews-heading">
+      <div className="flex items-center gap-3 mb-6">
+        <h2 id="reviews-heading" className="text-xl font-bold font-display text-slate-900 dark:text-slate-100">
+          Reviews
+        </h2>
+        <span className="flex items-center gap-1 text-amber-400 font-semibold">
+          <Star className="h-4 w-4 fill-current" />
+          {avg}
+        </span>
+        <span className="text-sm text-slate-400">({reviews.length})</span>
+      </div>
+
+      <div className="space-y-4">
+        {reviews.slice(0, 5).map((review) => (
+          <div key={review.id} className="rounded-xl bg-white dark:bg-surface-dark border border-slate-100 dark:border-slate-800 p-4">
+            <div className="flex items-center gap-3 mb-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={review.reviewer.profile.avatarUrl ?? `https://i.pravatar.cc/36?u=${review.reviewerId}`}
+                alt=""
+                className="h-9 w-9 rounded-full object-cover"
+              />
+              <div>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  {review.reviewer.profile.displayName}
+                </p>
+                <div className="flex items-center gap-0.5">
+                  {[1,2,3,4,5].map(s => (
+                    <Star key={s} className={cn('h-3 w-3', s <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200')} />
+                  ))}
+                </div>
+              </div>
+              <span className="ml-auto text-xs text-slate-400">{formatPostedAgo(review.createdAt)}</span>
+            </div>
+            {review.title && <p className="font-semibold text-sm text-slate-800 dark:text-slate-200 mb-1">{review.title}</p>}
+            <p className="text-sm text-slate-600 dark:text-slate-400">{review.body}</p>
+            {review.response && (
+              <div className="mt-3 pl-3 border-l-4 border-primary">
+                <p className="text-xs font-semibold text-primary mb-0.5">Seller response</p>
+                <p className="text-sm text-slate-500">{review.response}</p>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {reviews.length > 5 && (
+        <Link
+          href={`/shop/${sellerId}` as Route}
+          className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary hover:text-primary-dark transition-colors"
+        >
+          View all {reviews.length} reviews <ChevronRight className="h-4 w-4" />
+        </Link>
+      )}
+    </section>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ListingDetailClient({ id }: { id: string }) {
@@ -891,18 +1025,14 @@ export default function ListingDetailClient({ id }: { id: string }) {
                     </div>
                   )}
 
-                  {/* Buy Now */}
+                  {/* Request to Buy */}
                   {(!isAuction || (listing.auction?.buyItNowAvailable)) && (
-                    <Button
-                      className="w-full"
-                      size="lg"
-                      onClick={() => {
-                        if (!isAuthenticated) { router.push('/auth/login'); return; }
-                        router.push(`/listing/${params.id}/checkout` as Route);
-                      }}
-                    >
-                      Buy Now
-                    </Button>
+                    <BuyButton
+                      listingId={params.id}
+                      isAuthenticated={isAuthenticated}
+                      sellerId={listing.seller.id}
+                      onLoginRequired={() => router.push('/auth/login')}
+                    />
                   )}
 
                   {/* Make Offer */}
@@ -1039,14 +1169,17 @@ export default function ListingDetailClient({ id }: { id: string }) {
                   <div>
                     <p className="text-sm font-semibold text-success">Buyer Protection</p>
                     <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                      Funds held in escrow until you confirm receipt. Full refund if item is not as
-                      described.
+                      Arrange payment directly with the seller. Confirm receipt once you&apos;ve
+                      received your item to complete the transaction.
                     </p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+
+          {/* ── Reviews ────────────────────────────────────────────────── */}
+          <ReviewsSection listingId={params.id} sellerId={listing.seller.id} />
 
           {/* ── Similar Listings ───────────────────────────────────────── */}
           <section className="mt-16" aria-labelledby="similar-heading">

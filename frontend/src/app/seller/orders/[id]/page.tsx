@@ -40,6 +40,7 @@ export default function SellerOrderDetailPage() {
   const [showShipForm, setShowShipForm] = React.useState(false);
   const [shipData, setShipData] = React.useState({ carrier: '', trackingNumber: '', trackingUrl: '', estimatedDelivery: '' });
   const [isShipping, setIsShipping] = React.useState(false);
+  const [isConfirmingPayment, setIsConfirmingPayment] = React.useState(false);
 
   React.useEffect(() => {
     ordersApi.get(params.id)
@@ -47,6 +48,19 @@ export default function SellerOrderDetailPage() {
       .catch(() => toast.error('Order not found'))
       .finally(() => setIsLoading(false));
   }, [params.id, toast]);
+
+  const handleConfirmPayment = async () => {
+    setIsConfirmingPayment(true);
+    try {
+      const updated = await ordersApi.sellerConfirmPayment(params.id);
+      setOrder(updated);
+      toast.success('Payment confirmed — now ship the item');
+    } catch {
+      toast.error('Failed to confirm payment');
+    } finally {
+      setIsConfirmingPayment(false);
+    }
+  };
 
   const handleShip = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,7 +111,8 @@ export default function SellerOrderDetailPage() {
   const currentStepIdx = STATUS_ORDER.indexOf(order.status);
   const item = order.items?.[0];
   const buyerName = order.buyer?.profile?.displayName ?? order.buyer?.username ?? 'Buyer';
-  const canShip = order.status === 'payment_confirmed' || order.status === 'processing';
+  const canConfirmPayment = ['PENDING','pending'].includes(order.status);
+  const canShip = order.status === 'processing' || order.status === 'payment_confirmed';
 
   return (
     <>
@@ -175,6 +190,25 @@ export default function SellerOrderDetailPage() {
               )}
             </div>
 
+            {/* Confirm payment received */}
+            {canConfirmPayment && (
+              <div className="rounded-xl border border-warning/20 bg-warning/5 p-5">
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2 mb-1">
+                  Confirm Payment Received
+                </h3>
+                <p className="text-xs text-slate-500 mb-3">
+                  Once the buyer has paid you privately, confirm it here to proceed to shipping.
+                </p>
+                <Button
+                  size="sm"
+                  onClick={() => void handleConfirmPayment()}
+                  disabled={isConfirmingPayment}
+                >
+                  {isConfirmingPayment ? 'Confirming…' : 'I Have Received Payment'}
+                </Button>
+              </div>
+            )}
+
             {/* Ship action */}
             {canShip && (
               <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
@@ -200,13 +234,13 @@ export default function SellerOrderDetailPage() {
                       <select value={shipData.carrier} onChange={(e) => setShipData((p) => ({ ...p, carrier: e.target.value }))} required
                         className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                         <option value="">Select carrier</option>
-                        <option>GIG Logistics</option>
-                        <option>DHL</option>
-                        <option>FedEx</option>
-                        <option>UPS</option>
-                        <option>NIPOST</option>
-                        <option>Jumia Logistics</option>
-                        <option>Other</option>
+                        <option value="GIG_LOGISTICS">GIG Logistics</option>
+                        <option value="DHL">DHL</option>
+                        <option value="REDSTAR_EXPRESS">Red Star Express</option>
+                        <option value="NIPOST">NIPOST</option>
+                        <option value="FEDEX">FedEx</option>
+                        <option value="LOCAL_DELIVERY">Local Delivery / Hand Delivery</option>
+                        <option value="OTHER">Other</option>
                       </select>
                     </div>
                     <div>

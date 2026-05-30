@@ -11,7 +11,7 @@ export const createOrderSchema = z.object({
 
 export const shipOrderSchema = z.object({
   trackingNumber: z.string().min(1).max(100),
-  carrier: z.enum(['UPS', 'FEDEX', 'USPS', 'DHL', 'LOCAL_DELIVERY', 'OTHER']),
+  carrier: z.enum(['GIG_LOGISTICS', 'DHL', 'NIPOST', 'REDSTAR_EXPRESS', 'FEDEX', 'UPS', 'LOCAL_DELIVERY', 'OTHER']),
   trackingUrl: z.string().url().optional(),
   sellerNote: z.string().max(500).optional(),
 });
