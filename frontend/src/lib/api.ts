@@ -328,10 +328,18 @@ export const listingsApi = {
     }),
 
   uploadImages: (
-    files: File[]
+    listingIdOrFiles: string | File[],
+    formData?: FormData
   ): Promise<Array<{ id: string; url: string; thumbnailUrl: string }>> => {
+    if (typeof listingIdOrFiles === 'string') {
+      // Called with (listingId, formData) — upload to specific listing
+      return post(`/listings/${listingIdOrFiles}/images`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+    }
+    // Legacy: called with File[] — build form and use generic endpoint
     const form = new FormData();
-    files.forEach((f) => form.append('images', f));
+    listingIdOrFiles.forEach((f) => form.append('images', f));
     return post('/listings/images/upload', form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });

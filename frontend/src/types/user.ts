@@ -1,6 +1,6 @@
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
-export type UserRole = 'buyer' | 'seller' | 'admin' | 'moderator';
+export type UserRole = 'buyer' | 'seller' | 'admin' | 'moderator' | 'BUYER' | 'SELLER' | 'ADMIN' | 'MODERATOR';
 
 export type UserStatus = 'active' | 'suspended' | 'banned' | 'pending_verification';
 

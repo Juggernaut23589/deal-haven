@@ -30,6 +30,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useRequireAuth } from '@/hooks/useAuth';
 import { useCreateListing, useUploadListingImages, usePublishListing } from '@/hooks/useListings';
+import { useToast } from '@/store/uiStore';
+import { listingsApi } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { formatPrice } from '@/lib/formatters';
@@ -684,10 +686,10 @@ function Step4Pricing({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor="price" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-              Price ($) <span className="text-error" aria-hidden="true">*</span>
+              Price (₦) <span className="text-error" aria-hidden="true">*</span>
             </label>
             <div className="relative">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium" aria-hidden="true">$</span>
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium" aria-hidden="true">₦</span>
               <input
                 id="price"
                 type="number"
@@ -706,10 +708,10 @@ function Step4Pricing({
           </div>
           <div>
             <label htmlFor="compare-price" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-              Was Price ($) <span className="text-xs font-normal text-slate-400">optional</span>
+              Was Price (₦) <span className="text-xs font-normal text-slate-400">optional</span>
             </label>
             <div className="relative">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium" aria-hidden="true">$</span>
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium" aria-hidden="true">₦</span>
               <input
                 id="compare-price"
                 type="number"
@@ -803,7 +805,7 @@ function Step4Pricing({
           <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Auction Settings</p>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="auction-start" className="block text-xs text-slate-500 mb-1">Starting Bid ($) *</label>
+              <label htmlFor="auction-start" className="block text-xs text-slate-500 mb-1">Starting Bid (₦) *</label>
               <input
                 id="auction-start"
                 type="number"
@@ -816,7 +818,7 @@ function Step4Pricing({
               />
             </div>
             <div>
-              <label htmlFor="auction-reserve" className="block text-xs text-slate-500 mb-1">Reserve Price ($) <span className="text-slate-400">optional</span></label>
+              <label htmlFor="auction-reserve" className="block text-xs text-slate-500 mb-1">Reserve Price (₦) <span className="text-slate-400">optional</span></label>
               <input
                 id="auction-reserve"
                 type="number"
@@ -829,7 +831,7 @@ function Step4Pricing({
               />
             </div>
             <div>
-              <label htmlFor="auction-bin" className="block text-xs text-slate-500 mb-1">Buy It Now Price ($) <span className="text-slate-400">optional</span></label>
+              <label htmlFor="auction-bin" className="block text-xs text-slate-500 mb-1">Buy It Now Price (₦) <span className="text-slate-400">optional</span></label>
               <input
                 id="auction-bin"
                 type="number"
@@ -1085,12 +1087,12 @@ function Step5Shipping({
                     type="text"
                     value={opt.carrier}
                     onChange={(e) => handleUpdateOption(idx, { carrier: e.target.value })}
-                    placeholder="USPS, UPS, FedEx..."
+                    placeholder="GIG Logistics, DHL, NIPOST..."
                     className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-slate-500 mb-1">Price ($)</label>
+                  <label className="block text-xs text-slate-500 mb-1">Price (₦)</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="number"
@@ -1310,12 +1312,13 @@ function Step6Review({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function CreateListingPage() {
-  useRequireAuth();
+  const { user } = useRequireAuth();
 
   const router = useRouter();
   const { mutateAsync: createListing } = useCreateListing();
   const { mutateAsync: uploadImages } = useUploadListingImages();
   const { mutateAsync: publishListing } = usePublishListing();
+  const { toast } = useToast();
 
   // ── Multi-step state ─────────────────────────────────────────────────────
   const [step, setStep] = React.useState<Step>(1);
@@ -1362,43 +1365,20 @@ export default function CreateListingPage() {
   const [isSavingDraft, setIsSavingDraft] = React.useState(false);
 
   // ── Photo handlers ────────────────────────────────────────────────────────
+  // Images are stored locally and uploaded at publish/save time (after listing ID exists)
 
   const handleAddImages = React.useCallback(
-    async (files: File[]) => {
-      // Add previews immediately
-      const previews: UploadedImage[] = files.slice(0, MAX_IMAGES - images.length).map((file) => ({
+    (files: File[]) => {
+      const newFiles = files.slice(0, MAX_IMAGES - images.length);
+      const previews: UploadedImage[] = newFiles.map((file) => ({
         url: URL.createObjectURL(file),
         id: null,
         file,
-        uploading: true,
+        uploading: false,
       }));
-
       setImages((prev) => [...prev, ...previews]);
-
-      // Upload in background
-      try {
-        const uploaded = await uploadImages(files);
-        setImages((prev) =>
-          prev.map((img) => {
-            if (!img.file) return img;
-            const match = uploaded.find(
-              (u) => files.indexOf(img.file!) !== -1
-            );
-            if (!match) return img;
-            return { ...img, url: match.url, id: match.id, uploading: false };
-          })
-        );
-      } catch {
-        setImages((prev) =>
-          prev.map((img) => ({
-            ...img,
-            uploading: false,
-            error: img.uploading ? true : img.error,
-          }))
-        );
-      }
     },
-    [images.length, uploadImages]
+    [images.length]
   );
 
   const handleRemoveImage = (idx: number) => {
@@ -1449,32 +1429,70 @@ export default function CreateListingPage() {
           isLocalPickup: false,
           estimatedDaysMin: o.estimatedDaysMin,
           estimatedDaysMax: o.estimatedDaysMax,
-          regions: shipsNationally ? ['US'] : [],
+          regions: shipsNationally ? ['NG'] : [],
         })),
       ],
     };
   }
 
+  // Upload pending images to an already-created listing
+  const uploadPendingImages = async (listingId: string) => {
+    const pendingFiles = images.filter((i) => i.file && i.id === null).map((i) => i.file!);
+    if (pendingFiles.length === 0) return;
+    try {
+      // Backend expects POST /listings/:id/images
+      const form = new FormData();
+      pendingFiles.forEach((f) => form.append('images', f));
+      await listingsApi.uploadImages(listingId, form);
+    } catch {
+      toast.warning('Images could not be uploaded — listing saved without photos.');
+    }
+  };
+
   const handlePublish = async () => {
+    // Check seller role
+    if (!user?.isSeller && !user?.isAdmin) {
+      toast.error('Seller account required', 'You need a seller account to post listings. Please register as a seller.');
+      return;
+    }
+    if (!categoryId) { toast.error('Select a category first'); return; }
+    if (details.title.length < 5) { toast.error('Title too short', 'Please enter a more descriptive title.'); return; }
+    if (!pricing.price && pricing.type !== 'auction') { toast.error('Price required', 'Please enter a price for your listing.'); return; }
+    if (!locationState) { toast.error('Location required', 'Please select your state and LGA.'); return; }
+
     setIsPublishing(true);
     try {
       const listing = await createListing(buildPayload('active'));
+      await uploadPendingImages(listing.id);
       await publishListing(listing.id);
       router.push(`/listing/${listing.id}` as Route);
-    } catch {
-      // Error toast shown by mutation hooks
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string; error?: { message?: string } } } })
+        ?.response?.data?.message
+        ?? (err as { response?: { data?: { error?: { message?: string } } } })
+          ?.response?.data?.error?.message
+        ?? 'Please check all fields and try again.';
+      toast.error('Failed to publish listing', msg);
     } finally {
       setIsPublishing(false);
     }
   };
 
   const handleSaveDraft = async () => {
+    if (!user?.isSeller && !user?.isAdmin) {
+      toast.error('Seller account required', 'You need a seller account to post listings.');
+      return;
+    }
     setIsSavingDraft(true);
     try {
       const listing = await createListing(buildPayload('draft'));
+      await uploadPendingImages(listing.id);
+      toast.success('Draft saved', 'You can finish it anytime from My Listings.');
       router.push('/seller/listings' as Route);
-    } catch {
-      // Error toast shown by mutation hooks
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+        ?? 'Please check all fields and try again.';
+      toast.error('Failed to save draft', msg);
     } finally {
       setIsSavingDraft(false);
     }
@@ -1604,19 +1622,19 @@ export default function CreateListingPage() {
             </motion.div>
           </AnimatePresence>
 
-          {/* Navigation buttons (not shown on final step) */}
-          {step < 6 && (
-            <div className="flex items-center justify-between mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={goPrev}
-                disabled={step === 1}
-                leftIcon={<ChevronLeft className="h-4 w-4" />}
-              >
-                Back
-              </Button>
+          {/* Navigation buttons — always visible */}
+          <div className="flex items-center justify-between mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={goPrev}
+              disabled={step === 1}
+              leftIcon={<ChevronLeft className="h-4 w-4" />}
+            >
+              Back
+            </Button>
 
+            {step < 6 ? (
               <Button
                 type="button"
                 onClick={goNext}
@@ -1625,8 +1643,8 @@ export default function CreateListingPage() {
               >
                 {step === 5 ? 'Review Listing' : 'Continue'}
               </Button>
-            </div>
-          )}
+            ) : null}
+          </div>
         </div>
       </div>
     </div>

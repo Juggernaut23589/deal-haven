@@ -26,7 +26,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (isLoading) return null;
 
-  const isAdmin = user?.roles?.includes('admin');
+  const isAdmin = user?.isAdmin ?? user?.roles?.some((r) => ['admin','ADMIN'].includes(r as string));
   if (!isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center">
