@@ -7,6 +7,7 @@ async function main() {
   console.log('🌱 Seeding Ashimarket database...');
 
   // ─── Clean slate ───
+  await prisma.$executeRaw`TRUNCATE TABLE "categories" CASCADE`;
   await prisma.$executeRaw`TRUNCATE TABLE "users" CASCADE`;
 
   // ─── Categories ───

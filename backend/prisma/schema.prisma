@@ -195,10 +195,12 @@ enum ReportTargetType {
 }
 
 enum ShippingCarrier {
-  UPS
-  FEDEX
-  USPS
+  GIG_LOGISTICS
   DHL
+  NIPOST
+  REDSTAR_EXPRESS
+  FEDEX
+  UPS
   LOCAL_DELIVERY
   OTHER
 }
