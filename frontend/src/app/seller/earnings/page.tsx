@@ -4,9 +4,9 @@ import * as React from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
 import {
-  DollarSign, TrendingUp, Clock, CheckCircle2, ChevronRight,
+  DollarSign, TrendingUp, Clock, CheckCircle2,
   LayoutDashboard, ListChecks, Tag, ShoppingBag, BarChart3,
-  Store, Star, Zap, Settings, Plus, Info,
+  Store, Star, Zap, Settings, Plus, Info, Package,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRequireAuth } from '@/hooks/useAuth';
@@ -14,14 +14,10 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { formatPrice, formatDate } from '@/lib/formatters';
-
-const MOCK_TRANSACTIONS = [
-  { id: 't1', orderNumber: 'DH-20260101', item: 'iPhone 15 Pro Max', buyer: 'john_d', amount: 1_650_000, fee: 49_500, net: 1_600_500, date: '2026-05-20', status: 'completed' },
-  { id: 't2', orderNumber: 'DH-20260098', item: 'Herman Miller Aeron Chair', buyer: 'sarah_k', amount: 2_100_000, fee: 63_000, net: 2_037_000, date: '2026-05-18', status: 'completed' },
-  { id: 't3', orderNumber: 'DH-20260091', item: 'Sony A7 IV Camera Kit', buyer: 'mike_r', amount: 3_900_000, fee: 117_000, net: 3_783_000, date: '2026-05-14', status: 'pending' },
-  { id: 't4', orderNumber: 'DH-20260085', item: 'MacBook Pro 14" M3', buyer: 'alex_w', amount: 2_700_000, fee: 81_000, net: 2_619_000, date: '2026-05-10', status: 'completed' },
-];
+import { Skeleton } from '@/components/ui/Skeleton';
+import { formatPrice, formatDate, formatOrderStatus } from '@/lib/formatters';
+import { ordersApi } from '@/lib/api';
+import type { Order } from '@/types/order';
 
 const SELLER_SIDEBAR_LINKS: { href: Route; label: string; icon: React.ElementType }[] = [
   { href: '/seller', label: 'Overview', icon: LayoutDashboard },
@@ -60,7 +56,7 @@ function SellerSidebar() {
           ))}
         </ul>
       </nav>
-      <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 space-y-2">
+      <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
         <Button asChild size="sm" className="w-full" leftIcon={<Plus className="h-3.5 w-3.5" />}>
           <Link href="/listing/create">New Listing</Link>
         </Button>
@@ -69,12 +65,28 @@ function SellerSidebar() {
   );
 }
 
+const FEE_RATE = 0.03;
+
 export default function SellerEarningsPage() {
   const { isLoading: authLoading } = useRequireAuth();
+  const [orders, setOrders] = React.useState<Order[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    ordersApi.getMyOrders('selling', undefined, 1)
+      .then((res) => setOrders(res.data))
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
+  }, []);
+
   if (authLoading) return null;
 
-  const totalEarned = MOCK_TRANSACTIONS.filter(t => t.status === 'completed').reduce((s, t) => s + t.net, 0);
-  const pending = MOCK_TRANSACTIONS.filter(t => t.status === 'pending').reduce((s, t) => s + t.net, 0);
+  const completed = orders.filter((o) => ['COMPLETED', 'DELIVERED', 'completed', 'delivered'].includes(o.status));
+  const pending = orders.filter((o) => ['PENDING', 'PROCESSING', 'pending', 'processing'].includes(o.status));
+
+  const totalEarned = completed.reduce((s, o) => s + o.total * (1 - FEE_RATE), 0);
+  const pendingValue = pending.reduce((s, o) => s + o.total * (1 - FEE_RATE), 0);
+  const totalFees = [...completed, ...pending].reduce((s, o) => s + o.total * FEE_RATE, 0);
 
   return (
     <div className="min-h-screen bg-background dark:bg-background-dark">
@@ -85,27 +97,28 @@ export default function SellerEarningsPage() {
           <main className="flex-1 min-w-0 space-y-6">
             <h1 className="text-2xl font-bold font-display text-slate-900 dark:text-slate-100">Earnings</h1>
 
-            {/* Info banner — no payment processing */}
             <div className="flex items-start gap-3 rounded-xl bg-primary/5 border border-primary/20 p-4">
               <Info className="h-5 w-5 text-primary shrink-0 mt-0.5" />
               <p className="text-sm text-slate-700 dark:text-slate-300">
-                Payments are handled directly between you and buyers. This page tracks your completed sales and estimated earnings for your records.
+                Payments are handled directly between you and buyers. This page tracks your completed sales and estimated earnings for your records. Platform fee is 3%.
               </p>
             </div>
 
             {/* Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
-                { label: 'Total Earned', value: formatPrice(totalEarned), icon: CheckCircle2, color: 'text-success' },
-                { label: 'Pending Release', value: formatPrice(pending), icon: Clock, color: 'text-warning' },
-                { label: 'Platform Fee (3%)', value: formatPrice(MOCK_TRANSACTIONS.reduce((s,t) => s + t.fee, 0)), icon: TrendingUp, color: 'text-slate-500' },
+                { label: 'Total Earned (net)', value: isLoading ? '—' : formatPrice(totalEarned), icon: CheckCircle2, color: 'text-success' },
+                { label: 'Pending Orders', value: isLoading ? '—' : formatPrice(pendingValue), icon: Clock, color: 'text-warning' },
+                { label: 'Total Platform Fees', value: isLoading ? '—' : formatPrice(totalFees), icon: TrendingUp, color: 'text-slate-500' },
               ].map(({ label, value, icon: Icon, color }) => (
                 <div key={label} className="rounded-xl p-5 bg-white dark:bg-surface-dark border border-slate-100 dark:border-slate-800 shadow-card">
                   <div className="flex items-center gap-2 mb-2">
                     <Icon className={cn('h-4 w-4', color)} />
                     <p className="text-sm text-slate-500">{label}</p>
                   </div>
-                  <p className="text-2xl font-bold font-mono tabular-nums text-slate-900 dark:text-slate-100">{value}</p>
+                  {isLoading ? <Skeleton className="h-8 w-24 rounded" /> : (
+                    <p className="text-2xl font-bold font-mono tabular-nums text-slate-900 dark:text-slate-100">{value}</p>
+                  )}
                 </div>
               ))}
             </div>
@@ -115,39 +128,53 @@ export default function SellerEarningsPage() {
               <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
                 <h2 className="font-semibold text-slate-900 dark:text-slate-100">Transaction History</h2>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-100 dark:border-slate-800">
-                      {['Order', 'Item', 'Buyer', 'Sale Price', 'Platform Fee', 'Net', 'Date', 'Status'].map((h) => (
-                        <th key={h} scope="col" className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
-                    {MOCK_TRANSACTIONS.map((t) => (
-                      <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
-                        <td className="px-4 py-3 font-mono text-xs text-slate-500">{t.orderNumber}</td>
-                        <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-200 max-w-[180px]">
-                          <span className="line-clamp-1">{t.item}</span>
-                        </td>
-                        <td className="px-4 py-3 text-slate-500">@{t.buyer}</td>
-                        <td className="px-4 py-3 font-mono font-semibold text-slate-900 dark:text-slate-100 tabular-nums">{formatPrice(t.amount)}</td>
-                        <td className="px-4 py-3 font-mono text-slate-500 tabular-nums text-error">-{formatPrice(t.fee)}</td>
-                        <td className="px-4 py-3 font-mono font-bold text-success tabular-nums">{formatPrice(t.net)}</td>
-                        <td className="px-4 py-3 text-slate-500 whitespace-nowrap">{formatDate(t.date)}</td>
-                        <td className="px-4 py-3">
-                          <Badge variant={t.status === 'completed' ? 'success' : 'warning'}>
-                            {t.status === 'completed' ? 'Completed' : 'Pending'}
-                          </Badge>
-                        </td>
+
+              {isLoading ? (
+                <div className="p-4 space-y-2">
+                  {[1,2,3].map(i => <Skeleton key={i} className="h-12 rounded-lg" />)}
+                </div>
+              ) : orders.length === 0 ? (
+                <div className="p-10 text-center">
+                  <Package className="h-10 w-10 text-slate-200 mx-auto mb-3" />
+                  <p className="text-slate-500 text-sm">No transactions yet. Complete your first sale to see it here.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-100 dark:border-slate-800">
+                        {['Order', 'Item', 'Buyer', 'Sale Price', 'Fee (3%)', 'Net', 'Date', 'Status'].map(h => (
+                          <th key={h} scope="col" className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
+                      {orders.map((order) => {
+                        const item = order.items[0];
+                        const fee = order.total * FEE_RATE;
+                        const net = order.total - fee;
+                        const { label, colorClass } = formatOrderStatus(order.status);
+                        return (
+                          <tr key={order.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                            <td className="px-4 py-3 font-mono text-xs text-slate-500">{order.orderNumber}</td>
+                            <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-200 max-w-[160px]">
+                              <span className="line-clamp-1">{item?.listingTitle ?? '—'}</span>
+                            </td>
+                            <td className="px-4 py-3 text-slate-500">@{order.buyer?.username ?? '—'}</td>
+                            <td className="px-4 py-3 font-mono font-semibold tabular-nums">{formatPrice(order.total)}</td>
+                            <td className="px-4 py-3 font-mono text-error tabular-nums">-{formatPrice(fee)}</td>
+                            <td className="px-4 py-3 font-mono font-bold text-success tabular-nums">{formatPrice(net)}</td>
+                            <td className="px-4 py-3 text-slate-500 whitespace-nowrap">{formatDate(order.createdAt)}</td>
+                            <td className="px-4 py-3">
+                              <span className={cn('inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold', colorClass)}>{label}</span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </main>
         </div>

@@ -137,19 +137,12 @@ export default function SellerAnalyticsPage() {
               </div>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <StatCard label="Total Views" value="8,432" icon={Eye} sub="+12% vs last period" />
-              <StatCard label="Saved / Wishlist" value="241" icon={Heart} sub="across all listings" />
-              <StatCard label="Messages" value="87" icon={MessageSquare} sub="from interested buyers" />
-              <StatCard label="Orders Placed" value="14" icon={ShoppingBag} sub="this period" />
-            </div>
-
-            {/* Views chart */}
+            {/* Activity chart — trend only, no fake totals */}
             <div className="rounded-xl bg-white dark:bg-surface-dark border border-slate-100 dark:border-slate-800 shadow-card p-5">
               <div className="flex items-center gap-2 mb-4">
                 <TrendingUp className="h-4 w-4 text-primary" />
-                <h2 className="font-semibold text-slate-900 dark:text-slate-100">Views &amp; Messages</h2>
+                <h2 className="font-semibold text-slate-900 dark:text-slate-100">Listing Activity Trend</h2>
+                <span className="text-xs text-slate-400 ml-auto">Based on listing view &amp; message activity</span>
               </div>
               <ResponsiveContainer width="100%" height={240}>
                 <LineChart data={chartData}>
@@ -161,27 +154,9 @@ export default function SellerAnalyticsPage() {
                   <Line type="monotone" dataKey="messages" stroke="#F59E0B" strokeWidth={2} dot={false} name="Messages" />
                 </LineChart>
               </ResponsiveContainer>
-            </div>
-
-            {/* Category breakdown */}
-            <div className="rounded-xl bg-white dark:bg-surface-dark border border-slate-100 dark:border-slate-800 shadow-card p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <BarChart3 className="h-4 w-4 text-primary" />
-                <h2 className="font-semibold text-slate-900 dark:text-slate-100">Views by Category</h2>
-              </div>
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={CATEGORY_DATA} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis type="number" tick={{ fontSize: 11 }} />
-                  <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={80} />
-                  <Tooltip />
-                  <Bar dataKey="views" name="Views" radius={[0, 4, 4, 0]}>
-                    {CATEGORY_DATA.map((entry, i) => (
-                      <Cell key={i} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <p className="mt-3 text-xs text-slate-400 text-center">
+                Detailed analytics with real data coming soon.
+              </p>
             </div>
           </main>
         </div>
