@@ -400,8 +400,8 @@ async function main() {
         ...baseListingData(sellers[1].id),
         categoryId: autosCategoryId,
         title: '2021 Toyota Camry 2.5L — Pearl White',
-        slug: "2021-toyota-camry-25l-pearl-white-jkl012"',
-        description: 'Excellent condition 2021 Tesla Model 3 Long Range. 358-mile range, Autopilot included, Full Self-Driving capability available. Garage kept, no accidents, one owner. All scheduled maintenance performed at Tesla service center.\n\n**Highlights:**\n- 358 miles EPA range\n- 0-60 mph in 4.2 seconds\n- Autopilot included\n- Premium interior\n- 19" Sport Wheels\n- White Premium Interior',
+        slug: '2021-toyota-camry-25l-pearl-white-jkl012',
+        description: 'Excellent condition 2021 Toyota Camry 2.5L. Bought new, garage-kept, no accidents, single owner. Full service history available. Engine is in perfect shape, cool AC, clean interior.\n\n**Highlights:**\n- 2.5L 4-cylinder engine\n- Automatic transmission\n- Leather seats\n- Reverse camera\n- Cruise control\n- White exterior, black interior',
         condition: ListingCondition.GOOD,
         listingType: ListingType.FIXED_AND_OFFER,
         price: 22_000_000,
@@ -425,9 +425,9 @@ async function main() {
         marketAvgPrice: 25_000_000,
         images: {
           create: [
-            { url: 'https://picsum.photos/seed/tesla1/800/600', thumbnailUrl: 'https://picsum.photos/seed/tesla1/300/225', isCover: true, sortOrder: 0, altText: 'Tesla Model 3 exterior' },
-            { url: 'https://picsum.photos/seed/tesla2/800/600', thumbnailUrl: 'https://picsum.photos/seed/tesla2/300/225', isCover: false, sortOrder: 1, altText: 'Tesla Model 3 interior' },
-            { url: 'https://picsum.photos/seed/tesla3/800/600', thumbnailUrl: 'https://picsum.photos/seed/tesla3/300/225', isCover: false, sortOrder: 2, altText: 'Tesla Model 3 dashboard' },
+            { url: 'https://picsum.photos/seed/tesla1/800/600', thumbnailUrl: 'https://picsum.photos/seed/tesla1/300/225', isCover: true, sortOrder: 0, altText: 'Toyota Camry exterior' },
+            { url: 'https://picsum.photos/seed/tesla2/800/600', thumbnailUrl: 'https://picsum.photos/seed/tesla2/300/225', isCover: false, sortOrder: 1, altText: 'Toyota Camry interior' },
+            { url: 'https://picsum.photos/seed/tesla3/800/600', thumbnailUrl: 'https://picsum.photos/seed/tesla3/300/225', isCover: false, sortOrder: 2, altText: 'Toyota Camry dashboard' },
           ],
         },
       },
@@ -479,9 +479,9 @@ async function main() {
       data: {
         ...baseListingData(sellers[0].id),
         categoryId: realEstateCategoryId,
-        title: '3BR/2BA Modern Craftsman Home in Prime Location',
-        slug: '3br-2ba-modern-craftsman-home-pqr678',
-        description: "Beautiful craftsman-style home, fully renovated in 2022. Open concept living, chef's kitchen with quartz countertops, master suite with spa bath. Landscaped backyard, 2-car garage. Walking distance to top-rated schools and downtown.\n\n**Features:**\n- Hardwood floors throughout\n- New HVAC (2023)\n- Smart home features\n- Solar panels (lease assumable)\n- 2-car garage with EV charging",
+        title: '3 Bedroom Detached Duplex — Lekki Phase 1, Lagos',
+        slug: '3-bedroom-detached-duplex-lekki-phase-1-pqr678',
+        description: "Beautifully finished 3-bedroom detached duplex in a serene estate in Lekki Phase 1. Fully tiled, fitted kitchen, pre-paid meter, 24/7 security, and ample parking space. Perfect for a family or as an investment property.\n\n**Features:**\n- 3 bedrooms + 1 BQ\n- 2 living rooms\n- Fitted kitchen with modern cabinets\n- Inverter + prepaid electricity\n- 24/7 security and CCTV\n- 2 covered parking spaces",
         condition: ListingCondition.GOOD,
         listingType: ListingType.FIXED_AND_OFFER,
         price: 85_000_000,
@@ -499,7 +499,7 @@ async function main() {
         favoriteCount: 178,
         dealScore: 65,
         dealScoreLabel: 'Fair Price',
-        marketAvgPrice: 892000,
+        marketAvgPrice: 90_000_000,
         images: {
           create: [
             { url: 'https://picsum.photos/seed/house1/800/600', thumbnailUrl: 'https://picsum.photos/seed/house1/300/225', isCover: true, sortOrder: 0 },
