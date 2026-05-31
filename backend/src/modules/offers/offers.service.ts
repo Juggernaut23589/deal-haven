@@ -355,6 +355,20 @@ export class OffersService {
       });
     }
   }
+  async getListingOffers(listingId: string, page = 1, limit = 20) {
+    const offset = (page - 1) * limit;
+    const [data, total] = await Promise.all([
+      prisma.offer.findMany({
+        where: { listingId, status: { notIn: ['WITHDRAWN', 'EXPIRED'] as never[] } },
+        select: offerSelect,
+        orderBy: { createdAt: 'desc' },
+        skip: offset,
+        take: limit,
+      }),
+      prisma.offer.count({ where: { listingId } }),
+    ]);
+    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit), hasNextPage: page < Math.ceil(total / limit), hasPreviousPage: page > 1 } };
+  }
 }
 
 export const offersService = new OffersService();

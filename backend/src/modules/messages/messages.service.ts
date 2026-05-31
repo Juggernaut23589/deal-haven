@@ -260,6 +260,17 @@ export class MessagesService {
       },
     });
   }
+
+  async markConversationRead(conversationId: string, userId: string) {
+    await prisma.message.updateMany({
+      where: {
+        conversationId,
+        senderId: { not: userId },
+        isRead: false,
+      },
+      data: { isRead: true, readAt: new Date() },
+    });
+  }
 }
 
 export const messagesService = new MessagesService();

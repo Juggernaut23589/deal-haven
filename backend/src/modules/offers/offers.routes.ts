@@ -43,27 +43,42 @@ export async function offerRoutes(fastify: FastifyInstance): Promise<void> {
     void reply.status(200).send({ success: true, data: offer });
   });
 
-  // Buyer: get my offers
+  // Unified: GET /offers/me?type=sent|received
+  fastify.get('/me', { preHandler: [requireAuth] }, async (req, reply) => {
+    const user = (req as AuthenticatedRequest).user;
+    const q = req.query as { type?: string; status?: string; page?: string; limit?: string };
+    const page = parseInt(q.page ?? '1', 10);
+    const limit = parseInt(q.limit ?? '20', 10);
+    const result = q.type === 'received'
+      ? await offersService.getSellerOffers(user.id, page, limit)
+      : await offersService.getBuyerOffers(user.id, page, limit);
+    void reply.status(200).send({ success: true, ...result });
+  });
+
+  // Legacy named routes kept for compatibility
   fastify.get('/me/sent', { preHandler: [requireAuth] }, async (req, reply) => {
     const user = (req as AuthenticatedRequest).user;
     const q = req.query as { page?: string; limit?: string };
     const result = await offersService.getBuyerOffers(
-      user.id,
-      parseInt(q.page ?? '1', 10),
-      parseInt(q.limit ?? '20', 10),
+      user.id, parseInt(q.page ?? '1', 10), parseInt(q.limit ?? '20', 10),
     );
     void reply.status(200).send({ success: true, ...result });
   });
 
-  // Seller: get received offers
-  fastify.get('/me/received', { preHandler: [requireSeller] }, async (req, reply) => {
+  fastify.get('/me/received', { preHandler: [requireAuth] }, async (req, reply) => {
     const user = (req as AuthenticatedRequest).user;
     const q = req.query as { page?: string; limit?: string };
     const result = await offersService.getSellerOffers(
-      user.id,
-      parseInt(q.page ?? '1', 10),
-      parseInt(q.limit ?? '20', 10),
+      user.id, parseInt(q.page ?? '1', 10), parseInt(q.limit ?? '20', 10),
     );
+    void reply.status(200).send({ success: true, ...result });
+  });
+
+  // Get offers for a specific listing
+  fastify.get('/listing/:listingId', { preHandler: [requireAuth] }, async (req, reply) => {
+    const { listingId } = req.params as { listingId: string };
+    const q = req.query as { page?: string };
+    const result = await offersService.getListingOffers(listingId, parseInt(q.page ?? '1', 10));
     void reply.status(200).send({ success: true, ...result });
   });
 }

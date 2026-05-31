@@ -4,24 +4,13 @@ import { requireAuth } from '../../middleware/auth';
 import type { AuthenticatedRequest } from '../../shared/types';
 import { z } from 'zod';
 
-const sendMessageSchema = z.object({
-  content: z.string().min(1).max(2000),
-  attachments: z
-    .array(
-      z.object({
-        url: z.string().url(),
-        type: z.string(),
-        name: z.string(),
-        size: z.number(),
-      }),
-    )
-    .optional(),
-});
 
 const createConversationSchema = z.object({
-  recipientId: z.string().uuid(),
+  // Support both frontend shapes
+  recipientId: z.string().uuid().optional(),
+  sellerId: z.string().uuid().optional(),
   listingId: z.string().uuid().optional(),
-  initialMessage: z.string().min(1).max(2000),
+  initialMessage: z.string().min(1).max(2000).optional(),
 });
 
 export async function messageRoutes(fastify: FastifyInstance): Promise<void> {
@@ -44,24 +33,26 @@ export async function messageRoutes(fastify: FastifyInstance): Promise<void> {
     void reply.status(200).send({ success: true, data: { count } });
   });
 
-  // Start or get conversation
+  // Start or get conversation (supports recipientId or sellerId)
   fastify.post('/', { preHandler: [requireAuth] }, async (req, reply) => {
     const user = (req as AuthenticatedRequest).user;
     const body = createConversationSchema.parse(req.body);
+    const recipientId = body.recipientId ?? body.sellerId;
+    if (!recipientId) {
+      void reply.status(400).send({ success: false, error: { code: 'VALIDATION_ERROR', message: 'recipientId or sellerId is required' } });
+      return;
+    }
     const conversation = await messagesService.getOrCreateConversation(
       user.id,
-      body.recipientId,
+      recipientId,
       body.listingId,
     );
 
-    // Send initial message
-    const message = await messagesService.sendMessage(
-      conversation.id,
-      user.id,
-      body.initialMessage,
-    );
+    if (body.initialMessage) {
+      await messagesService.sendMessage(conversation.id, user.id, body.initialMessage);
+    }
 
-    void reply.status(201).send({ success: true, data: { conversation, message } });
+    void reply.status(201).send({ success: true, data: conversation });
   });
 
   // Get messages in conversation
@@ -78,17 +69,25 @@ export async function messageRoutes(fastify: FastifyInstance): Promise<void> {
     void reply.status(200).send({ success: true, ...result });
   });
 
-  // Send message
+  // Send message (accepts both 'content' and 'body' field names)
   fastify.post('/:conversationId/messages', { preHandler: [requireAuth] }, async (req, reply) => {
     const user = (req as AuthenticatedRequest).user;
     const { conversationId } = req.params as { conversationId: string };
-    const body = sendMessageSchema.parse(req.body);
-    const message = await messagesService.sendMessage(
-      conversationId,
-      user.id,
-      body.content,
-      body.attachments,
-    );
+    const raw = req.body as Record<string, unknown>;
+    const content = (raw.content ?? raw.body) as string | undefined;
+    if (!content || typeof content !== 'string' || content.trim().length === 0) {
+      void reply.status(400).send({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Message content is required' } });
+      return;
+    }
+    const message = await messagesService.sendMessage(conversationId, user.id, content.trim());
     void reply.status(201).send({ success: true, data: message });
+  });
+
+  // Mark conversation as read
+  fastify.patch('/:conversationId/read', { preHandler: [requireAuth] }, async (req, reply) => {
+    const user = (req as AuthenticatedRequest).user;
+    const { conversationId } = req.params as { conversationId: string };
+    await messagesService.markConversationRead(conversationId, user.id);
+    void reply.status(200).send({ success: true });
   });
 }

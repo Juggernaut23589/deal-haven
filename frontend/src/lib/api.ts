@@ -438,17 +438,17 @@ export const ordersApi = {
 
 export const messagesApi = {
   getConversations: (page: number = 1): Promise<PaginatedResponse<Conversation>> =>
-    get<PaginatedResponse<Conversation>>('/messages/conversations', { params: { page } }),
+    get<PaginatedResponse<Conversation>>('/messages', { params: { page } }),
 
   getOrCreateConversation: (listingId: string, sellerId: string): Promise<Conversation> =>
-    post<Conversation>('/messages/conversations', { listingId, sellerId }),
+    post<Conversation>('/messages', { listingId, sellerId }),
 
   getMessages: (
     conversationId: string,
     page: number = 1,
     limit: number = 50
   ): Promise<PaginatedResponse<Message>> =>
-    get<PaginatedResponse<Message>>(`/messages/conversations/${conversationId}/messages`, {
+    get<PaginatedResponse<Message>>(`/messages/${conversationId}/messages`, {
       params: { page, limit },
     }),
 
@@ -461,15 +461,15 @@ export const messagesApi = {
       const form = new FormData();
       form.append('body', body);
       attachments.forEach((f) => form.append('attachments', f));
-      return post<Message>(`/messages/conversations/${conversationId}/messages`, form, {
+      return post<Message>(`/messages/${conversationId}/messages`, form, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
     }
-    return post<Message>(`/messages/conversations/${conversationId}/messages`, { body });
+    return post<Message>(`/messages/${conversationId}/messages`, { body });
   },
 
   markRead: (conversationId: string): Promise<void> =>
-    patch<void>(`/messages/conversations/${conversationId}/read`),
+    patch<void>(`/messages/${conversationId}/read`),
 };
 
 // ─── Review Endpoints ─────────────────────────────────────────────────────────
