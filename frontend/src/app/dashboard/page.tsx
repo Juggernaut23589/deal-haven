@@ -4,7 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
 import {
-  ShoppingBag, Tag, Heart, Bookmark, ChevronRight,
+  ShoppingBag, Tag, Heart, Bookmark, ChevronRight, Plus,
   Package, Clock, ExternalLink, LayoutDashboard,
   MessageSquare, Bell, Settings, Search,
 } from 'lucide-react';
@@ -57,6 +57,14 @@ function DashboardSidebar() {
           ))}
         </ul>
       </nav>
+      <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 space-y-2">
+        <Button asChild size="sm" className="w-full" leftIcon={<Plus className="h-3.5 w-3.5" />}>
+          <Link href="/listing/create">Post a Listing</Link>
+        </Button>
+        <Button asChild variant="outline" size="sm" className="w-full">
+          <Link href="/seller">Seller Dashboard</Link>
+        </Button>
+      </div>
     </aside>
   );
 }
@@ -173,14 +181,55 @@ export default function DashboardPage() {
           <main className="flex-1 min-w-0 space-y-6 sm:space-y-8">
             <DashboardMobileNav />
 
-            <div>
-              <h1 className="text-2xl font-bold font-display text-slate-900 dark:text-slate-100">
-                Welcome back{user ? `, ${user.profile.displayName.split(' ')[0]}` : ''}!
-              </h1>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                Here&apos;s what&apos;s happening with your account.
-              </p>
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <h1 className="text-2xl font-bold font-display text-slate-900 dark:text-slate-100">
+                  Welcome back{user ? `, ${user.profile.displayName.split(' ')[0]}` : ''}!
+                </h1>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                  Here&apos;s what&apos;s happening with your account.
+                </p>
+              </div>
+              <Button asChild leftIcon={<Plus className="h-4 w-4" />}>
+                <Link href="/listing/create">Post a Listing</Link>
+              </Button>
             </div>
+
+            {/* Sell CTA — shown to everyone, prominent for non-sellers */}
+            {user && (
+              <div className={cn(
+                'flex items-center gap-4 rounded-xl p-4 sm:p-5',
+                user.isSeller
+                  ? 'bg-primary/5 border border-primary/20'
+                  : 'bg-gradient-to-r from-primary to-primary-dark text-white'
+              )}>
+                <div className="flex-1 min-w-0">
+                  <p className={cn('font-semibold text-sm sm:text-base', user.isSeller ? 'text-primary' : 'text-white')}>
+                    {user.isSeller ? 'Ready to sell something new?' : 'Want to sell on Ashimarket?'}
+                  </p>
+                  <p className={cn('text-xs mt-0.5', user.isSeller ? 'text-slate-500' : 'text-white/80')}>
+                    {user.isSeller
+                      ? 'Post a listing and reach thousands of buyers.'
+                      : 'List your items and start earning today — it\'s free.'}
+                  </p>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  {user.isSeller && (
+                    <Button asChild variant="outline" size="sm">
+                      <Link href="/seller">My Store</Link>
+                    </Button>
+                  )}
+                  <Button
+                    asChild
+                    size="sm"
+                    className={user.isSeller ? '' : 'bg-white text-primary hover:bg-white/90'}
+                    leftIcon={<Plus className="h-3.5 w-3.5" />}
+                  >
+                    <Link href="/listing/create">Post a Listing</Link>
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {/* Overview cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
