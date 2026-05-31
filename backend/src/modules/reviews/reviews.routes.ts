@@ -4,6 +4,7 @@ import { requireAuth, requireSeller } from '../../middleware/auth';
 import type { AuthenticatedRequest } from '../../shared/types';
 import { z } from 'zod';
 import { REVIEW } from '../../config/constants';
+import { prisma } from '../../config/database';
 
 const createReviewSchema = z.object({
   orderId: z.string().uuid(),
@@ -24,7 +25,16 @@ export async function reviewRoutes(fastify: FastifyInstance): Promise<void> {
     void reply.status(201).send({ success: true, data: review });
   });
 
+  // Support both POST and PATCH for seller response
   fastify.post('/:id/response', { preHandler: [requireSeller] }, async (req, reply) => {
+    const user = (req as AuthenticatedRequest).user;
+    const { id } = req.params as { id: string };
+    const body = sellerResponseSchema.parse(req.body);
+    const review = await reviewsService.addSellerResponse(id, user.id, body.response);
+    void reply.status(200).send({ success: true, data: review });
+  });
+
+  fastify.patch('/:id/respond', { preHandler: [requireSeller] }, async (req, reply) => {
     const user = (req as AuthenticatedRequest).user;
     const { id } = req.params as { id: string };
     const body = sellerResponseSchema.parse(req.body);
@@ -41,5 +51,32 @@ export async function reviewRoutes(fastify: FastifyInstance): Promise<void> {
       parseInt(q.limit ?? '20', 10),
     );
     void reply.status(200).send({ success: true, ...result });
+  });
+
+  fastify.get('/listing/:listingId', async (req, reply) => {
+    const { listingId } = req.params as { listingId: string };
+    const q = req.query as { page?: string; limit?: string };
+    const page = parseInt(q.page ?? '1', 10);
+    const limit = parseInt(q.limit ?? '10', 10);
+    const offset = (page - 1) * limit;
+
+    const [data, total] = await Promise.all([
+      prisma.review.findMany({
+        where: { listingId },
+        include: {
+          reviewer: { select: { id: true, username: true, profile: { select: { displayName: true, avatarUrl: true } } } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: offset,
+        take: limit,
+      }),
+      prisma.review.count({ where: { listingId } }),
+    ]);
+
+    void reply.status(200).send({
+      success: true,
+      data,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit), hasNextPage: page < Math.ceil(total / limit), hasPreviousPage: page > 1 },
+    });
   });
 }

@@ -250,7 +250,7 @@ export function useToggleWishlist() {
   const { toast } = useToast();
 
   return useMutation<
-    { isSaved: boolean; item: WishlistItem | null },
+    { added: boolean },
     Error,
     { listingId: string; currentlySaved: boolean }
   >({
@@ -294,8 +294,8 @@ export function useToggleWishlist() {
       toast.error('Failed to update wishlist', 'Please try again.');
     },
 
-    onSuccess: ({ isSaved }) => {
-      if (isSaved) {
+    onSuccess: ({ added }) => {
+      if (added) {
         toast.success('Saved', 'Item added to your wishlist.');
       } else {
         toast.info('Removed', 'Item removed from your wishlist.');

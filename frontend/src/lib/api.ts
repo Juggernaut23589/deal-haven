@@ -479,8 +479,7 @@ export const reviewsApi = {
     orderId: string;
     rating: number;
     title?: string;
-    body: string;
-    images?: string[];
+    content: string;
   }): Promise<Review> => post<Review>('/reviews', payload),
 
   respond: (reviewId: string, response: string): Promise<Review> =>
@@ -507,8 +506,8 @@ export const wishlistApi = {
 
   toggle: (
     listingId: string
-  ): Promise<{ isSaved: boolean; item: WishlistItem | null }> =>
-    post('/wishlist/toggle', { listingId }),
+  ): Promise<{ added: boolean }> =>
+    post('/wishlist', { listingId }),
 
   updateAlerts: (
     itemId: string,
@@ -546,12 +545,12 @@ export const searchApi = {
   autocomplete: (query: string, limit: number = 8): Promise<AutocompleteResult> =>
     get<AutocompleteResult>('/search/autocomplete', { params: { q: query, limit } }),
 
-  categories: (): Promise<Category[]> => get<Category[]>('/categories'),
+  categories: (): Promise<Category[]> => get<Category[]>('/search/categories'),
 
-  categoryTree: (): Promise<Category[]> => get<Category[]>('/categories/tree'),
+  categoryTree: (): Promise<Category[]> => get<Category[]>('/search/categories'),
 
   categoryBySlug: (slug: string): Promise<Category> =>
-    get<Category>(`/categories/slug/${slug}`),
+    get<Category>(`/search/categories/${slug}/attributes`),
 
   getSavedSearches: (): Promise<SavedSearch[]> =>
     get<SavedSearch[]>('/search/saved'),

@@ -57,11 +57,26 @@ export async function notificationRoutes(fastify: FastifyInstance): Promise<void
   fastify.patch('/read-all', { preHandler: [requireAuth] }, async (req, reply) => {
     const user = (req as AuthenticatedRequest).user;
 
-    await prisma.notification.updateMany({
+    const result = await prisma.notification.updateMany({
       where: { userId: user.id, isRead: false },
       data: { isRead: true, readAt: new Date() },
     });
 
-    void reply.status(200).send({ success: true, message: 'All notifications marked as read' });
+    void reply.status(200).send({ success: true, data: { count: result.count } });
+  });
+
+  fastify.get('/unread-count', { preHandler: [requireAuth] }, async (req, reply) => {
+    const user = (req as AuthenticatedRequest).user;
+    const count = await prisma.notification.count({
+      where: { userId: user.id, isRead: false },
+    });
+    void reply.status(200).send({ success: true, data: { count } });
+  });
+
+  fastify.delete('/:id', { preHandler: [requireAuth] }, async (req, reply) => {
+    const user = (req as AuthenticatedRequest).user;
+    const { id } = req.params as { id: string };
+    await prisma.notification.deleteMany({ where: { id, userId: user.id } });
+    void reply.status(204).send();
   });
 }
