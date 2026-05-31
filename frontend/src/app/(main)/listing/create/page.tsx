@@ -4,7 +4,6 @@ import * as React from 'react';
 import { NIGERIA_STATES, getLGAs } from '@/lib/nigeriaLocations';
 import { useRouter } from 'next/navigation';
 import type { Route } from 'next';
-import Image from 'next/image';
 import { useDropzone } from 'react-dropzone';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -375,12 +374,11 @@ function Step2Photos({
                 idx === 0 ? 'border-accent' : 'border-slate-200 dark:border-slate-700'
               )}
             >
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={img.url}
                 alt={`Photo ${idx + 1}`}
-                fill
-                className="object-cover"
-                sizes="(max-width: 640px) 33vw, 20vw"
+                className="w-full h-full object-cover"
               />
 
               {/* Cover badge */}
@@ -1198,15 +1196,14 @@ function Step6Review({
           'shadow-card'
         )}
       >
-        {/* Cover image preview */}
-        <div className="aspect-video relative bg-slate-100 dark:bg-slate-800">
+        {/* Cover image preview — use plain <img> to support blob: URLs */}
+        <div className="aspect-video relative bg-slate-100 dark:bg-slate-800 overflow-hidden">
           {coverImage ? (
-            <Image
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
               src={coverImage.url}
               alt="Cover image preview"
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 50vw"
+              className="w-full h-full object-cover"
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">
