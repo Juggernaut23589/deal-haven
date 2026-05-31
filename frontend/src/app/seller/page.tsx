@@ -232,7 +232,7 @@ export default function SellerDashboardPage() {
                     <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
                       {orders.map((order) => {
                         const { label, colorClass } = formatOrderStatus(order.status);
-                        const item = order.items[0];
+                        const item = order.items?.[0];
                         return (
                           <tr key={order.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                             <td className="px-4 py-3 font-mono text-xs text-slate-500">{order.orderNumber}</td>

@@ -71,7 +71,7 @@ export default function OrdersPage() {
     : orders;
 
   const getItemImage = (order: Order) =>
-    order.items[0]?.listingImageUrl ?? `https://picsum.photos/seed/${order.id}/80/80`;
+    order.items?.[0]?.listingImageUrl ?? `https://picsum.photos/seed/${order.id}/80/80`;
 
   return (
     <>
@@ -132,7 +132,7 @@ export default function OrdersPage() {
           <div className="space-y-3">
             {filtered.map((order) => {
               const { label, colorClass } = formatOrderStatus(order.status);
-              const item = order.items[0];
+              const item = order.items?.[0];
               const canConfirm = ['SHIPPED','IN_TRANSIT','PROCESSING','shipped','in_transit','processing'].includes(order.status);
               return (
                 <div

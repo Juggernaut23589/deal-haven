@@ -28,7 +28,7 @@ const ORDER_STEPS = [
   { key: 'completed', label: 'Completed', icon: CheckCircle2 },
 ];
 
-const STATUS_ORDER = ['paid', 'processing', 'shipped', 'delivered', 'completed'];
+const STATUS_ORDER = ['PENDING','pending','PAID','paid','PROCESSING','processing','SHIPPED','shipped','IN_TRANSIT','in_transit','DELIVERED','delivered','COMPLETED','completed'];
 
 export default function SellerOrderDetailPage() {
   const params = useParams<{ id: string }>();
@@ -112,7 +112,7 @@ export default function SellerOrderDetailPage() {
   const item = order.items?.[0];
   const buyerName = order.buyer?.profile?.displayName ?? order.buyer?.username ?? 'Buyer';
   const canConfirmPayment = ['PENDING','pending'].includes(order.status);
-  const canShip = order.status === 'processing' || order.status === 'payment_confirmed';
+  const canShip = ['PROCESSING','processing','PAID','payment_confirmed'].includes(order.status);
 
   return (
     <>
