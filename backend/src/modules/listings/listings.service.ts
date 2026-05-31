@@ -128,6 +128,100 @@ const listingDetailSelect = {
   },
 } satisfies Prisma.ListingSelect;
 
+// ─── Transform raw DB listing to frontend ListingCard shape ───────────────────
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function formatListingCard(raw: any) {
+  const coverImg = raw.images?.[0] ?? null;
+  const sp = raw.seller?.sellerProfile ?? null;
+  return {
+    id: raw.id,
+    title: raw.title,
+    slug: raw.slug,
+    price: Number(raw.price),
+    compareAtPrice: raw.originalPrice ? Number(raw.originalPrice) : null,
+    currency: raw.currency ?? 'NGN',
+    condition: raw.condition,
+    type: raw.listingType,          // frontend uses 'type', DB uses 'listingType'
+    status: raw.status,
+    offersEnabled: raw.offersEnabled,
+    coverImage: coverImg
+      ? { url: coverImg.url ?? coverImg.thumbnailUrl, thumbnailUrl: coverImg.thumbnailUrl, alt: coverImg.altText ?? raw.title }
+      : null,
+    imageCount: raw.images?.length ?? 0,
+    location: [raw.city, raw.state].filter(Boolean).join(', ') || null,
+    city: raw.city,
+    state: raw.state,
+    country: raw.country,
+    dealScore: raw.dealScore,
+    dealScoreLabel: raw.dealScoreLabel,
+    isPromoted: raw.isPromoted ?? false,
+    isSaved: raw.isSaved ?? false,
+    viewCount: raw.viewCount,
+    favoriteCount: raw.favoriteCount,
+    createdAt: raw.createdAt,
+    publishedAt: raw.publishedAt,
+    seller: raw.seller ? {
+      id: raw.seller.id,
+      username: raw.seller.username,
+      displayName: sp?.shopName ?? raw.seller.username,
+      avatarUrl: raw.seller.profile?.avatarUrl ?? null,
+      rating: sp?.averageRating ? Number(sp.averageRating) : 0,
+      reviewCount: sp?.totalReviews ?? 0,
+      isVerified: sp?.verificationStatus === 'VERIFIED',
+      isStarSeller: sp?.isStarSeller ?? false,
+    } : null,
+    category: raw.category ? {
+      id: raw.category.id,
+      name: raw.category.name,
+      slug: raw.category.slug,
+    } : null,
+    auction: raw.auction ? {
+      currentPrice: Number(raw.auction.currentBid ?? raw.auction.startPrice ?? 0),
+      bidCount: raw.auction.bidCount ?? 0,
+      endsAt: raw.auction.endsAt,
+      status: raw.auction.status,
+      buyItNowAvailable: raw.auction.buyItNowActive ?? false,
+      buyItNowPrice: raw.auction.buyItNowPrice ? Number(raw.auction.buyItNowPrice) : null,
+    } : null,
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function formatListingDetail(raw: any) {
+  const card = formatListingCard(raw);
+  return {
+    ...card,
+    description: raw.description,
+    images: (raw.images ?? []).map((img: any) => ({
+      id: img.id,
+      url: img.url,
+      thumbnailUrl: img.thumbnailUrl,
+      alt: img.altText ?? raw.title,
+      isCover: img.isCover ?? false,
+      sortOrder: img.sortOrder ?? 0,
+    })),
+    shippingOptions: raw.shippingOptions ?? [],
+    seller: raw.seller ? {
+      ...card.seller,
+      id: raw.seller.id,
+      username: raw.seller.username,
+      bio: raw.seller.profile?.bio ?? null,
+      memberSince: raw.seller.createdAt ?? null,
+      responseTime: raw.seller.sellerProfile?.responseTimeHours
+        ? `${raw.seller.sellerProfile.responseTimeHours}h`
+        : null,
+      totalSales: raw.seller.sellerProfile?.totalSales ?? 0,
+      reviewCount: raw.seller.sellerProfile?.totalReviews ?? 0,
+    } : null,
+    quantity: raw.quantity ?? 1,
+    soldCount: raw.soldCount ?? 0,
+    originalPrice: raw.originalPrice ? Number(raw.originalPrice) : null,
+    marketAvgPrice: raw.marketAvgPrice ? Number(raw.marketAvgPrice) : null,
+    expiresAt: raw.expiresAt,
+  };
+}
+
 export class ListingsService {
   async createListing(
     sellerId: string,
@@ -180,7 +274,7 @@ export class ListingsService {
           autoDeclinePrice: input.autoDeclinePrice,
           city: input.city,
           state: input.state,
-          country: input.country ?? 'US',
+          country: input.country ?? 'NG',
           zipCode: input.zipCode,
           latitude: input.latitude,
           longitude: input.longitude,
@@ -240,7 +334,7 @@ export class ListingsService {
       return created;
     });
 
-    return listing;
+    return formatListingDetail(listing);
   }
 
   async publishListing(listingId: string, sellerId: string) {
@@ -261,10 +355,6 @@ export class ListingsService {
       throw new BusinessRuleError('Only draft listings can be published');
     }
 
-    if (listing.images.length === 0) {
-      throw new BusinessRuleError('Listing must have at least one image before publishing');
-    }
-
     const updated = await prisma.listing.update({
       where: { id: listingId },
       data: {
@@ -275,7 +365,7 @@ export class ListingsService {
     });
 
     await cache.del(cache.key.listing(listingId));
-    return updated;
+    return formatListingCard(updated);
   }
 
   async getListing(id: string, viewerUserId?: string) {
@@ -300,12 +390,13 @@ export class ListingsService {
 
     if (!listing) throw new NotFoundError('Listing', id);
 
-    await cache.set(cacheKey, listing, CACHE_TTL.POPULAR_LISTINGS);
+    const formatted = formatListingDetail(listing);
+    await cache.set(cacheKey, formatted, CACHE_TTL.POPULAR_LISTINGS);
 
     // Async increment view count
     this.incrementViewCount(id, viewerUserId).catch(() => null);
 
-    return listing;
+    return formatted;
   }
 
   async getListingForSeller(id: string, sellerId: string) {
@@ -315,7 +406,7 @@ export class ListingsService {
     });
 
     if (!listing) throw new NotFoundError('Listing', id);
-    return listing;
+    return formatListingDetail(listing);
   }
 
   async updateListing(
@@ -508,7 +599,7 @@ export class ListingsService {
       prisma.listing.count({ where }),
     ]);
 
-    return buildPaginatedResponse(data, total, normalizedPage, normalizedLimit);
+    return buildPaginatedResponse(data.map(formatListingCard), total, normalizedPage, normalizedLimit);
   }
 
   async getSellerListings(
@@ -536,7 +627,7 @@ export class ListingsService {
       prisma.listing.count({ where }),
     ]);
 
-    return buildPaginatedResponse(data, total, normalizedPage, normalizedLimit);
+    return buildPaginatedResponse(data.map(formatListingCard), total, normalizedPage, normalizedLimit);
   }
 
   async addImages(
