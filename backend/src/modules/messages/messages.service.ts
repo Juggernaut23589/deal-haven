@@ -190,14 +190,16 @@ export class MessagesService {
     });
 
     return {
-      data: messages.reverse(), // Return chronological order
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-        hasNext: page < Math.ceil(total / limit),
-        hasPrev: page > 1,
+      data: {
+        data: messages.reverse(), // Return chronological order
+        meta: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+          hasNextPage: page < Math.ceil(total / limit),
+          hasPreviousPage: page > 1,
+        },
       },
     };
   }
@@ -233,14 +235,16 @@ export class MessagesService {
     );
 
     return {
-      data: conversationsWithUnread,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-        hasNext: page < Math.ceil(total / limit),
-        hasPrev: page > 1,
+      data: {
+        data: conversationsWithUnread,
+        meta: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+          hasNextPage: page < Math.ceil(total / limit),
+          hasPreviousPage: page > 1,
+        },
       },
     };
   }

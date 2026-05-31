@@ -64,7 +64,7 @@ export async function orderRoutes(fastify: FastifyInstance): Promise<void> {
     const result = q.type === 'selling'
       ? await ordersService.getSellerOrders(user.id, page, limit)
       : await ordersService.getBuyerOrders(user.id, page, limit);
-    void reply.status(200).send({ success: true, ...result });
+    void reply.status(200).send({ success: true, data: result });
   });
 
   // Legacy routes kept for compatibility
@@ -76,7 +76,7 @@ export async function orderRoutes(fastify: FastifyInstance): Promise<void> {
       parseInt(q.page ?? '1', 10),
       parseInt(q.limit ?? '20', 10),
     );
-    void reply.status(200).send({ success: true, ...result });
+    void reply.status(200).send({ success: true, data: result });
   });
 
   fastify.get('/me/sales', { preHandler: [requireAuth] }, async (req, reply) => {
@@ -87,7 +87,7 @@ export async function orderRoutes(fastify: FastifyInstance): Promise<void> {
       parseInt(q.page ?? '1', 10),
       parseInt(q.limit ?? '20', 10),
     );
-    void reply.status(200).send({ success: true, ...result });
+    void reply.status(200).send({ success: true, data: result });
   });
 
   // Open dispute

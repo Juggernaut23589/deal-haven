@@ -23,7 +23,7 @@ export async function messageRoutes(fastify: FastifyInstance): Promise<void> {
       parseInt(q.page ?? '1', 10),
       parseInt(q.limit ?? '20', 10),
     );
-    void reply.status(200).send({ success: true, ...result });
+    void reply.status(200).send({ success: true, data: result });
   });
 
   // Get unread count
@@ -66,7 +66,7 @@ export async function messageRoutes(fastify: FastifyInstance): Promise<void> {
       parseInt(q.page ?? '1', 10),
       parseInt(q.limit ?? '50', 10),
     );
-    void reply.status(200).send({ success: true, ...result });
+    void reply.status(200).send({ success: true, data: result });
   });
 
   // Send message (accepts both 'content' and 'body' field names)

@@ -49,14 +49,16 @@ export async function wishlistRoutes(fastify: FastifyInstance): Promise<void> {
 
     void reply.status(200).send({
       success: true,
-      data,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-        hasNext: page < Math.ceil(total / limit),
-        hasPrev: page > 1,
+      data: {
+        data,
+        meta: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+          hasNextPage: page < Math.ceil(total / limit),
+          hasPreviousPage: page > 1,
+        },
       },
     });
   });

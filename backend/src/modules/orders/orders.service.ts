@@ -384,13 +384,13 @@ export class OrdersService {
 
     return {
       data,
-      pagination: {
+      meta: {
         total,
         page,
         limit,
         totalPages: Math.ceil(total / limit),
-        hasNext: page < Math.ceil(total / limit),
-        hasPrev: page > 1,
+        hasNextPage: page < Math.ceil(total / limit),
+        hasPreviousPage: page > 1,
       },
     };
   }
@@ -411,13 +411,13 @@ export class OrdersService {
 
     return {
       data,
-      pagination: {
+      meta: {
         total,
         page,
         limit,
         totalPages: Math.ceil(total / limit),
-        hasNext: page < Math.ceil(total / limit),
-        hasPrev: page > 1,
+        hasNextPage: page < Math.ceil(total / limit),
+        hasPreviousPage: page > 1,
       },
     };
   }

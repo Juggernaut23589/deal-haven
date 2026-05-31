@@ -179,15 +179,17 @@ export class ReviewsService {
     }));
 
     return {
-      data,
-      ratingDistribution: ratingDist,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-        hasNext: page < Math.ceil(total / limit),
-        hasPrev: page > 1,
+      data: {
+        data,
+        ratingDistribution: ratingDist,
+        meta: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+          hasNextPage: page < Math.ceil(total / limit),
+          hasPreviousPage: page > 1,
+        },
       },
     };
   }

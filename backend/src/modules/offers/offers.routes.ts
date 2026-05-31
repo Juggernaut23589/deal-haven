@@ -52,7 +52,7 @@ export async function offerRoutes(fastify: FastifyInstance): Promise<void> {
     const result = q.type === 'received'
       ? await offersService.getSellerOffers(user.id, page, limit)
       : await offersService.getBuyerOffers(user.id, page, limit);
-    void reply.status(200).send({ success: true, ...result });
+    void reply.status(200).send({ success: true, data: result });
   });
 
   // Legacy named routes kept for compatibility
@@ -62,7 +62,7 @@ export async function offerRoutes(fastify: FastifyInstance): Promise<void> {
     const result = await offersService.getBuyerOffers(
       user.id, parseInt(q.page ?? '1', 10), parseInt(q.limit ?? '20', 10),
     );
-    void reply.status(200).send({ success: true, ...result });
+    void reply.status(200).send({ success: true, data: result });
   });
 
   fastify.get('/me/received', { preHandler: [requireAuth] }, async (req, reply) => {
@@ -71,7 +71,7 @@ export async function offerRoutes(fastify: FastifyInstance): Promise<void> {
     const result = await offersService.getSellerOffers(
       user.id, parseInt(q.page ?? '1', 10), parseInt(q.limit ?? '20', 10),
     );
-    void reply.status(200).send({ success: true, ...result });
+    void reply.status(200).send({ success: true, data: result });
   });
 
   // Get offers for a specific listing
@@ -79,6 +79,6 @@ export async function offerRoutes(fastify: FastifyInstance): Promise<void> {
     const { listingId } = req.params as { listingId: string };
     const q = req.query as { page?: string };
     const result = await offersService.getListingOffers(listingId, parseInt(q.page ?? '1', 10));
-    void reply.status(200).send({ success: true, ...result });
+    void reply.status(200).send({ success: true, data: result });
   });
 }

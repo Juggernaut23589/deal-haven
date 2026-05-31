@@ -158,15 +158,19 @@ export function buildPaginatedResponse<T>(
   limit: number,
 ) {
   const totalPages = Math.ceil(total / limit);
+  // Wrap inside { data: { data, meta } } so the axios interceptor extracts
+  // { data: T[], meta: PaginationMeta } — matching the frontend PaginatedResponse<T> type.
   return {
-    data,
-    pagination: {
-      total,
-      page,
-      limit,
-      totalPages,
-      hasNext: page < totalPages,
-      hasPrev: page > 1,
+    data: {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
     },
   };
 }

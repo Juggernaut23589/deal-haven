@@ -50,7 +50,7 @@ export async function reviewRoutes(fastify: FastifyInstance): Promise<void> {
       parseInt(q.page ?? '1', 10),
       parseInt(q.limit ?? '20', 10),
     );
-    void reply.status(200).send({ success: true, ...result });
+    void reply.status(200).send({ success: true, data: result.data });
   });
 
   fastify.get('/listing/:listingId', async (req, reply) => {
@@ -75,8 +75,10 @@ export async function reviewRoutes(fastify: FastifyInstance): Promise<void> {
 
     void reply.status(200).send({
       success: true,
-      data,
-      meta: { total, page, limit, totalPages: Math.ceil(total / limit), hasNextPage: page < Math.ceil(total / limit), hasPreviousPage: page > 1 },
+      data: {
+        data,
+        meta: { total, page, limit, totalPages: Math.ceil(total / limit), hasNextPage: page < Math.ceil(total / limit), hasPreviousPage: page > 1 },
+      },
     });
   });
 }

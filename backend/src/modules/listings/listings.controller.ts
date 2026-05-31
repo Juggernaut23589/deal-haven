@@ -111,9 +111,21 @@ export class ListingsController {
       query.limit,
     );
 
+    // Shape into SearchResults: { listings, meta, facets }
+    // result.data = { data: [...], meta: {...} } after buildPaginatedResponse change
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const inner = (result as any).data as { data: unknown[]; meta: unknown };
     void reply.status(200).send({
       success: true,
-      ...result,
+      data: {
+        listings: inner.data,
+        meta: {
+          ...(inner.meta as object),
+          query: query.q ?? null,
+          appliedFilters: filters,
+        },
+        facets: {},
+      },
     });
   }
 
