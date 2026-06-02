@@ -246,10 +246,31 @@ export class ListingsService {
       );
     }
 
-    const category = await prisma.category.findUnique({
-      where: { id: input.categoryId },
+    // Accept either a UUID (id) or a slug — frontend sends slugs like 'automobiles'
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(input.categoryId);
+    const category = isUuid
+      ? await prisma.category.findUnique({ where: { id: input.categoryId } })
+      : await prisma.category.findFirst({ where: { slug: input.categoryId } });
+    if (!category) {
+      // Fall back to 'other' category rather than failing hard
+      const fallback = await prisma.category.findFirst({ where: { slug: 'other' } })
+        ?? await prisma.category.findFirst();
+      if (!fallback) throw new NotFoundError('Category', input.categoryId);
+      (input as { categoryId: string }).categoryId = fallback.id;
+    } else {
+      (input as { categoryId: string }).categoryId = category.id;
+    }
+
+    // Auto-create sellerProfile if missing (happens for users who registered as sellers)
+    await prisma.sellerProfile.upsert({
+      where: { userId: sellerId },
+      create: {
+        userId: sellerId,
+        shopName: `Shop ${sellerId.slice(0, 8)}`,
+        shopSlug: `shop-${sellerId.slice(0, 8)}`,
+      },
+      update: {},
     });
-    if (!category) throw new NotFoundError('Category', input.categoryId);
 
     const slug = createUniqueSlug(input.title);
     const expiresAt = addDays(new Date(), LISTING.EXPIRY_DAYS);
@@ -291,13 +312,29 @@ export class ListingsService {
                 })),
               }
             : undefined,
-          // Shipping options
-          shippingOptions: input.shippingOptions
+          // Shipping options — normalize frontend field names
+          shippingOptions: input.shippingOptions?.length
             ? {
-                create: input.shippingOptions.map((opt, idx) => ({
-                  ...opt,
-                  isDefault: idx === 0,
-                })),
+                create: input.shippingOptions.map((opt, idx) => {
+                  const rawCarrier = ((opt as { name?: string; serviceName?: string; carrier?: string | null }).carrier ?? '').toUpperCase();
+                  const carrierMap: Record<string, string> = {
+                    GIG_LOGISTICS: 'GIG_LOGISTICS', GIG: 'GIG_LOGISTICS',
+                    DHL: 'DHL', NIPOST: 'NIPOST', REDSTAR: 'REDSTAR_EXPRESS',
+                    REDSTAR_EXPRESS: 'REDSTAR_EXPRESS', FEDEX: 'FEDEX',
+                    UPS: 'UPS', LOCAL_DELIVERY: 'LOCAL_DELIVERY', LOCAL: 'LOCAL_DELIVERY',
+                    LOCAL_PICKUP: 'LOCAL_DELIVERY',
+                  };
+                  const carrier = (carrierMap[rawCarrier] ?? 'OTHER') as import('@prisma/client').ShippingCarrier;
+                  return {
+                    serviceName: (opt as { name?: string; serviceName?: string }).name ?? opt.serviceName ?? 'Standard Shipping',
+                    carrier,
+                    price: opt.price ?? 0,
+                    isFree: opt.isFree ?? false,
+                    estimatedDaysMin: opt.estimatedDaysMin ?? null,
+                    estimatedDaysMax: opt.estimatedDaysMax ?? null,
+                    isDefault: idx === 0,
+                  };
+                }),
               }
             : undefined,
           // Auction
@@ -309,12 +346,12 @@ export class ListingsService {
                     reservePrice: input.auction.reservePrice,
                     buyItNowPrice: input.auction.buyItNowPrice,
                     minBidIncrement: Math.max(
-                      input.auction.startPrice * 0.05,
+                      (input.auction.startPrice ?? input.price) * 0.05,
                       1,
                     ),
-                    startsAt: input.auction.startsAt,
-                    endsAt: input.auction.endsAt,
-                    originalEndsAt: input.auction.endsAt,
+                    startsAt: input.auction.startsAt ?? new Date(),
+                    endsAt: input.auction.endsAt ?? addDays(new Date(), (input.auction as { durationDays?: number }).durationDays ?? 7),
+                    originalEndsAt: input.auction.endsAt ?? addDays(new Date(), (input.auction as { durationDays?: number }).durationDays ?? 7),
                   },
                 }
               : undefined,

@@ -71,6 +71,7 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(password, AUTH.BCRYPT_ROUNDS);
 
+    const isSeller = roles.includes(UserRole.SELLER);
     const user = await prisma.user.create({
       data: {
         email: email.toLowerCase(),
@@ -84,6 +85,16 @@ export class AuthService {
             displayName: firstName ? `${firstName} ${lastName ?? ''}`.trim() : username,
           },
         },
+        ...(isSeller
+          ? {
+              sellerProfile: {
+                create: {
+                  shopName: firstName ? `${firstName}'s Shop` : `${username}'s Shop`,
+                  shopSlug: username.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+                },
+              },
+            }
+          : {}),
       },
     });
 

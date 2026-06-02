@@ -6,76 +6,154 @@ const attributeSchema = z.object({
   value: z.string().min(1).max(1000),
 });
 
+// Accept free-text carrier names from the frontend
 const shippingOptionSchema = z.object({
-  carrier: z.enum(['UPS', 'FEDEX', 'USPS', 'DHL', 'LOCAL_DELIVERY', 'OTHER']),
-  serviceName: z.string().max(100),
+  carrier: z.string().max(100).nullable().optional(),
+  // Accept both 'serviceName' and 'name' (frontend uses 'name')
+  serviceName: z.string().max(100).optional(),
+  name: z.string().max(100).optional(),
   price: z.number().min(0),
-  estimatedDaysMin: z.number().int().min(0).optional(),
-  estimatedDaysMax: z.number().int().min(0).optional(),
+  estimatedDaysMin: z.number().int().min(0).optional().nullable(),
+  estimatedDaysMax: z.number().int().min(0).optional().nullable(),
   isFree: z.boolean().optional().default(false),
+  isLocalPickup: z.boolean().optional().default(false),
+  regions: z.array(z.string()).optional(),
 });
 
 const auctionSchema = z.object({
   startPrice: z.number().positive(),
   reservePrice: z.number().positive().optional(),
   buyItNowPrice: z.number().positive().optional(),
-  startsAt: z.coerce.date(),
-  endsAt: z.coerce.date(),
+  startsAt: z.coerce.date().optional(),
+  endsAt: z.coerce.date().optional(),
+  durationDays: z.number().int().min(1).max(30).optional(),
 });
 
-export const createListingSchema = z.object({
-  categoryId: z.string().uuid(),
-  title: z.string().min(3, 'Title must be at least 3 characters').max(LISTING.MAX_TITLE_LENGTH),
-  description: z
-    .string()
-    .min(10, 'Description must be at least 10 characters')
-    .max(LISTING.MAX_DESCRIPTION_LENGTH),
-  condition: z.enum(['NEW', 'LIKE_NEW', 'GOOD', 'FAIR', 'FOR_PARTS']),
-  listingType: z.enum(['FIXED_PRICE', 'AUCTION', 'FIXED_AND_OFFER']),
-  price: z.number().positive('Price must be greater than 0'),
-  originalPrice: z.number().positive().optional(),
-  currency: z.string().length(3).optional().default('NGN'),
-  quantity: z.number().int().min(1).optional().default(1),
-  offersEnabled: z.boolean().optional().default(false),
-  autoAcceptPrice: z.number().positive().optional(),
-  autoDeclinePrice: z.number().positive().optional(),
-  city: z.string().max(100).optional(),
-  state: z.string().max(100).optional(),
-  country: z.string().length(2).optional().default('US'),
-  zipCode: z.string().max(20).optional(),
-  latitude: z.number().min(-90).max(90).optional(),
-  longitude: z.number().min(-180).max(180).optional(),
-  localPickup: z.boolean().optional().default(false),
-  shipsNationally: z.boolean().optional().default(true),
-  shipsInternationally: z.boolean().optional().default(false),
-  attributes: z.array(attributeSchema).optional(),
-  shippingOptions: z.array(shippingOptionSchema).optional(),
-  auction: auctionSchema.optional(),
-}).refine(
-  (data) => {
-    if (data.listingType === 'AUCTION' && !data.auction) {
-      return false;
+// Map frontend lowercase condition values to Prisma uppercase enums
+const conditionEnum = z
+  .enum(['NEW', 'LIKE_NEW', 'GOOD', 'FAIR', 'FOR_PARTS', 'new', 'like_new', 'good', 'fair', 'for_parts'])
+  .transform((v) => v.toUpperCase() as 'NEW' | 'LIKE_NEW' | 'GOOD' | 'FAIR' | 'FOR_PARTS');
+
+// Map frontend listing type values to Prisma uppercase enums
+// Frontend sends: 'fixed_price' | 'auction' | 'make_offer'
+// Backend enum:   'FIXED_PRICE' | 'AUCTION' | 'FIXED_AND_OFFER'
+const listingTypeEnum = z
+  .enum(['FIXED_PRICE', 'AUCTION', 'FIXED_AND_OFFER', 'fixed_price', 'auction', 'make_offer', 'fixed_and_offer'])
+  .transform((v): 'FIXED_PRICE' | 'AUCTION' | 'FIXED_AND_OFFER' => {
+    const map: Record<string, 'FIXED_PRICE' | 'AUCTION' | 'FIXED_AND_OFFER'> = {
+      fixed_price: 'FIXED_PRICE',
+      make_offer: 'FIXED_AND_OFFER',
+      auction: 'AUCTION',
+      FIXED_PRICE: 'FIXED_PRICE',
+      AUCTION: 'AUCTION',
+      FIXED_AND_OFFER: 'FIXED_AND_OFFER',
+      fixed_and_offer: 'FIXED_AND_OFFER',
+    };
+    return map[v] ?? 'FIXED_PRICE';
+  });
+
+export const createListingSchema = z
+  .object({
+    // categoryId may be a UUID or a slug — service handles both
+    categoryId: z.string().min(1),
+    title: z.string().min(3, 'Title must be at least 3 characters').max(LISTING.MAX_TITLE_LENGTH),
+    description: z
+      .string()
+      .min(10, 'Description must be at least 10 characters')
+      .max(LISTING.MAX_DESCRIPTION_LENGTH),
+    condition: conditionEnum,
+    // Accept both 'listingType' (internal) and 'type' (frontend)
+    listingType: listingTypeEnum.optional(),
+    type: listingTypeEnum.optional(),
+    price: z.number().min(0).default(0),
+    // Accept both 'originalPrice' and 'compareAtPrice' (frontend)
+    originalPrice: z.number().positive().optional(),
+    compareAtPrice: z.number().positive().optional(),
+    currency: z.string().length(3).optional().default('NGN'),
+    // Accept both 'quantity' and 'stockQuantity' (frontend)
+    quantity: z.number().int().min(1).optional().default(1),
+    stockQuantity: z.number().int().min(1).optional(),
+    offersEnabled: z.boolean().optional().default(false),
+    // Accept both internal names and frontend names
+    autoAcceptPrice: z.number().positive().optional(),
+    offerAutoAcceptThreshold: z.number().positive().optional(),
+    autoDeclinePrice: z.number().positive().optional(),
+    offerAutoDeclineThreshold: z.number().positive().optional(),
+    // Accept both separate city/state and combined 'location' string
+    city: z.string().max(100).optional(),
+    state: z.string().max(100).optional(),
+    location: z.string().max(200).optional(),
+    country: z.string().length(2).optional().default('NG'),
+    zipCode: z.string().max(20).optional(),
+    latitude: z.number().min(-90).max(90).optional(),
+    longitude: z.number().min(-180).max(180).optional(),
+    localPickup: z.boolean().optional().default(false),
+    shipsNationally: z.boolean().optional().default(true),
+    shipsInternationally: z.boolean().optional().default(false),
+    attributes: z.array(attributeSchema).optional(),
+    shippingOptions: z.array(shippingOptionSchema).optional(),
+    auction: auctionSchema.optional(),
+    tags: z.array(z.string()).optional(),
+    imageIds: z.array(z.string()).optional(),
+  })
+  .transform((data) => {
+    // Normalize listingType — accept either field name
+    const resolvedType = data.listingType ?? data.type ?? 'FIXED_PRICE';
+
+    // Normalize quantity — accept either field name
+    const resolvedQuantity = data.quantity ?? data.stockQuantity ?? 1;
+
+    // Normalize price fields
+    const resolvedOriginalPrice = data.originalPrice ?? data.compareAtPrice;
+    const resolvedAutoAccept = data.autoAcceptPrice ?? data.offerAutoAcceptThreshold;
+    const resolvedAutoDecline = data.autoDeclinePrice ?? data.offerAutoDeclineThreshold;
+
+    // Parse 'location' string → city + state if not provided separately
+    let resolvedCity = data.city;
+    let resolvedState = data.state;
+    if (!resolvedCity && !resolvedState && data.location) {
+      const parts = data.location.split(',').map((p) => p.trim());
+      resolvedCity = parts[0] ?? undefined;
+      resolvedState = parts[1] ?? parts[0] ?? undefined;
     }
-    return true;
-  },
-  { message: 'Auction details are required for auction listings', path: ['auction'] },
-).refine(
-  (data) => {
-    if (data.autoAcceptPrice && data.autoDeclinePrice) {
-      return data.autoAcceptPrice > data.autoDeclinePrice;
-    }
-    return true;
-  },
-  {
-    message: 'Auto-accept price must be higher than auto-decline price',
-    path: ['autoAcceptPrice'],
-  },
-);
+
+    return {
+      ...data,
+      listingType: resolvedType,
+      quantity: resolvedQuantity,
+      originalPrice: resolvedOriginalPrice,
+      autoAcceptPrice: resolvedAutoAccept,
+      autoDeclinePrice: resolvedAutoDecline,
+      city: resolvedCity,
+      state: resolvedState,
+    };
+  })
+  .refine(
+    (data) => {
+      if (data.listingType === 'AUCTION' && !data.auction) {
+        return false;
+      }
+      return true;
+    },
+    { message: 'Auction details are required for auction listings', path: ['auction'] },
+  )
+  .refine(
+    (data) => {
+      if (data.autoAcceptPrice && data.autoDeclinePrice) {
+        return data.autoAcceptPrice > data.autoDeclinePrice;
+      }
+      return true;
+    },
+    {
+      message: 'Auto-accept price must be higher than auto-decline price',
+      path: ['autoAcceptPrice'],
+    },
+  );
 
 export const updateListingSchema = z.object({
   title: z.string().min(3).max(LISTING.MAX_TITLE_LENGTH).optional(),
   description: z.string().min(10).max(LISTING.MAX_DESCRIPTION_LENGTH).optional(),
-  condition: z.enum(['NEW', 'LIKE_NEW', 'GOOD', 'FAIR', 'FOR_PARTS']).optional(),
+  condition: conditionEnum.optional(),
   price: z.number().positive().optional(),
   originalPrice: z.number().positive().optional().nullable(),
   quantity: z.number().int().min(1).optional(),

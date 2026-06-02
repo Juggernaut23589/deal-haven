@@ -150,7 +150,12 @@ export class AuthController {
 
     void reply.status(200).send({
       success: true,
-      data: safeUser,
+      data: {
+        ...safeUser,
+        isSeller: safeUser.roles.includes('SELLER' as never),
+        isAdmin: safeUser.roles.includes('ADMIN' as never),
+        isModerator: safeUser.roles.includes('MODERATOR' as never),
+      },
     });
   }
 
