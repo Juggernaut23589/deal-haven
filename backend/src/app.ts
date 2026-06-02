@@ -83,6 +83,9 @@ export async function buildApp(options?: { https?: { key: Buffer; cert: Buffer }
     }
   });
 
+  // Error handler MUST be registered before routes so child plugins inherit it
+  fastify.setErrorHandler(errorHandler);
+
   // Register routes
   await fastify.register(authRoutes, { prefix: '/api/v1/auth' });
   await fastify.register(listingRoutes, { prefix: '/api/v1/listings' });
@@ -117,9 +120,6 @@ export async function buildApp(options?: { https?: { key: Buffer; cert: Buffer }
       },
     });
   });
-
-  // Error handler
-  fastify.setErrorHandler(errorHandler);
 
   return fastify;
 }
