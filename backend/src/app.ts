@@ -99,8 +99,10 @@ export async function buildApp(options?: { https?: { key: Buffer; cert: Buffer }
   });
 
   // Static file serving for uploads
+  // Use path.resolve so both relative ('uploads') and absolute paths work correctly
+  const uploadRoot = path.resolve(process.cwd(), process.env.UPLOAD_DIR ?? 'uploads');
   await fastify.register(staticFiles, {
-    root: path.join(process.cwd(), process.env.UPLOAD_DIR ?? 'uploads'),
+    root: uploadRoot,
     prefix: '/uploads/',
   });
 

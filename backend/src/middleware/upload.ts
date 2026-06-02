@@ -7,7 +7,9 @@ import type { UploadedFile } from '../shared/types';
 import { nanoid } from 'nanoid';
 import { logger } from '../config/logger';
 
-const UPLOAD_BASE_DIR = process.env.UPLOAD_DIR ?? 'uploads';
+// path.resolve handles both absolute UPLOAD_DIR (/home/deploy/.../uploads)
+// and relative ('uploads') correctly regardless of cwd
+const UPLOAD_BASE_DIR = path.resolve(process.cwd(), process.env.UPLOAD_DIR ?? 'uploads');
 
 export async function ensureUploadDirs(): Promise<void> {
   const dirs = ['images/listings', 'images/avatars', 'images/banners', 'documents'];
