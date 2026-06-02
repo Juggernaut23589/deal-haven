@@ -10,7 +10,6 @@ import {
   logoutSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
-  verifyEmailSchema,
 } from './auth.schema';
 import type { AuthenticatedRequest } from '../../shared/types';
 
@@ -86,10 +85,35 @@ export class AuthController {
   }
 
   async verifyEmail(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-    const user = (request as AuthenticatedRequest).user;
-    const query = verifyEmailSchema.parse(request.query);
+    // Accept token from body (POST) or query string (GET link click)
+    const rawToken =
+      (request.body as Record<string, unknown>)?.token ??
+      (request.query as Record<string, unknown>)?.token;
 
-    await authService.verifyEmail(user.id, query.token);
+    if (!rawToken || typeof rawToken !== 'string') {
+      void reply.status(400).send({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Token is required' } });
+      return;
+    }
+
+    // Support authenticated (user in JWT) or unauthenticated (token encodes userId)
+    const user = (request as Partial<AuthenticatedRequest>).user;
+    let userId = user?.id;
+
+    // If no authenticated user, derive userId from the token itself (first segment before '.')
+    if (!userId) {
+      // Tokens are formatted as `userId.randomPart` — extract userId
+      const parts = rawToken.split('.');
+      if (parts.length >= 1 && parts[0].length > 0) {
+        userId = parts[0];
+      }
+    }
+
+    if (!userId) {
+      void reply.status(400).send({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Cannot identify user from token' } });
+      return;
+    }
+
+    await authService.verifyEmail(userId, rawToken);
 
     void reply.status(200).send({
       success: true,

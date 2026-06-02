@@ -48,9 +48,13 @@ export async function authRoutes(fastify: FastifyInstance): Promise<void> {
     (req, reply) => authController.logoutAll(req, reply),
   );
 
+  // Accept both GET (legacy link-click) and POST (frontend form/api call)
+  fastify.post(
+    '/verify-email',
+    (req, reply) => authController.verifyEmail(req, reply),
+  );
   fastify.get(
     '/verify-email',
-    { preHandler: [requireAuth] },
     (req, reply) => authController.verifyEmail(req, reply),
   );
 

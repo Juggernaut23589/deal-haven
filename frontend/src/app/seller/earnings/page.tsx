@@ -20,7 +20,13 @@ import { formatPrice, formatDate, formatOrderStatus } from '@/lib/formatters';
 import { ordersApi } from '@/lib/api';
 import type { Order } from '@/types/order';
 
-const FEE_RATE = 0.03;
+// Tiered platform fee: 5% under ₦500, 3% ₦500-₦5000, 2% over ₦5000
+function getFeeRate(total: number): number {
+  if (total < 500) return 0.05;
+  if (total <= 5000) return 0.03;
+  return 0.02;
+}
+function calcFee(total: number): number { return total * getFeeRate(total); }
 
 export default function SellerEarningsPage() {
   const { isLoading: authLoading } = useRequireAuth();
@@ -39,9 +45,9 @@ export default function SellerEarningsPage() {
   const completed = orders.filter((o) => ['COMPLETED', 'DELIVERED', 'completed', 'delivered'].includes(o.status));
   const pending = orders.filter((o) => ['PENDING', 'PROCESSING', 'pending', 'processing'].includes(o.status));
 
-  const totalEarned = completed.reduce((s, o) => s + o.total * (1 - FEE_RATE), 0);
-  const pendingValue = pending.reduce((s, o) => s + o.total * (1 - FEE_RATE), 0);
-  const totalFees = [...completed, ...pending].reduce((s, o) => s + o.total * FEE_RATE, 0);
+  const totalEarned = completed.reduce((s, o) => s + (o.total - calcFee(o.total)), 0);
+  const pendingValue = pending.reduce((s, o) => s + (o.total - calcFee(o.total)), 0);
+  const totalFees = [...completed, ...pending].reduce((s, o) => s + calcFee(o.total), 0);
 
   return (
     <div className="min-h-screen bg-background dark:bg-background-dark">
@@ -55,7 +61,7 @@ export default function SellerEarningsPage() {
             <div className="flex items-start gap-3 rounded-xl bg-primary/5 border border-primary/20 p-4">
               <Info className="h-5 w-5 text-primary shrink-0 mt-0.5" />
               <p className="text-sm text-slate-700 dark:text-slate-300">
-                Payments are handled directly between you and buyers. This page tracks your completed sales and estimated earnings for your records. Platform fee is 3%.
+                Payments are handled directly between you and buyers. This page tracks your completed sales and estimated earnings. Platform fee: 5% (under ₦500) · 3% (₦500–₦5,000) · 2% (over ₦5,000).
               </p>
             </div>
 
@@ -98,7 +104,7 @@ export default function SellerEarningsPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-slate-100 dark:border-slate-800">
-                        {['Order', 'Item', 'Buyer', 'Sale Price', 'Fee (3%)', 'Net', 'Date', 'Status'].map(h => (
+                        {['Order', 'Item', 'Buyer', 'Sale Price', 'Platform Fee', 'Net Payout', 'Date', 'Status'].map(h => (
                           <th key={h} scope="col" className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
                         ))}
                       </tr>
@@ -106,7 +112,7 @@ export default function SellerEarningsPage() {
                     <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
                       {orders.map((order) => {
                         const item = order.items[0];
-                        const fee = order.total * FEE_RATE;
+                        const fee = calcFee(order.total);
                         const net = order.total - fee;
                         const { label, colorClass } = formatOrderStatus(order.status);
                         return (

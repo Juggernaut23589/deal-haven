@@ -43,6 +43,7 @@ import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { MakeOfferModal } from '@/components/offers/MakeOfferModal';
 import { reviewsApi, ordersApi } from '@/lib/api';
+import { useToast } from '@/store/uiStore';
 import type { ListingImage, ListingShippingOption } from '@/types/listing';
 import type { Review } from '@/types/order';
 
@@ -499,98 +500,64 @@ function ShippingOptions({ options }: { options: ListingShippingOption[] }) {
 
 // ─── Q&A Section ─────────────────────────────────────────────────────────────
 
-function QASection({ listingId }: { listingId: string }) {
+function QASection({ listingId, sellerId }: { listingId: string; sellerId: string }) {
   const { isAuthenticated } = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
   const [question, setQuestion] = React.useState('');
-  const [submitted, setSubmitted] = React.useState(false);
+  const [sending, setSending] = React.useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!question.trim()) return;
-    // Would call questionsApi.createQuestion(listingId, question)
-    setSubmitted(true);
-    setQuestion('');
+    if (!question.trim() || !isAuthenticated) return;
+    setSending(true);
+    try {
+      const { messagesApi } = await import('@/lib/api');
+      const conv = await messagesApi.getOrCreateConversation(listingId, sellerId);
+      await messagesApi.sendMessage(conv.id, question.trim());
+      toast.success('Question sent!', 'The seller will reply in your messages.');
+      router.push(`/dashboard/messages?listing=${listingId}&seller=${sellerId}` as Route);
+    } catch {
+      toast.error('Failed to send question');
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
     <section aria-labelledby="qa-heading" className="space-y-4">
-      <h2
-        id="qa-heading"
-        className="text-lg font-semibold text-slate-900 dark:text-slate-100"
-      >
-        Questions & Answers
+      <h2 id="qa-heading" className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+        Ask the Seller
       </h2>
-
-      {/* Placeholder Q&As */}
-      <div className="space-y-3">
-        {[
-          {
-            q: 'Is this item still available?',
-            a: 'Yes, it is! Feel free to make an offer or buy it now.',
-          },
-          {
-            q: 'Can you ship internationally?',
-            a: 'Sorry, US domestic shipping only at this time.',
-          },
-        ].map((qa, i) => (
-          <div
-            key={i}
-            className="rounded-lg border border-slate-100 dark:border-slate-800 p-4 space-y-2"
-          >
-            <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-              Q: {qa.q}
-            </p>
-            <p className="text-sm text-slate-600 dark:text-slate-400 pl-4 border-l-2 border-primary/30">
-              A: {qa.a}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      {/* Ask a question */}
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <label htmlFor="ask-question" className="text-sm font-medium text-slate-700 dark:text-slate-300">
-          Ask the seller a question
-        </label>
-        {submitted ? (
-          <div className="flex items-center gap-2 text-sm text-success py-2">
-            <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-            Your question has been submitted. The seller will be notified.
-          </div>
-        ) : (
-          <div className="flex gap-2">
-            <textarea
-              id="ask-question"
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Type your question here..."
-              rows={2}
-              disabled={!isAuthenticated}
-              className={cn(
-                'flex-1 rounded-lg border border-slate-200 dark:border-slate-700',
-                'bg-white dark:bg-slate-900 px-3 py-2 text-sm',
-                'text-slate-900 dark:text-slate-100 placeholder:text-slate-400',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                'resize-none',
-                !isAuthenticated && 'opacity-50 cursor-not-allowed'
-              )}
-            />
-            <Button
-              type="submit"
-              size="sm"
-              disabled={!isAuthenticated || !question.trim()}
-              className="self-end"
-            >
-              Ask
-            </Button>
-          </div>
-        )}
+      <p className="text-sm text-slate-500 dark:text-slate-400">
+        Have a question about this item? Message the seller directly and get a quick answer.
+      </p>
+      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-3">
+        <div className="flex gap-2">
+          <textarea
+            id="ask-question"
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            placeholder="e.g. Is this still available? Can you deliver to Abuja?"
+            rows={2}
+            disabled={!isAuthenticated || sending}
+            className={cn(
+              'flex-1 rounded-lg border border-slate-200 dark:border-slate-700',
+              'bg-white dark:bg-slate-900 px-3 py-2 text-sm',
+              'text-slate-900 dark:text-slate-100 placeholder:text-slate-400',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-none',
+              (!isAuthenticated || sending) && 'opacity-50 cursor-not-allowed'
+            )}
+          />
+          <Button type="submit" size="sm" disabled={!isAuthenticated || !question.trim() || sending}
+            isLoading={sending} className="self-end">
+            Send
+          </Button>
+        </div>
         {!isAuthenticated && (
           <p className="text-xs text-slate-400">
-            <Link href="/auth/login" className="text-primary hover:underline">
-              Sign in
-            </Link>{' '}
-            to ask a question.
+            <Link href="/auth/login" className="text-primary hover:underline">Sign in</Link>{' '}
+            to ask the seller a question.
           </p>
         )}
       </form>
@@ -609,6 +576,7 @@ function BuyButton({
   onLoginRequired: () => void;
 }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [loading, setLoading] = React.useState(false);
   const [ordered, setOrdered] = React.useState(false);
 
@@ -618,10 +586,12 @@ function BuyButton({
     try {
       const order = await ordersApi.create({ listingId, quantity: 1 });
       setOrdered(true);
+      toast.success('Order placed!', 'Contact the seller to arrange payment and pickup.');
       router.push(`/dashboard/orders/${order.id}` as Route);
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      alert(msg ?? 'Could not create order. Please try again.');
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+        ?? 'Could not place order. Please try again.';
+      toast.error('Order failed', msg);
     } finally {
       setLoading(false);
     }
@@ -933,7 +903,7 @@ export default function ListingDetailClient({ id }: { id: string }) {
               )}
 
               {/* Q&A */}
-              <QASection listingId={params.id} />
+              <QASection listingId={params.id} sellerId={listing.seller.id} />
 
               {/* Report link */}
               <div className="pt-4 border-t border-slate-100 dark:border-slate-800">

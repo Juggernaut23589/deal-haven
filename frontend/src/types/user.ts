@@ -198,6 +198,7 @@ export interface UpdateProfilePayload {
   gender?: string;
   preferredCurrency?: string;
   preferredLanguage?: string;
+  shopName?: string;
 }
 
 export interface UpdateNotificationPreferencesPayload

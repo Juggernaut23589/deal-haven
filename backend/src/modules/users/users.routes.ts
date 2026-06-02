@@ -47,28 +47,42 @@ async function updateProfile(request: FastifyRequest, reply: FastifyReply): Prom
     userData.username = username;
   }
 
-  const [updatedUser] = await prisma.$transaction([
-    prisma.user.update({
-      where: { id: userId },
-      data: {
-        ...userData,
-        profile: { update: profileData },
-      },
-      include: {
-        profile: true,
-        sellerProfile: {
-          select: {
-            shopName: true,
-            shopSlug: true,
-            verificationStatus: true,
-            isStarSeller: true,
-            averageRating: true,
-            totalReviews: true,
-          },
+  // Also update sellerProfile.shopName if provided
+  const shopName = typeof body.shopName === 'string' ? body.shopName.trim() : null;
+
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      ...userData,
+      profile: { update: profileData },
+      ...(shopName
+        ? {
+            sellerProfile: {
+              upsert: {
+                create: {
+                  shopName,
+                  shopSlug: shopName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+                },
+                update: { shopName },
+              },
+            },
+          }
+        : {}),
+    },
+    include: {
+      profile: true,
+      sellerProfile: {
+        select: {
+          shopName: true,
+          shopSlug: true,
+          verificationStatus: true,
+          isStarSeller: true,
+          averageRating: true,
+          totalReviews: true,
         },
       },
-    }),
-  ]);
+    },
+  });
 
   const { passwordHash: _ph, twoFactorSecret: _tfs, ...safeUser } = updatedUser;
 
