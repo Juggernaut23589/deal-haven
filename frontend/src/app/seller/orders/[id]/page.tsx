@@ -21,11 +21,11 @@ import { useToast } from '@/store/uiStore';
 import type { Order } from '@/types/order';
 
 const ORDER_STEPS = [
-  { key: 'paid', label: 'Order Received', icon: CheckCircle2 },
-  { key: 'processing', label: 'Processing', icon: Clock },
-  { key: 'shipped', label: 'Shipped', icon: Truck },
-  { key: 'delivered', label: 'Delivered', icon: Package },
-  { key: 'completed', label: 'Completed', icon: CheckCircle2 },
+  { keys: ['PENDING','pending','PAID','paid','payment_confirmed'], label: 'Order Received', icon: CheckCircle2 },
+  { keys: ['PROCESSING','processing'], label: 'Processing', icon: Clock },
+  { keys: ['SHIPPED','shipped','IN_TRANSIT','in_transit'], label: 'Shipped', icon: Truck },
+  { keys: ['DELIVERED','delivered'], label: 'Delivered', icon: Package },
+  { keys: ['COMPLETED','completed'], label: 'Completed', icon: CheckCircle2 },
 ];
 
 const STATUS_ORDER = ['PENDING','pending','PAID','paid','PROCESSING','processing','SHIPPED','shipped','IN_TRANSIT','in_transit','DELIVERED','delivered','COMPLETED','completed'];
@@ -108,7 +108,7 @@ export default function SellerOrderDetailPage() {
     );
   }
 
-  const currentStepIdx = STATUS_ORDER.indexOf(order.status);
+  const currentStepIdx = Math.max(0, ORDER_STEPS.findIndex((s) => s.keys.includes(order.status)));
   const item = order.items?.[0];
   const buyerName = order.buyer?.profile?.displayName ?? order.buyer?.username ?? 'Buyer';
   const canConfirmPayment = ['PENDING','pending'].includes(order.status);
@@ -155,7 +155,7 @@ export default function SellerOrderDetailPage() {
                 const done = i <= currentStepIdx;
                 const Icon = step.icon;
                 return (
-                  <div key={step.key} className="relative z-10 flex flex-col items-center gap-2 flex-1">
+                  <div key={step.keys[0]} className="relative z-10 flex flex-col items-center gap-2 flex-1">
                     <div className={cn('h-8 w-8 rounded-full flex items-center justify-center border-2 transition-colors', done ? 'bg-primary border-primary text-white' : 'bg-white dark:bg-surface-dark border-slate-200 dark:border-slate-700 text-slate-400')}>
                       <Icon className="h-4 w-4" />
                     </div>

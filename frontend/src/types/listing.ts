@@ -27,10 +27,10 @@ export type SearchSortField =
   | 'price_asc'
   | 'price_desc'
   | 'newest'
+  | 'oldest'
   | 'distance'
   | 'deal_score'
-  | 'ending_soon'
-  | 'most_watched';
+  | 'popularity';
 
 // ─── Category ────────────────────────────────────────────────────────────────
 

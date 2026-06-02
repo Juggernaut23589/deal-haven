@@ -33,7 +33,7 @@ const SORT_OPTIONS: { value: SearchSortField; label: string }[] = [
   { value: 'newest', label: 'Newest First' },
   { value: 'distance', label: 'Nearest First' },
   { value: 'deal_score', label: 'Best Deal Score' },
-  { value: 'ending_soon', label: 'Ending Soon' },
+  { value: 'popularity', label: 'Most Popular' },
 ];
 
 const CONDITION_OPTIONS: { value: ListingCondition; label: string }[] = [

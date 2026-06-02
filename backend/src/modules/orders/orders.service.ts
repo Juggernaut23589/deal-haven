@@ -31,6 +31,14 @@ const orderDetailSelect = {
   sellerNote: true,
   createdAt: true,
   updatedAt: true,
+  // Include buyer and seller user objects so frontend can show names/avatars
+  buyer: {
+    select: {
+      id: true,
+      username: true,
+      profile: { select: { displayName: true, avatarUrl: true } },
+    },
+  },
   items: {
     select: {
       id: true,
@@ -42,6 +50,14 @@ const orderDetailSelect = {
       listingImageUrl: true,
       sellerUsername: true,
       sellerId: true,
+      // Include seller user for seller-side views
+      seller: {
+        select: {
+          id: true,
+          username: true,
+          profile: { select: { displayName: true, avatarUrl: true } },
+        },
+      },
     },
   },
   payment: {

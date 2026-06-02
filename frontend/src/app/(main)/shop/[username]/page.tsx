@@ -80,7 +80,7 @@ export default function ShopPage() {
         return;
       }
       await messagesApi.getOrCreateConversation(firstListing.id, seller.id);
-      router.push(`/dashboard/messages?listing=${firstListing.id}` as Route);
+      router.push(`/dashboard/messages?listing=${firstListing.id}&seller=${seller.id}` as Route);
     } catch {
       toast.error('Could not start conversation');
     } finally {

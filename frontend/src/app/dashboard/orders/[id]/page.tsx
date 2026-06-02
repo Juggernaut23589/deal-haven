@@ -16,20 +16,21 @@ import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Modal } from '@/components/ui/Modal';
 import { formatPrice, formatDate, formatOrderStatus } from '@/lib/formatters';
-import { ordersApi } from '@/lib/api';
+import { ordersApi, reviewsApi } from '@/lib/api';
 import { useToast } from '@/store/uiStore';
 import type { Order } from '@/types/order';
 
 const ORDER_STEPS = [
-  { keys: ['paid', 'pending_payment', 'payment_confirmed'], label: 'Order Placed', icon: CheckCircle2 },
-  { keys: ['processing'], label: 'Processing', icon: Clock },
-  { keys: ['shipped', 'in_transit'], label: 'Shipped', icon: Truck },
-  { keys: ['delivered'], label: 'Delivered', icon: Package },
-  { keys: ['completed'], label: 'Completed', icon: CheckCircle2 },
+  { keys: ['paid', 'PAID', 'pending', 'PENDING', 'pending_payment', 'payment_confirmed'], label: 'Order Placed', icon: CheckCircle2 },
+  { keys: ['processing', 'PROCESSING'], label: 'Processing', icon: Clock },
+  { keys: ['shipped', 'SHIPPED', 'in_transit', 'IN_TRANSIT'], label: 'Shipped', icon: Truck },
+  { keys: ['delivered', 'DELIVERED'], label: 'Delivered', icon: Package },
+  { keys: ['completed', 'COMPLETED'], label: 'Completed', icon: CheckCircle2 },
 ];
 
 function getStepIndex(status: string): number {
-  return ORDER_STEPS.findIndex((s) => s.keys.includes(status));
+  const idx = ORDER_STEPS.findIndex((s) => s.keys.includes(status));
+  return idx === -1 ? 0 : idx;
 }
 
 export default function BuyerOrderDetailPage() {
@@ -43,6 +44,10 @@ export default function BuyerOrderDetailPage() {
   const [isConfirming, setIsConfirming] = React.useState(false);
   const [disputeData, setDisputeData] = React.useState({ reason: '', description: '' });
   const [isOpeningDispute, setIsOpeningDispute] = React.useState(false);
+  const [reviewOpen, setReviewOpen] = React.useState(false);
+  const [reviewData, setReviewData] = React.useState({ rating: 5, title: '', content: '' });
+  const [isSubmittingReview, setIsSubmittingReview] = React.useState(false);
+  const [reviewSubmitted, setReviewSubmitted] = React.useState(false);
 
   React.useEffect(() => {
     ordersApi.get(params.id)
@@ -81,6 +86,22 @@ export default function BuyerOrderDetailPage() {
     }
   };
 
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmittingReview(true);
+    try {
+      await reviewsApi.create({ orderId: params.id, ...reviewData });
+      setReviewOpen(false);
+      setReviewSubmitted(true);
+      toast.success('Review submitted', 'Thank you for your feedback!');
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Failed to submit review';
+      toast.error('Review failed', msg);
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
   if (authLoading) return null;
 
   if (isLoading) {
@@ -114,9 +135,10 @@ export default function BuyerOrderDetailPage() {
   const currentStepIdx = getStepIndex(order.status);
   const item = order.items?.[0];
   const sellerName = order.seller?.profile?.displayName ?? order.seller?.username ?? 'Seller';
-  const canConfirm = order.status === 'delivered';
-  const canDispute = ['shipped', 'delivered', 'completed'].includes(order.status) && order.status !== 'disputed';
-  const isCancelled = ['cancelled', 'refunded'].includes(order.status);
+  const statusLower = order.status.toLowerCase();
+  const canConfirm = ['delivered', 'shipped', 'in_transit', 'processing'].includes(statusLower);
+  const canDispute = ['shipped', 'in_transit', 'delivered', 'completed'].includes(statusLower) && statusLower !== 'disputed';
+  const isCancelled = ['cancelled', 'refunded'].includes(statusLower);
 
   return (
     <>
@@ -138,9 +160,9 @@ export default function BuyerOrderDetailPage() {
           <span className={cn(
             'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold border',
             isCancelled ? 'bg-slate-100 text-slate-500 border-slate-200'
-            : order.status === 'completed' || order.status === 'delivered' ? 'bg-success/10 text-success border-success/20'
-            : order.status === 'shipped' ? 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400'
-            : order.status === 'disputed' ? 'bg-error/10 text-error border-error/20'
+            : ['completed', 'delivered'].includes(statusLower) ? 'bg-success/10 text-success border-success/20'
+            : ['shipped', 'in_transit'].includes(statusLower) ? 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400'
+            : statusLower === 'disputed' ? 'bg-error/10 text-error border-error/20'
             : 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400'
           )}>
             {formatOrderStatus(order.status).label}
@@ -148,7 +170,7 @@ export default function BuyerOrderDetailPage() {
         </div>
 
         {/* Progress tracker */}
-        {!isCancelled && order.status !== 'disputed' && (
+        {!isCancelled && statusLower !== 'disputed' && (
           <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-surface-dark p-6 mb-6 shadow-card">
             <div className="flex items-center justify-between relative">
               <div className="absolute top-4 left-4 right-4 h-0.5 bg-slate-100 dark:bg-slate-800 z-0" />
@@ -264,6 +286,24 @@ export default function BuyerOrderDetailPage() {
                     </Button>
                   </div>
                 )}
+                {['completed', 'delivered'].includes(statusLower) && !reviewSubmitted && (
+                  <div className="flex items-start gap-3">
+                    <Star className="h-5 w-5 text-accent shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Leave a review</p>
+                      <p className="text-xs text-slate-500 mt-0.5">Share your experience to help other buyers.</p>
+                    </div>
+                    <Button size="sm" variant="outline" onClick={() => setReviewOpen(true)}>
+                      Write Review
+                    </Button>
+                  </div>
+                )}
+                {reviewSubmitted && (
+                  <div className="flex items-center gap-2 text-success text-sm">
+                    <CheckCircle2 className="h-4 w-4 shrink-0" />
+                    <span>Review submitted — thank you!</span>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -337,6 +377,41 @@ export default function BuyerOrderDetailPage() {
             </Button>
           </div>
         </div>
+      </Modal>
+
+      {/* Review modal */}
+      <Modal open={reviewOpen} onClose={() => setReviewOpen(false)} title="Leave a Review">
+        <form onSubmit={(e) => void handleSubmitReview(e)} className="space-y-4">
+          <div>
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Rating *</p>
+            <div className="flex gap-1">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button key={star} type="button" onClick={() => setReviewData((p) => ({ ...p, rating: star }))}
+                  className="focus-visible:outline-none">
+                  <Star className={cn('h-8 w-8 transition-colors', star <= reviewData.rating ? 'text-accent fill-accent' : 'text-slate-300')} />
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Title</label>
+            <input type="text" value={reviewData.title} maxLength={100}
+              onChange={(e) => setReviewData((p) => ({ ...p, title: e.target.value }))}
+              placeholder="Summarize your experience"
+              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">Review</label>
+            <textarea value={reviewData.content} rows={4} maxLength={2000}
+              onChange={(e) => setReviewData((p) => ({ ...p, content: e.target.value }))}
+              placeholder="Tell others about the item quality, seller communication, shipping speed..."
+              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" />
+          </div>
+          <div className="flex gap-3 justify-end">
+            <Button type="button" variant="ghost" onClick={() => setReviewOpen(false)}>Cancel</Button>
+            <Button type="submit" isLoading={isSubmittingReview} loadingText="Submitting…">Submit Review</Button>
+          </div>
+        </form>
       </Modal>
 
       {/* Dispute modal */}
