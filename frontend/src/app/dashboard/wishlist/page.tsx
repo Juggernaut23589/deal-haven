@@ -151,7 +151,7 @@ export default function WishlistPage() {
                   <p className="text-base font-bold font-mono text-primary">
                     {formatPrice(item.listing?.price ?? 0)}
                   </p>
-                  <p className="text-xs text-slate-400">Added {formatPostedAgo(item.addedAt)}</p>
+                  <p className="text-xs text-slate-400">Added {formatPostedAgo(item.addedAt ?? item.createdAt)}</p>
                 </div>
 
                 <div className="px-3 pb-3 flex gap-2">

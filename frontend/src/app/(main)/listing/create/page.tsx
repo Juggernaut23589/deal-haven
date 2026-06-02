@@ -759,7 +759,7 @@ function Step4Pricing({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="auto-accept" className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
-                Auto-accept offers above ($)
+                Auto-accept offers above (₦)
               </label>
               <input
                 id="auto-accept"
@@ -777,7 +777,7 @@ function Step4Pricing({
             </div>
             <div>
               <label htmlFor="auto-decline" className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
-                Auto-decline offers below ($)
+                Auto-decline offers below (₦)
               </label>
               <input
                 id="auto-decline"

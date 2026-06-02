@@ -340,7 +340,8 @@ export interface WishlistItem {
   userId: string;
   listingId: string;
   listing: ListingCard;
-  addedAt: string;
+  addedAt?: string;
+  createdAt: string;
   notifyOnPriceDrop: boolean;
   targetPrice: number | null;
 }

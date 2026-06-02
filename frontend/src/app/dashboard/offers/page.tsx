@@ -76,7 +76,7 @@ export default function BuyerOffersPage() {
   const handleAcceptCounter = async (offerId: string, counterAmount: number) => {
     setActionLoading(offerId);
     try {
-      await offersApi.respond(offerId, 'accept');
+      await offersApi.respondToCounter(offerId, 'accept');
       toast.success(`Counter offer of ${formatPrice(counterAmount)} accepted`);
       fetchOffers();
     } catch {
@@ -89,7 +89,7 @@ export default function BuyerOffersPage() {
   const handleDeclineCounter = async (offerId: string) => {
     setActionLoading(offerId);
     try {
-      await offersApi.respond(offerId, 'decline');
+      await offersApi.respondToCounter(offerId, 'decline');
       toast.success('Counter offer declined');
       fetchOffers();
     } catch {

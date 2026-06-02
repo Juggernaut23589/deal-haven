@@ -369,6 +369,7 @@ export const offersApi = {
   ): Promise<Offer> =>
     post<Offer>('/offers', { listingId, amount, message }),
 
+  // Seller responds to a buyer's offer (accept / decline / counter)
   respond: (
     offerId: string,
     action: 'accept' | 'decline' | 'counter',
@@ -380,6 +381,13 @@ export const offersApi = {
       counterAmount,
       counterMessage,
     }),
+
+  // Buyer responds to a seller's counter-offer (accept / decline)
+  respondToCounter: (
+    offerId: string,
+    action: 'accept' | 'decline'
+  ): Promise<Offer> =>
+    patch<Offer>(`/offers/${offerId}/respond-counter`, { action }),
 
   withdraw: (offerId: string): Promise<Offer> =>
     patch<Offer>(`/offers/${offerId}/withdraw`),

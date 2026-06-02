@@ -34,7 +34,7 @@ const STATUS_CONFIG = {
 
 const TABS = [
   { key: '', label: 'All' },
-  { key: 'active', label: 'Active' },
+  { key: 'ACTIVE', label: 'Active' },
   { key: 'DRAFT', label: 'Drafts' },
   { key: 'PAUSED', label: 'Paused' },
   { key: 'SOLD', label: 'Sold' },
@@ -206,17 +206,17 @@ export default function SellerListingsPage() {
                           <Link href={`/listing/${listing.id}/edit` as Route} className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
                             <Edit className="h-3.5 w-3.5" /> Edit
                           </Link>
-                          {listing.status === 'active' && (
+                          {['ACTIVE', 'active'].includes(listing.status) && (
                             <button onClick={() => void handleAction(listing.id, 'unpublish')} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
                               <Pause className="h-3.5 w-3.5" /> Pause
                             </button>
                           )}
-                          {(['paused', 'draft'] as string[]).includes(listing.status) && (
+                          {(['PAUSED', 'paused', 'DRAFT', 'draft'] as string[]).includes(listing.status) && (
                             <button onClick={() => void handleAction(listing.id, 'publish')} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
                               <Play className="h-3.5 w-3.5" /> Publish
                             </button>
                           )}
-                          {listing.status === 'expired' && (
+                          {['EXPIRED', 'expired'].includes(listing.status) && (
                             <button onClick={() => void handleAction(listing.id, 'renew')} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
                               <RefreshCw className="h-3.5 w-3.5" /> Renew
                             </button>

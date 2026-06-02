@@ -20,25 +20,39 @@ import { useToast } from '@/store/uiStore';
 import type { Order } from '@/types/order';
 
 const STATUS_ICON: Record<string, React.ElementType> = {
-  pending: Clock, paid: CheckCircle2, processing: Clock,
-  shipped: Truck, delivered: CheckCircle2, completed: CheckCircle2,
-  cancelled: XCircle, disputed: AlertCircle, refunded: XCircle,
+  PENDING: Clock,    pending: Clock,
+  PAID: CheckCircle2, paid: CheckCircle2,
+  PROCESSING: Clock, processing: Clock,
+  SHIPPED: Truck,    shipped: Truck,
+  IN_TRANSIT: Truck, in_transit: Truck,
+  DELIVERED: CheckCircle2, delivered: CheckCircle2,
+  COMPLETED: CheckCircle2, completed: CheckCircle2,
+  CANCELLED: XCircle, cancelled: XCircle,
+  DISPUTED: AlertCircle, disputed: AlertCircle,
+  REFUNDED: XCircle, refunded: XCircle,
 };
 
 const STATUS_COLOR: Record<string, string> = {
-  pending: 'text-slate-500', paid: 'text-primary', processing: 'text-amber-500',
-  shipped: 'text-blue-500', delivered: 'text-success', completed: 'text-success',
-  cancelled: 'text-error', disputed: 'text-error', refunded: 'text-slate-400',
+  PENDING: 'text-slate-500',    pending: 'text-slate-500',
+  PAID: 'text-primary',         paid: 'text-primary',
+  PROCESSING: 'text-amber-500', processing: 'text-amber-500',
+  SHIPPED: 'text-blue-500',     shipped: 'text-blue-500',
+  IN_TRANSIT: 'text-blue-500',  in_transit: 'text-blue-500',
+  DELIVERED: 'text-success',    delivered: 'text-success',
+  COMPLETED: 'text-success',    completed: 'text-success',
+  CANCELLED: 'text-error',      cancelled: 'text-error',
+  DISPUTED: 'text-error',       disputed: 'text-error',
+  REFUNDED: 'text-slate-400',   refunded: 'text-slate-400',
 };
 
 const TABS = [
   { key: '', label: 'All' },
-  { key: 'paid', label: 'New' },
-  { key: 'processing', label: 'Processing' },
-  { key: 'shipped', label: 'Shipped' },
-  { key: 'delivered', label: 'Delivered' },
-  { key: 'completed', label: 'Completed' },
-  { key: 'disputed', label: 'Disputed' },
+  { key: 'PENDING', label: 'Pending' },
+  { key: 'PROCESSING', label: 'Processing' },
+  { key: 'SHIPPED', label: 'Shipped' },
+  { key: 'DELIVERED', label: 'Delivered' },
+  { key: 'COMPLETED', label: 'Completed' },
+  { key: 'DISPUTED', label: 'Disputed' },
 ];
 
 export default function SellerOrdersPage() {

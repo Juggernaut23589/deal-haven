@@ -218,6 +218,8 @@ export interface ListingDetail extends ListingCard {
   isDigital: boolean;
   digitalFileUrl: string | null;
   stockQuantity: number;
+  quantity?: number;
+  originalPrice?: number | null;
   minOrderQuantity: number;
   maxOrderQuantity: number;
   acceptsReturns: boolean;
@@ -225,6 +227,8 @@ export interface ListingDetail extends ListingCard {
   returnPolicy: string | null;
   offerAutoAcceptThreshold: number | null;
   offerAutoDeclineThreshold: number | null;
+  localPickup?: boolean;
+  shipsNationally?: boolean;
   viewCount: number;
   watcherCount: number;
   auction: Auction | null;
@@ -318,6 +322,8 @@ export interface CreateListingPayload {
   location: string;
   latitude?: number;
   longitude?: number;
+  localPickup?: boolean;
+  shipsNationally?: boolean;
   tags?: string[];
   acceptsReturns?: boolean;
   returnDays?: number;
