@@ -71,6 +71,38 @@ export function clearTokens(): void {
   localStorage.removeItem(STORAGE_REFRESH_TOKEN);
 }
 
+// ─── Error Extraction Helper ──────────────────────────────────────────────────
+
+/**
+ * Extracts a human-readable message from an API error response.
+ *
+ * Backend error shape:  { success: false, error: { code, message, details? } }
+ * If validation failed the top-level message is generic ("Request validation
+ * failed") — in that case we surface the first field-level detail instead.
+ */
+export function getApiError(err: unknown, fallback = 'Something went wrong. Please try again.'): string {
+  const data = (err as { response?: { data?: Record<string, unknown> } })?.response?.data;
+  if (!data) return fallback;
+
+  // Backend wraps errors: { error: { message, details } }
+  const apiError = data.error as { message?: string; details?: Array<{ field?: string; message?: string }> } | undefined;
+  if (apiError) {
+    // If there are field-level validation details, show them instead of the generic message
+    if (apiError.details?.length) {
+      return apiError.details
+        .map((d) => (d.field ? `${d.field}: ${d.message}` : d.message))
+        .filter(Boolean)
+        .join(' · ') || apiError.message || fallback;
+    }
+    if (apiError.message) return apiError.message;
+  }
+
+  // Legacy shape (direct message on data)
+  if (typeof data.message === 'string') return data.message;
+
+  return fallback;
+}
+
 // ─── Axios Instance ───────────────────────────────────────────────────────────
 
 const apiClient: AxiosInstance = axios.create({

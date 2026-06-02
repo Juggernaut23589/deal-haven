@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { formatPrice } from '@/lib/formatters';
 import { Modal, ModalFooter } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
-import { offersApi } from '@/lib/api';
+import { offersApi, getApiError } from '@/lib/api';
 import { useToast } from '@/store/uiStore';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -214,14 +214,7 @@ export function MakeOfferModal({
       );
       onSuccess?.(result.id);
     } catch (err: unknown) {
-      const msg =
-        typeof err === 'object' &&
-        err !== null &&
-        'response' in err &&
-        typeof (err as { response?: { data?: { message?: unknown } } }).response?.data?.message === 'string'
-          ? (err as { response: { data: { message: string } } }).response.data.message
-          : 'Failed to send offer. Please try again.';
-      toast.error('Offer failed', msg);
+      toast.error('Offer failed', getApiError(err, 'Failed to send offer. Please try again.'));
     }
   };
 

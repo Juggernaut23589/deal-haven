@@ -6,7 +6,7 @@ import type { Route } from 'next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/authStore';
 import { useToast } from '@/store/uiStore';
-import { authApi, storeTokens, clearTokens } from '@/lib/api';
+import { authApi, storeTokens, clearTokens, getApiError } from '@/lib/api';
 import type { LoginPayload, RegisterPayload } from '@/types/user';
 
 // ─── Query Keys ───────────────────────────────────────────────────────────────
@@ -107,11 +107,7 @@ export function useAuth() {
         router.push(redirect);
       } catch (error: unknown) {
         setLoading(false);
-        const message =
-          isAxiosError(error) && error.response?.data?.message
-            ? String(error.response.data.message)
-            : 'Invalid email or password. Please try again.';
-        toast.error('Sign in failed', message);
+        toast.error('Sign in failed', getApiError(error, 'Invalid email or password. Please try again.'));
         throw error;
       }
     },
@@ -135,11 +131,7 @@ export function useAuth() {
         router.push('/dashboard');
       } catch (error: unknown) {
         setLoading(false);
-        const message =
-          isAxiosError(error) && error.response?.data?.message
-            ? String(error.response.data.message)
-            : 'Registration failed. Please try again.';
-        toast.error('Registration failed', message);
+        toast.error('Registration failed', getApiError(error, 'Registration failed. Please try again.'));
         throw error;
       }
     },

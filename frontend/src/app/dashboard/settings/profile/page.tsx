@@ -12,7 +12,7 @@ import { Footer } from '@/components/layout/Footer';
 import { useRequireAuth } from '@/hooks/useAuth';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
-import { usersApi } from '@/lib/api';
+import { usersApi , getApiError } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
@@ -100,13 +100,7 @@ export default function ProfileSettingsPage() {
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 3000);
     } catch (err: unknown) {
-      const msg =
-        typeof err === 'object' && err !== null &&
-        'response' in err &&
-        typeof (err as any).response?.data?.error?.message === 'string'
-          ? (err as any).response.data.error.message
-          : 'Failed to save changes. Please try again.';
-      setServerError(msg);
+      setServerError(getApiError(err, 'Failed to save changes. Please try again.'));
       setSaveStatus('error');
     }
   };

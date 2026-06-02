@@ -10,6 +10,7 @@ import { Eye, EyeOff, Tag, AlertCircle, Chrome } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { cn } from '@/lib/utils';
 import { useAuth, useRedirectIfAuthenticated } from '@/hooks/useAuth';
+import { getApiError } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/store/uiStore';
 
@@ -53,14 +54,7 @@ export default function LoginPage() {
     try {
       await login({ email: values.email, password: values.password, rememberMe: values.rememberMe });
     } catch (err: unknown) {
-      const msg =
-        typeof err === 'object' &&
-        err !== null &&
-        'response' in err &&
-        typeof (err as { response?: { data?: { message?: unknown } } }).response?.data?.message === 'string'
-          ? (err as { response: { data: { message: string } } }).response.data.message
-          : 'Invalid email or password. Please try again.';
-      setServerError(msg);
+      setServerError(getApiError(err, 'Invalid email or password. Please try again.'));
     }
   };
 

@@ -12,7 +12,7 @@ import {
 import { cn } from '@/lib/utils';
 import { NIGERIA_STATES, getLGAs } from '@/lib/nigeriaLocations';
 import { useRequireAuth } from '@/hooks/useAuth';
-import { listingsApi } from '@/lib/api';
+import { listingsApi , getApiError } from '@/lib/api';
 import { useToast } from '@/store/uiStore';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
@@ -114,8 +114,7 @@ export default function EditListingPage() {
       toast.success('Listing updated', 'Your changes have been saved.');
       router.push(`/listing/${params.id}` as Route);
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-        ?? 'Failed to save changes.';
+      const msg = getApiError(err, 'Failed to save changes.');
       toast.error('Update failed', msg);
     } finally {
       setSaving(false);

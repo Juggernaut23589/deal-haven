@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Modal } from '@/components/ui/Modal';
 import { formatPrice, formatDate, formatOrderStatus } from '@/lib/formatters';
-import { ordersApi, reviewsApi } from '@/lib/api';
+import { ordersApi, reviewsApi , getApiError } from '@/lib/api';
 import { useToast } from '@/store/uiStore';
 import type { Order } from '@/types/order';
 
@@ -95,7 +95,7 @@ export default function BuyerOrderDetailPage() {
       setReviewSubmitted(true);
       toast.success('Review submitted', 'Thank you for your feedback!');
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Failed to submit review';
+      const msg = getApiError(err, 'Failed to submit review');
       toast.error('Review failed', msg);
     } finally {
       setIsSubmittingReview(false);

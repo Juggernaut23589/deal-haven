@@ -42,7 +42,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { MakeOfferModal } from '@/components/offers/MakeOfferModal';
-import { reviewsApi, ordersApi } from '@/lib/api';
+import { reviewsApi, ordersApi , getApiError } from '@/lib/api';
 import { useToast } from '@/store/uiStore';
 import type { ListingImage, ListingShippingOption } from '@/types/listing';
 import type { Review } from '@/types/order';
@@ -589,8 +589,7 @@ function BuyButton({
       toast.success('Order placed!', 'Contact the seller to arrange payment and pickup.');
       router.push(`/dashboard/orders/${order.id}` as Route);
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-        ?? 'Could not place order. Please try again.';
+      const msg = getApiError(err, 'Could not place order. Please try again.');
       toast.error('Order failed', msg);
     } finally {
       setLoading(false);

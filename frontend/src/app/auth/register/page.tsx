@@ -21,6 +21,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useAuth, useRedirectIfAuthenticated } from '@/hooks/useAuth';
+import { getApiError } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 
 // ─── Validation ───────────────────────────────────────────────────────────────
@@ -234,14 +235,7 @@ export default function RegisterPage() {
         asSeller: accountType === 'seller' || accountType === 'both',
       });
     } catch (err: unknown) {
-      const msg =
-        typeof err === 'object' &&
-        err !== null &&
-        'response' in err &&
-        typeof (err as { response?: { data?: { message?: unknown } } }).response?.data?.message === 'string'
-          ? (err as { response: { data: { message: string } } }).response.data.message
-          : 'Registration failed. Please try again.';
-      setServerError(msg);
+      setServerError(getApiError(err, 'Registration failed. Please try again.'));
     }
   };
 

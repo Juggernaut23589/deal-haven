@@ -30,7 +30,7 @@ import { cn } from '@/lib/utils';
 import { useRequireAuth } from '@/hooks/useAuth';
 import { useCreateListing, useUploadListingImages, usePublishListing } from '@/hooks/useListings';
 import { useToast } from '@/store/uiStore';
-import { listingsApi } from '@/lib/api';
+import { listingsApi , getApiError } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { formatPrice } from '@/lib/formatters';
@@ -1464,11 +1464,7 @@ export default function CreateListingPage() {
       await publishListing(listing.id);
       router.push(`/listing/${listing.id}` as Route);
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string; error?: { message?: string } } } })
-        ?.response?.data?.message
-        ?? (err as { response?: { data?: { error?: { message?: string } } } })
-          ?.response?.data?.error?.message
-        ?? 'Please check all fields and try again.';
+      const msg = getApiError(err, 'Please check all fields and try again.');
       toast.error('Failed to publish listing', msg);
     } finally {
       setIsPublishing(false);
@@ -1487,8 +1483,7 @@ export default function CreateListingPage() {
       toast.success('Draft saved', 'You can finish it anytime from My Listings.');
       router.push('/seller/listings' as Route);
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-        ?? 'Please check all fields and try again.';
+      const msg = getApiError(err, 'Please check all fields and try again.');
       toast.error('Failed to save draft', msg);
     } finally {
       setIsSavingDraft(false);
