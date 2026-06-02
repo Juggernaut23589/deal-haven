@@ -757,12 +757,14 @@ export default function ListingDetailClient({ id }: { id: string }) {
 
   const handleMessageSeller = () => {
     if (!isAuthenticated) { router.push('/auth/login'); return; }
-    router.push((`/dashboard/messages?listing=${params.id}`) as Route);
+    const sellerId = listing?.seller?.id ?? '';
+    router.push(`/dashboard/messages?listing=${params.id}&seller=${sellerId}` as Route);
   };
 
   const handleIsAvailable = () => {
     if (!isAuthenticated) { router.push('/auth/login'); return; }
-    router.push(`/dashboard/messages?listing=${params.id}&quick=available` as Route);
+    const sellerId = listing?.seller?.id ?? '';
+    router.push(`/dashboard/messages?listing=${params.id}&seller=${sellerId}&quick=available` as Route);
   };
 
   // ── Loading ─────────────────────────────────────────────────────────────

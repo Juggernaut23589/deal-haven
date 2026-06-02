@@ -287,13 +287,45 @@ function MessagesInner() {
       .finally(() => setIsLoading(false));
   }, []);
 
+  const [isCreatingConversation, setIsCreatingConversation] = React.useState(false);
+
   React.useEffect(() => {
     const listingId = searchParams.get('listing');
-    if (listingId && conversations.length > 0) {
-      const match = conversations.find((c) => c.listing?.id === listingId);
-      if (match) { setActiveConversation(match); setShowThread(true); }
+    const sellerId = searchParams.get('seller');
+    const quick = searchParams.get('quick');
+    if (!listingId) return;
+
+    // Wait for conversations to load before deciding whether to create
+    if (isLoading) return;
+
+    // Check if a conversation for this listing already exists
+    const existing = conversations.find((c) => c.listing?.id === listingId);
+    if (existing) {
+      setActiveConversation(existing);
+      setShowThread(true);
+      return;
     }
-  }, [conversations, searchParams]);
+
+    // No existing conversation — create one if we have the sellerId
+    if (!sellerId || isCreatingConversation) return;
+    setIsCreatingConversation(true);
+    messagesApi.getOrCreateConversation(listingId, sellerId)
+      .then((conv) => {
+        setConversations((prev) => [conv, ...prev.filter((c) => c.id !== conv.id)]);
+        setActiveConversation(conv);
+        setShowThread(true);
+        // Auto-send quick message if requested
+        if (quick === 'available') {
+          // Short delay so the thread renders first
+          setTimeout(() => {
+            messagesApi.sendMessage(conv.id, 'Is this still available?').catch(() => {});
+          }, 400);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setIsCreatingConversation(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversations, isLoading, searchParams]);
 
   if (authLoading) return null;
 
