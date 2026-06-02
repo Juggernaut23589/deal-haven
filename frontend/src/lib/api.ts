@@ -139,6 +139,13 @@ apiClient.interceptors.request.use(
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // When sending FormData, remove the default Content-Type: application/json
+    // so the browser's XHR sets multipart/form-data with the correct boundary.
+    // If Content-Type stays as application/json the server rejects with
+    // "the request is not multipart".
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
     return config;
   },
   (error) => Promise.reject(error)
