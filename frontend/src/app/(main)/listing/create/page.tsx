@@ -1436,14 +1436,10 @@ export default function CreateListingPage() {
   const uploadPendingImages = async (listingId: string) => {
     const pendingFiles = images.filter((i) => i.file && i.id === null).map((i) => i.file!);
     if (pendingFiles.length === 0) return;
-    try {
-      // Backend expects POST /listings/:id/images
-      const form = new FormData();
-      pendingFiles.forEach((f) => form.append('images', f));
-      await listingsApi.uploadImages(listingId, form);
-    } catch {
-      toast.warning('Images could not be uploaded — listing saved without photos.');
-    }
+    const form = new FormData();
+    pendingFiles.forEach((f) => form.append('images', f));
+    // Let errors propagate — caller shows the real reason
+    await listingsApi.uploadImages(listingId, form);
   };
 
   const handlePublish = async () => {
@@ -1460,7 +1456,16 @@ export default function CreateListingPage() {
     setIsPublishing(true);
     try {
       const listing = await createListing(buildPayload('active'));
-      await uploadPendingImages(listing.id);
+
+      // Upload images — if this fails we still publish the listing
+      // but show the user exactly what went wrong with the photos
+      try {
+        await uploadPendingImages(listing.id);
+      } catch (uploadErr: unknown) {
+        const uploadMsg = getApiError(uploadErr, 'Unknown upload error');
+        toast.warning('Photos not uploaded', `Listing published without photos. Reason: ${uploadMsg}`);
+      }
+
       await publishListing(listing.id);
       router.push(`/listing/${listing.id}` as Route);
     } catch (err: unknown) {
@@ -1479,7 +1484,12 @@ export default function CreateListingPage() {
     setIsSavingDraft(true);
     try {
       const listing = await createListing(buildPayload('draft'));
-      await uploadPendingImages(listing.id);
+      try {
+        await uploadPendingImages(listing.id);
+      } catch (uploadErr: unknown) {
+        const uploadMsg = getApiError(uploadErr, 'Unknown upload error');
+        toast.warning('Photos not uploaded', `Draft saved without photos. Reason: ${uploadMsg}`);
+      }
       toast.success('Draft saved', 'You can finish it anytime from My Listings.');
       router.push('/seller/listings' as Route);
     } catch (err: unknown) {
