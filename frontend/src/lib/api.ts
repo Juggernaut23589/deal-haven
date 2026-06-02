@@ -323,9 +323,8 @@ export const usersApi = {
   uploadAvatar: (file: File): Promise<{ avatarUrl: string }> => {
     const form = new FormData();
     form.append('avatar', file);
-    return post<{ avatarUrl: string }>('/users/me/avatar', form, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    // Let axios auto-set Content-Type with correct boundary
+    return post<{ avatarUrl: string }>('/users/me/avatar', form);
   },
 
   getPublicUser: (username: string): Promise<import('@/types/user').PublicUser> =>
@@ -381,17 +380,13 @@ export const listingsApi = {
     formData?: FormData
   ): Promise<Array<{ id: string; url: string; thumbnailUrl: string }>> => {
     if (typeof listingIdOrFiles === 'string') {
-      // Called with (listingId, formData) — upload to specific listing
-      return post(`/listings/${listingIdOrFiles}/images`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      // DO NOT set Content-Type manually — axios auto-sets multipart/form-data
+      // with the correct boundary when it detects a FormData body.
+      return post(`/listings/${listingIdOrFiles}/images`, formData);
     }
-    // Legacy: called with File[] — build form and use generic endpoint
     const form = new FormData();
     listingIdOrFiles.forEach((f) => form.append('images', f));
-    return post('/listings/images/upload', form, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    return post('/listings/images/upload', form);
   },
 
   deleteImage: (imageId: string): Promise<void> =>
@@ -526,9 +521,7 @@ export const messagesApi = {
       const form = new FormData();
       form.append('body', body);
       attachments.forEach((f) => form.append('attachments', f));
-      return post<Message>(`/messages/${conversationId}/messages`, form, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      return post<Message>(`/messages/${conversationId}/messages`, form);
     }
     return post<Message>(`/messages/${conversationId}/messages`, { body });
   },

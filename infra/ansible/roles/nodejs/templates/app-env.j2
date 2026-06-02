@@ -3,6 +3,7 @@ NODE_ENV=production
 
 # Backend
 API_PORT={{ api_port }}
+UPLOAD_DIR=/home/{{ deploy_user }}/ashimarket/backend/uploads
 DATABASE_URL=postgresql://{{ db_user }}:{{ db_password }}@{{ db_private_ip }}:{{ db_port }}/{{ db_name }}
 REDIS_URL=redis://{{ redis_private_ip }}:{{ redis_port }}
 REDIS_HOST={{ redis_private_ip }}
