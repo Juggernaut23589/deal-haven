@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import { create } from 'zustand';
 import { generateId } from '@/lib/utils';
 
@@ -168,17 +169,19 @@ export function useToast() {
   const addToast = useUIStore((s) => s.addToast);
   const removeToast = useUIStore((s) => s.removeToast);
 
-  return {
-    toast: {
-      success: (title: string, message?: string) =>
-        addToast('success', title, message),
-      error: (title: string, message?: string) =>
-        addToast('error', title, message),
-      warning: (title: string, message?: string) =>
-        addToast('warning', title, message),
-      info: (title: string, message?: string) =>
-        addToast('info', title, message),
-    },
-    dismiss: removeToast,
-  };
+  // Memoize the toast object so its reference is stable across renders.
+  // Without this, any useCallback/useEffect that lists `toast` as a
+  // dependency triggers an infinite re-render loop because a new object
+  // is created on every render even though the functions are equivalent.
+  const toast = React.useMemo(
+    () => ({
+      success: (title: string, message?: string) => addToast('success', title, message),
+      error: (title: string, message?: string) => addToast('error', title, message),
+      warning: (title: string, message?: string) => addToast('warning', title, message),
+      info: (title: string, message?: string) => addToast('info', title, message),
+    }),
+    [addToast],
+  );
+
+  return { toast, dismiss: removeToast };
 }
