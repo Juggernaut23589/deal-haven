@@ -46,12 +46,40 @@ export async function buildApp(options?: { https?: { key: Buffer; cert: Buffer }
     crossOriginEmbedderPolicy: false,
   });
 
-  // CORS
+  // CORS — build allowed origins list from env vars with safe defaults
+  const allowedOrigins: (string | RegExp)[] = [
+    'http://localhost:3000',
+    'http://localhost:3001',
+  ];
+
+  // Add production frontend URL (set by Ansible as FRONTEND_URL)
+  if (process.env.FRONTEND_URL) {
+    allowedOrigins.push(process.env.FRONTEND_URL);
+    // Also allow www. variant
+    try {
+      const u = new URL(process.env.FRONTEND_URL);
+      allowedOrigins.push(`${u.protocol}//www.${u.host}`);
+    } catch { /* invalid URL, skip */ }
+  }
+
+  // Add any additional comma-separated origins from ALLOWED_ORIGINS
+  if (process.env.ALLOWED_ORIGINS) {
+    process.env.ALLOWED_ORIGINS.split(',')
+      .map((o) => o.trim())
+      .filter(Boolean)
+      .forEach((o) => allowedOrigins.push(o));
+  }
+
   await fastify.register(cors, {
-    origin: process.env.ALLOWED_ORIGINS?.split(',') ?? [
-      'http://localhost:3000',
-      'http://localhost:3001',
-    ],
+    origin: (origin, cb) => {
+      // Allow requests with no origin (server-to-server, curl, mobile apps)
+      if (!origin) { cb(null, true); return; }
+      if (allowedOrigins.some((o) => (o instanceof RegExp ? o.test(origin) : o === origin))) {
+        cb(null, true);
+      } else {
+        cb(new Error(`Origin ${origin} not allowed by CORS`), false);
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
