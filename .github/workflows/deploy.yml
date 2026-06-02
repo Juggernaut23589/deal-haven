@@ -11,39 +11,42 @@ on:
 
 env:
   APP_SERVER: ${{ secrets.APP_SERVER_IP }}
-  DB_SERVER: ${{ secrets.DB_SERVER_IP }}
   DEPLOY_USER: deploy
   APP_DIR: /home/deploy/ashimarket
 
 jobs:
-  test-and-build:
+  # ─── Build ────────────────────────────────────────────────────────────────────
+  build:
+    name: Build & Type-check
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
           cache: npm
           cache-dependency-path: |
             backend/package-lock.json
             frontend/package-lock.json
 
-      - name: Install backend dependencies
+      # ── Backend ──────────────────────────────────────────────────────────────
+      - name: Install backend deps
         run: npm ci
         working-directory: backend
 
-      - name: Lint backend
-        run: npm run lint --if-present
+      - name: Type-check backend
+        run: npx tsc --noEmit
         working-directory: backend
 
       - name: Build backend
         run: npm run build
         working-directory: backend
 
-      - name: Package backend build artifact
+      - name: Package backend artifact
         run: |
           tar -czf backend-build.tar.gz \
             -C backend \
@@ -52,19 +55,20 @@ jobs:
             package-lock.json \
             prisma
 
-      - name: Upload backend build artifact
+      - name: Upload backend artifact
         uses: actions/upload-artifact@v4
         with:
           name: backend-build
           path: backend-build.tar.gz
           retention-days: 1
 
-      - name: Install frontend dependencies
+      # ── Frontend ─────────────────────────────────────────────────────────────
+      - name: Install frontend deps
         run: npm ci
         working-directory: frontend
 
-      - name: Lint frontend
-        run: npm run lint --if-present
+      - name: Type-check frontend
+        run: npx tsc --noEmit
         working-directory: frontend
 
       - name: Build frontend
@@ -73,30 +77,35 @@ jobs:
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
           NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+          NEXT_TELEMETRY_DISABLED: 1
 
-      - name: Package frontend build artifact
+      - name: Package frontend artifact
         run: |
           tar -czf frontend-build.tar.gz \
             -C frontend \
             .next \
+            public \
             package.json \
             package-lock.json \
             next.config.js
 
-      - name: Upload frontend build artifact
+      - name: Upload frontend artifact
         uses: actions/upload-artifact@v4
         with:
           name: frontend-build
           path: frontend-build.tar.gz
           retention-days: 1
 
+  # ─── Deploy ───────────────────────────────────────────────────────────────────
   deploy:
-    needs: test-and-build
+    name: Deploy to Server
+    needs: build
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    concurrency:
+      group: deploy-dev
+      cancel-in-progress: false   # never cancel a deploy mid-flight
 
+    steps:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -110,77 +119,166 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ env.APP_SERVER }} >> ~/.ssh/known_hosts 2>/dev/null
 
-      - name: Migrate app directory name if needed
+      # ── Pre-deploy cleanup ────────────────────────────────────────────────────
+      - name: Cleanup stale processes & artifacts on server
         run: |
           ssh ${{ env.DEPLOY_USER }}@${{ env.APP_SERVER }} << 'ENDSSH'
+            set -e
+
+            # Rename legacy directory if still present
             if [ -d "/home/deploy/deal-haven" ] && [ ! -d "/home/deploy/ashimarket" ]; then
               mv /home/deploy/deal-haven /home/deploy/ashimarket
               echo "Renamed deal-haven -> ashimarket"
             fi
+
+            # Kill every known stale process name (covers any past rename)
+            for name in deal-haven-api deal-haven-web ashimarket-api ashimarket-web; do
+              pm2 delete "$name" 2>/dev/null && echo "Deleted PM2 process: $name" || true
+            done
+
+            # Flush all stale logs so they don't accumulate across deploys
+            pm2 flush 2>/dev/null || true
+
+            # Remove stale compiled artifacts to guarantee a clean state
+            rm -rf ${{ env.APP_DIR }}/backend/dist
+            rm -rf ${{ env.APP_DIR }}/frontend/.next
+
+            # Remove any leftover tmp artifacts from a previous failed deploy
+            rm -f /tmp/backend-build.tar.gz /tmp/frontend-build.tar.gz
+
+            echo "Pre-deploy cleanup complete"
           ENDSSH
 
-      - name: Pull latest code on server
+      # ── Sync code ─────────────────────────────────────────────────────────────
+      - name: Sync latest code on server
         run: |
           ssh ${{ env.DEPLOY_USER }}@${{ env.APP_SERVER }} << 'ENDSSH'
             set -e
             cd ${{ env.APP_DIR }}
-            git fetch --prune --force origin dev
+            git fetch --prune origin dev
             git reset --hard origin/dev
-            # Sync root .env (written by Ansible) into backend so Prisma and the app can read it
-            cp /home/deploy/ashimarket/.env /home/deploy/ashimarket/backend/.env
+            echo "Server code at: $(git log --oneline -1)"
+
+            # Sync root .env into backend (written by Ansible provisioner)
+            if [ -f /home/deploy/ashimarket/.env ]; then
+              cp /home/deploy/ashimarket/.env /home/deploy/ashimarket/backend/.env
+              echo ".env synced"
+            fi
           ENDSSH
 
-      - name: Remove legacy PM2 processes
-        run: |
-          ssh ${{ env.DEPLOY_USER }}@${{ env.APP_SERVER }} << 'ENDSSH'
-            pm2 delete deal-haven-api 2>/dev/null || true
-            pm2 delete deal-haven-web 2>/dev/null || true
-            pm2 save
-          ENDSSH
-
-      - name: Ship build artifacts to server
+      # ── Ship artifacts ────────────────────────────────────────────────────────
+      - name: Upload artifacts to server
         run: |
           scp backend-build.tar.gz ${{ env.DEPLOY_USER }}@${{ env.APP_SERVER }}:/tmp/backend-build.tar.gz
           scp frontend-build.tar.gz ${{ env.DEPLOY_USER }}@${{ env.APP_SERVER }}:/tmp/frontend-build.tar.gz
 
+      # ── Deploy backend ────────────────────────────────────────────────────────
       - name: Deploy backend
         run: |
           ssh ${{ env.DEPLOY_USER }}@${{ env.APP_SERVER }} << 'ENDSSH'
             set -e
             cd ${{ env.APP_DIR }}/backend
 
-            # Unpack pre-built artifact from CI (includes compiled dist/)
+            # Unpack pre-built artifact (dist/ already compiled by CI — no tsc on server)
             tar -xzf /tmp/backend-build.tar.gz -C .
-            rm /tmp/backend-build.tar.gz
+            rm -f /tmp/backend-build.tar.gz
 
-            # Install production deps only (tsc not needed — dist already built)
-            npm ci --omit=dev
+            # Install production deps only
+            npm ci --omit=dev --prefer-offline
 
-            # Run migrations
+            # Run database migrations (safe, idempotent)
+            npx prisma generate
             npx prisma migrate deploy
 
-            # Restart backend via PM2
-            pm2 restart ashimarket-api --update-env || pm2 start npm --name ashimarket-api -- start
+            # Start backend — uses ecosystem.config.js if present, else inline config
+            if [ -f ecosystem.config.js ]; then
+              pm2 start ecosystem.config.js --only ashimarket-api --update-env
+            else
+              pm2 start dist/index.js \
+                --name ashimarket-api \
+                --max-memory-restart 400M \
+                --restart-delay 3000 \
+                --exp-backoff-restart-delay 100 \
+                --update-env
+            fi
             pm2 save
+            echo "Backend started"
           ENDSSH
 
+      # ── Deploy frontend ───────────────────────────────────────────────────────
       - name: Deploy frontend
         run: |
           ssh ${{ env.DEPLOY_USER }}@${{ env.APP_SERVER }} << 'ENDSSH'
             set -e
             cd ${{ env.APP_DIR }}/frontend
 
-            # Wipe old build to ensure no stale files are served
-            rm -rf .next
-
-            # Unpack the pre-built artifact from CI
+            # Unpack pre-built artifact (.next/ already built by CI)
             tar -xzf /tmp/frontend-build.tar.gz -C .
-            rm /tmp/frontend-build.tar.gz
+            rm -f /tmp/frontend-build.tar.gz
 
-            # Install production deps only (no build needed)
-            npm ci --omit=dev
+            # Install production deps only
+            npm ci --omit=dev --prefer-offline
 
-            # Restart frontend via PM2
-            pm2 restart ashimarket-web || pm2 start npm --name ashimarket-web -- start
+            # Start frontend
+            if [ -f ecosystem.config.js ]; then
+              pm2 start ecosystem.config.js --only ashimarket-web --update-env
+            else
+              pm2 start npm \
+                --name ashimarket-web \
+                --max-memory-restart 400M \
+                --restart-delay 3000 \
+                --exp-backoff-restart-delay 100 \
+                -- start
+            fi
             pm2 save
+            echo "Frontend started"
           ENDSSH
+
+      # ── Health check ──────────────────────────────────────────────────────────
+      - name: Verify deployment health
+        run: |
+          ssh ${{ env.DEPLOY_USER }}@${{ env.APP_SERVER }} << 'ENDSSH'
+            # Give processes 10 seconds to fully bind
+            sleep 10
+
+            BACKEND_PORT=${BACKEND_PORT:-3001}
+            FRONTEND_PORT=${FRONTEND_PORT:-3000}
+            FAILED=0
+
+            # Backend health
+            if curl -sf --max-time 10 "http://localhost:${BACKEND_PORT}/health" > /dev/null; then
+              echo "✅ Backend: healthy on :${BACKEND_PORT}"
+            else
+              echo "❌ Backend: NOT responding on :${BACKEND_PORT}"
+              pm2 logs ashimarket-api --lines 30 --nostream 2>/dev/null || true
+              FAILED=1
+            fi
+
+            # Frontend health
+            if curl -sf --max-time 10 "http://localhost:${FRONTEND_PORT}" -o /dev/null; then
+              echo "✅ Frontend: healthy on :${FRONTEND_PORT}"
+            else
+              echo "❌ Frontend: NOT responding on :${FRONTEND_PORT}"
+              pm2 logs ashimarket-web --lines 30 --nostream 2>/dev/null || true
+              FAILED=1
+            fi
+
+            # Show final PM2 state
+            echo ""
+            echo "── PM2 process list ──────────────────────────────"
+            pm2 list
+            echo "──────────────────────────────────────────────────"
+
+            exit $FAILED
+          ENDSSH
+
+      # ── Summary ───────────────────────────────────────────────────────────────
+      - name: Deployment summary
+        if: success()
+        run: |
+          echo "## ✅ Deployment complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**App URL:** ${{ secrets.NEXT_PUBLIC_APP_URL }}" >> $GITHUB_STEP_SUMMARY
