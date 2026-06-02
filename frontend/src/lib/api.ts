@@ -84,10 +84,9 @@ export function getApiError(err: unknown, fallback = 'Something went wrong. Plea
   const data = (err as { response?: { data?: Record<string, unknown> } })?.response?.data;
   if (!data) return fallback;
 
-  // Backend wraps errors: { error: { message, details } }
+  // Shape 1 — our custom error handler: { success: false, error: { code, message, details? } }
   const apiError = data.error as { message?: string; details?: Array<{ field?: string; message?: string }> } | undefined;
-  if (apiError) {
-    // If there are field-level validation details, show them instead of the generic message
+  if (apiError && typeof apiError === 'object') {
     if (apiError.details?.length) {
       return apiError.details
         .map((d) => (d.field ? `${d.field}: ${d.message}` : d.message))
@@ -97,8 +96,26 @@ export function getApiError(err: unknown, fallback = 'Something went wrong. Plea
     if (apiError.message) return apiError.message;
   }
 
-  // Legacy shape (direct message on data)
-  if (typeof data.message === 'string') return data.message;
+  // Shape 2 — Fastify native / our re-wrapped format: { message: "..." }
+  // message may be a JSON-stringified Zod errors array e.g. "[{\"code\":\"too_small\"...}]"
+  if (typeof data.message === 'string' && data.message.length > 0) {
+    const raw = data.message;
+    // Try to parse as Zod JSON array
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed
+          .map((e: { path?: string[]; message?: string }) =>
+            e.path?.length ? `${e.path.join('.')}: ${e.message}` : e.message
+          )
+          .filter(Boolean)
+          .join(' · ') || fallback;
+      }
+    } catch {
+      // Not JSON — return as plain message
+    }
+    return raw;
+  }
 
   return fallback;
 }
