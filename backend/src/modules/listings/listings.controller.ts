@@ -150,17 +150,22 @@ export class ListingsController {
     const user = (request as AuthenticatedRequest).user;
     const { id } = request.params as { id: string };
 
-    const files = await request.saveRequestFiles();
-    if (!files || files.length === 0) {
-      throw new ValidationError('No files uploaded');
+    // Use request.parts() to read buffers directly from the multipart stream.
+    // saveRequestFiles() + toBuffer() in @fastify/multipart v8 can return empty
+    // buffers because the temp file has already been moved before toBuffer() reads it.
+    const processedImages: Awaited<ReturnType<typeof processAndSaveImage>>[] = [];
+
+    for await (const part of request.parts()) {
+      if (part.type !== 'file') continue;
+      const buffer = await part.toBuffer();
+      if (!buffer || buffer.length === 0) continue;
+      const result = await processAndSaveImage(buffer, part.mimetype, 'images/listings');
+      processedImages.push(result);
     }
 
-    const processedImages = await Promise.all(
-      files.map(async (file) => {
-        const buffer = await file.toBuffer();
-        return processAndSaveImage(buffer, file.mimetype, 'images/listings');
-      }),
-    );
+    if (processedImages.length === 0) {
+      throw new ValidationError('No files uploaded or all files were empty');
+    }
 
     await listingsService.addImages(id, user.id, processedImages as any);
 
