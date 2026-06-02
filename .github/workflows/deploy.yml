@@ -241,7 +241,8 @@ jobs:
             # Give processes 10 seconds to fully bind
             sleep 10
 
-            BACKEND_PORT=${BACKEND_PORT:-3001}
+            # Backend runs on PORT env var, default 4000 (set in .env on server)
+            BACKEND_PORT=$(grep -oP '(?<=^PORT=)\d+' /home/deploy/ashimarket/backend/.env 2>/dev/null || echo 4000)
             FRONTEND_PORT=${FRONTEND_PORT:-3000}
             FAILED=0
 
