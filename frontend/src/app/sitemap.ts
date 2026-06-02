@@ -25,7 +25,17 @@ async function fetchListings(): Promise<Array<{ id: string; updatedAt: string }>
     });
     if (!res.ok) return [];
     const json = await res.json();
-    return (json.data ?? json.listings ?? []) as Array<{ id: string; updatedAt: string }>;
+    // Backend shape: { success: true, data: { data: [...], meta: {} } }
+    // or legacy:     { success: true, data: [...] }
+    const inner = json?.data;
+    const arr = Array.isArray(inner)
+      ? inner
+      : Array.isArray(inner?.data)
+      ? inner.data
+      : Array.isArray(json?.listings)
+      ? json.listings
+      : [];
+    return arr as Array<{ id: string; updatedAt: string }>;
   } catch {
     return [];
   }
