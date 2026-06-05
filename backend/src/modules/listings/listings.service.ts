@@ -259,17 +259,6 @@ export class ListingsService {
 
     if (!seller) throw new NotFoundError('User', sellerId);
 
-    const accountAgeMs = Date.now() - seller.createdAt.getTime();
-    const accountAgeDays = accountAgeMs / (1000 * 60 * 60 * 24);
-    const isNewSeller = accountAgeDays <= 7;
-
-    if (isNewSeller && seller.listingsThisWeek >= LISTING.NEW_SELLER_WEEKLY_LIMIT) {
-      throw new BusinessRuleError(
-        `New sellers can create up to ${LISTING.NEW_SELLER_WEEKLY_LIMIT} listings in their first week.`,
-        'LISTING_LIMIT_REACHED',
-      );
-    }
-
     // Accept either a UUID (id) or a slug — frontend sends slugs like 'automobiles'
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(input.categoryId);
     const category = isUuid
