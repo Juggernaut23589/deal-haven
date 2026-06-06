@@ -226,13 +226,26 @@ export class OffersService {
     buyerId: string,
     action: 'ACCEPT' | 'DECLINE',
   ) {
-    const offer = await prisma.offer.findUnique({
+    // The buyer may pass either the counter-offer's own ID (isCounter=true)
+    // or the original offer's ID (isCounter=false, status=COUNTERED).
+    // Handle both cases so the frontend only needs to track one ID.
+    let offer = await prisma.offer.findUnique({
       where: { id: offerId },
       include: { listing: { select: { id: true, sellerId: true } } },
     });
 
     if (!offer) throw new NotFoundError('Offer', offerId);
-    if (!offer.isCounter) throw new BusinessRuleError('This is not a counter-offer');
+
+    if (!offer.isCounter) {
+      // Buyer passed the original offer ID — find its counter-offer
+      const counterOffer = await prisma.offer.findFirst({
+        where: { originalOfferId: offerId, isCounter: true, buyerId },
+        include: { listing: { select: { id: true, sellerId: true } } },
+        orderBy: { createdAt: 'desc' },
+      });
+      if (!counterOffer) throw new BusinessRuleError('No pending counter-offer found for this offer');
+      offer = counterOffer;
+    }
     if (offer.buyerId !== buyerId) throw new AuthorizationError();
     if (offer.status !== OfferStatus.PENDING) {
       throw new BusinessRuleError(`Counter-offer is no longer pending`);
@@ -245,13 +258,13 @@ export class OffersService {
       action === 'ACCEPT' ? OfferStatus.ACCEPTED : OfferStatus.DECLINED;
 
     const updated = await prisma.offer.update({
-      where: { id: offerId },
+      where: { id: offer.id },
       data: { status: newStatus, respondedAt: new Date() },
       select: offerSelect,
     });
 
     if (action === 'ACCEPT') {
-      await this.convertOfferToOrder(offerId, buyerId);
+      await this.convertOfferToOrder(offer.id, buyerId);
     }
 
     return updated;
