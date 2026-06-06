@@ -205,4 +205,68 @@ export async function userRoutes(fastify: FastifyInstance): Promise<void> {
     if (!user) throw new NotFoundError('User', username);
     void reply.status(200).send({ success: true, data: user });
   });
+
+  // ── GET /users/me/seller-stats ─────────────────────────────────────────────
+  fastify.get('/me/seller-stats', { preHandler: [requireAuth] }, async (req, reply) => {
+    const { id: sellerId } = (req as AuthenticatedRequest).user;
+    const rangeParam = (req.query as { range?: string }).range ?? '30d';
+    const days = rangeParam === '7d' ? 7 : 30;
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    const [
+      totalListings,
+      activeListings,
+      totalOrders,
+      recentOrders,
+      sellerProfile,
+      ordersInRange,
+    ] = await Promise.all([
+      prisma.listing.count({ where: { sellerId, deletedAt: null } }),
+      prisma.listing.count({ where: { sellerId, status: 'ACTIVE', deletedAt: null } }),
+      prisma.orderItem.count({ where: { sellerId } }),
+      prisma.orderItem.count({ where: { sellerId, order: { status: { in: ['PENDING', 'PROCESSING'] } } } }),
+      prisma.sellerProfile.findUnique({
+        where: { userId: sellerId },
+        select: { averageRating: true, totalReviews: true, totalSales: true, responseRate: true },
+      }),
+      prisma.orderItem.findMany({
+        where: { sellerId, order: { createdAt: { gte: since } } },
+        select: { totalPrice: true, order: { select: { createdAt: true } } },
+        orderBy: { order: { createdAt: 'asc' } },
+      }),
+    ]);
+
+    // Build daily revenue chart data
+    const revenueByDay: Record<string, number> = {};
+    for (let i = 0; i < days; i++) {
+      const d = new Date(Date.now() - (days - 1 - i) * 24 * 60 * 60 * 1000);
+      const key = d.toISOString().slice(0, 10);
+      revenueByDay[key] = 0;
+    }
+    for (const item of ordersInRange) {
+      const key = item.order.createdAt.toISOString().slice(0, 10);
+      if (key in revenueByDay) revenueByDay[key] += Number(item.totalPrice);
+    }
+
+    const chartData = Object.entries(revenueByDay).map(([date, revenue]) => ({
+      date,
+      revenue,
+    }));
+
+    void reply.status(200).send({
+      success: true,
+      data: {
+        totalListings,
+        activeListings,
+        totalOrders,
+        pendingOrders: recentOrders,
+        averageRating: sellerProfile?.averageRating ?? 0,
+        totalReviews: sellerProfile?.totalReviews ?? 0,
+        totalSales: sellerProfile?.totalSales ?? 0,
+        responseRate: sellerProfile?.responseRate ?? 100,
+        chartData,
+        range: rangeParam,
+      },
+    });
+  });
 }

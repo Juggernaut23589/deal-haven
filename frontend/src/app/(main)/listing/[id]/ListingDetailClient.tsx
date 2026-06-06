@@ -42,7 +42,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { MakeOfferModal } from '@/components/offers/MakeOfferModal';
-import { reviewsApi, ordersApi, listingsApi, getApiError } from '@/lib/api';
+import { reviewsApi, ordersApi, listingsApi, reportsApi, getApiError } from '@/lib/api';
 import { useToast } from '@/store/uiStore';
 import type { ListingImage, ListingShippingOption } from '@/types/listing';
 import type { Review } from '@/types/order';
@@ -714,6 +714,10 @@ export default function ListingDetailClient({ id }: { id: string }) {
   const [bidAmount, setBidAmount] = React.useState('');
   const [isBidding, setIsBidding] = React.useState(false);
   const [isSaved, setIsSaved] = React.useState(false);
+  const [reportOpen, setReportOpen] = React.useState(false);
+  const [reportReason, setReportReason] = React.useState('');
+  const [reportDesc, setReportDesc] = React.useState('');
+  const [isReporting, setIsReporting] = React.useState(false);
   const { toast } = useToast();
 
   const handlePlaceBid = async () => {
@@ -748,6 +752,24 @@ export default function ListingDetailClient({ id }: { id: string }) {
     if (!isAuthenticated) { router.push('/auth/login'); return; }
     const sellerId = listing?.seller?.id ?? '';
     router.push(`/dashboard/messages?listing=${params.id}&seller=${sellerId}` as Route);
+  };
+
+  const handleReport = async () => {
+    if (!isAuthenticated) { router.push('/auth/login'); return; }
+    if (!reportReason) { toast.error('Select a reason for reporting'); return; }
+    setIsReporting(true);
+    try {
+      await reportsApi.create({ targetType: 'LISTING', targetId: params.id, reason: reportReason, description: reportDesc });
+      toast.success('Report submitted', 'Our team will review it within 24 hours.');
+      setReportOpen(false);
+      setReportReason('');
+      setReportDesc('');
+    } catch (err: unknown) {
+      const msg = getApiError(err, 'Failed to submit report');
+      toast.error('Report failed', msg);
+    } finally {
+      setIsReporting(false);
+    }
   };
 
   const handleIsAvailable = () => {
@@ -926,12 +948,17 @@ export default function ListingDetailClient({ id }: { id: string }) {
               <QASection listingId={params.id} sellerId={listing.seller.id} />
 
               {/* Report link */}
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
-                <button className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-error transition-colors focus-visible:outline-none focus-visible:underline">
-                  <Flag className="h-3.5 w-3.5" aria-hidden="true" />
-                  Report this listing
-                </button>
-              </div>
+              {!isOwnListing && (
+                <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+                  <button
+                    onClick={() => setReportOpen(true)}
+                    className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-error transition-colors focus-visible:outline-none focus-visible:underline"
+                  >
+                    <Flag className="h-3.5 w-3.5" aria-hidden="true" />
+                    Report this listing
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* ── Right Sticky Sidebar ─────────────────────────────────── */}
@@ -1220,6 +1247,72 @@ export default function ListingDetailClient({ id }: { id: string }) {
         listingTitle={listing.title}
         listingPrice={listing.price}
       />
+
+      {/* Report Listing Modal */}
+      {reportOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          onClick={(e) => { if (e.target === e.currentTarget) setReportOpen(false); }}
+          aria-modal="true"
+          role="dialog"
+          aria-labelledby="report-modal-title"
+        >
+          <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+            <h2 id="report-modal-title" className="text-lg font-bold text-slate-900 dark:text-slate-100">
+              Report Listing
+            </h2>
+            <p className="text-sm text-slate-500">Help us keep Ashimarket safe. Select a reason:</p>
+            <div className="space-y-2">
+              {[
+                { value: 'PROHIBITED_ITEM', label: 'Prohibited item' },
+                { value: 'COUNTERFEIT', label: 'Counterfeit / fake goods' },
+                { value: 'SCAM', label: 'Scam or fraud' },
+                { value: 'SPAM', label: 'Spam or duplicate' },
+                { value: 'OFFENSIVE_CONTENT', label: 'Offensive content' },
+                { value: 'WRONG_CATEGORY', label: 'Wrong category' },
+                { value: 'PRICE_MANIPULATION', label: 'Price manipulation' },
+                { value: 'OTHER', label: 'Other' },
+              ].map((r) => (
+                <label key={r.value} className="flex items-center gap-3 cursor-pointer group">
+                  <input
+                    type="radio"
+                    name="report-reason"
+                    value={r.value}
+                    checked={reportReason === r.value}
+                    onChange={() => setReportReason(r.value)}
+                    className="accent-primary"
+                  />
+                  <span className="text-sm text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100">
+                    {r.label}
+                  </span>
+                </label>
+              ))}
+            </div>
+            <textarea
+              value={reportDesc}
+              onChange={(e) => setReportDesc(e.target.value)}
+              placeholder="Additional details (optional)"
+              rows={3}
+              maxLength={1000}
+              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            />
+            <div className="flex gap-3 pt-1">
+              <Button variant="ghost" className="flex-1" onClick={() => setReportOpen(false)} disabled={isReporting}>
+                Cancel
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={() => void handleReport()}
+                disabled={!reportReason || isReporting}
+                isLoading={isReporting}
+                loadingText="Submitting…"
+              >
+                Submit Report
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

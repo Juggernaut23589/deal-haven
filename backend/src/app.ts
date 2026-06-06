@@ -18,6 +18,7 @@ import { wishlistRoutes } from './modules/wishlist/wishlist.routes';
 import { searchRoutes } from './modules/search/search.routes';
 import { userRoutes } from './modules/users/users.routes';
 import { adminRoutes } from './modules/admin/admin.routes';
+import { reportRoutes } from './modules/reports/reports.routes';
 import { FILE_UPLOAD } from './config/constants';
 import { nanoid } from 'nanoid';
 
@@ -129,6 +130,7 @@ export async function buildApp(options?: { https?: { key: Buffer; cert: Buffer }
   await fastify.register(searchRoutes, { prefix: '/api/v1/search' });
   await fastify.register(userRoutes, { prefix: '/api/v1/users' });
   await fastify.register(adminRoutes, { prefix: '/api/v1/admin' });
+  await fastify.register(reportRoutes, { prefix: '/api/v1/reports' });
 
   // Health check
   fastify.get('/health', async (_request, reply) => {

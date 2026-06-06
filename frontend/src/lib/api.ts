@@ -336,6 +336,19 @@ export const usersApi = {
 
   getPublicUser: (username: string): Promise<import('@/types/user').PublicUser> =>
     get(`/users/${username}`),
+
+  getSellerStats: (range?: '7d' | '30d'): Promise<{
+    totalListings: number;
+    activeListings: number;
+    totalOrders: number;
+    pendingOrders: number;
+    averageRating: number;
+    totalReviews: number;
+    totalSales: number;
+    responseRate: number;
+    chartData: { date: string; revenue: number }[];
+    range: string;
+  }> => get('/users/me/seller-stats', { params: { range } }),
 };
 
 // ─── Listing Endpoints ────────────────────────────────────────────────────────
@@ -664,6 +677,18 @@ export const disputesApi = {
       content: payload.content,
     });
   },
+};
+
+// ─── Reports Endpoint ─────────────────────────────────────────────────────────
+
+export const reportsApi = {
+  create: (payload: {
+    targetType: 'LISTING' | 'USER' | 'REVIEW' | 'MESSAGE';
+    targetId: string;
+    reason: string;
+    description?: string;
+  }): Promise<{ id: string; status: string; createdAt: string }> =>
+    post('/reports', payload),
 };
 
 // ─── Upload Endpoint ──────────────────────────────────────────────────────────
