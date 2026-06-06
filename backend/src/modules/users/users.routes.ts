@@ -144,4 +144,65 @@ export async function userRoutes(fastify: FastifyInstance): Promise<void> {
   fastify.get('/me', { preHandler: [requireAuth] }, getMe);
   fastify.patch('/me/profile', { preHandler: [requireAuth] }, updateProfile);
   fastify.post('/me/avatar', { preHandler: [requireAuth] }, uploadAvatar);
+
+  // GET /users/me/seller-profile
+  fastify.get('/me/seller-profile', { preHandler: [requireAuth] }, async (req, reply) => {
+    const { id: userId } = (req as AuthenticatedRequest).user;
+    const profile = await prisma.sellerProfile.findUnique({
+      where: { userId },
+      include: {
+        user: { select: { id: true, username: true, email: true, profile: { select: { displayName: true, avatarUrl: true } } } },
+      },
+    });
+    if (!profile) {
+      // Auto-create seller profile on first access
+      const user = await prisma.user.findUnique({ where: { id: userId }, select: { username: true } });
+      const created = await prisma.sellerProfile.create({
+        data: {
+          userId,
+          shopName: user?.username ?? 'My Shop',
+          shopSlug: (user?.username ?? userId).toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        },
+      });
+      void reply.status(200).send({ success: true, data: created });
+      return;
+    }
+    void reply.status(200).send({ success: true, data: profile });
+  });
+
+  // GET /users/me/notifications/preferences
+  fastify.patch('/me/notification-preferences', { preHandler: [requireAuth] }, async (req, reply) => {
+    const { id: userId } = (req as AuthenticatedRequest).user;
+    const body = req.body as { emailNotifications?: boolean; pushNotifications?: boolean };
+    const updated = await prisma.userProfile.update({
+      where: { userId },
+      data: {
+        ...(body.emailNotifications !== undefined && { emailNotifications: body.emailNotifications }),
+        ...(body.pushNotifications !== undefined && { pushNotifications: body.pushNotifications }),
+      },
+    });
+    void reply.status(200).send({ success: true, data: updated });
+  });
+
+  // GET /users/:username/public — public profile by username
+  fastify.get('/:username/public', async (req, reply) => {
+    const { username } = req.params as { username: string };
+    const user = await prisma.user.findUnique({
+      where: { username },
+      select: {
+        id: true,
+        username: true,
+        createdAt: true,
+        profile: { select: { displayName: true, avatarUrl: true, bio: true, city: true, state: true } },
+        sellerProfile: {
+          select: {
+            shopName: true, shopSlug: true, shopDescription: true, shopBannerUrl: true,
+            averageRating: true, totalReviews: true, totalSales: true, isStarSeller: true, verificationStatus: true,
+          },
+        },
+      },
+    });
+    if (!user) throw new NotFoundError('User', username);
+    void reply.status(200).send({ success: true, data: user });
+  });
 }

@@ -18,6 +18,32 @@ const sellerResponseSchema = z.object({
 });
 
 export async function reviewRoutes(fastify: FastifyInstance): Promise<void> {
+  // GET /reviews/me — buyer's reviews they have written
+  fastify.get('/me', { preHandler: [requireAuth] }, async (req, reply) => {
+    const user = (req as AuthenticatedRequest).user;
+    const q = req.query as { page?: string; limit?: string };
+    const page = parseInt(q.page ?? '1', 10);
+    const limit = parseInt(q.limit ?? '20', 10);
+    const offset = (page - 1) * limit;
+    const [data, total] = await Promise.all([
+      prisma.review.findMany({
+        where: { reviewerId: user.id },
+        include: {
+          reviewee: { select: { id: true, username: true, profile: { select: { displayName: true, avatarUrl: true } } } },
+          listing: { select: { id: true, title: true, slug: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: offset,
+        take: limit,
+      }),
+      prisma.review.count({ where: { reviewerId: user.id } }),
+    ]);
+    void reply.status(200).send({
+      success: true,
+      data: { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } },
+    });
+  });
+
   fastify.post('/', { preHandler: [requireAuth] }, async (req, reply) => {
     const user = (req as AuthenticatedRequest).user;
     const body = createReviewSchema.parse(req.body);

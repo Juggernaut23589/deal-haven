@@ -3,6 +3,7 @@ import { disputesService } from './disputes.service';
 import { requireAuth, requireModerator } from '../../middleware/auth';
 import type { AuthenticatedRequest } from '../../shared/types';
 import { z } from 'zod';
+import { prisma } from '../../config/database';
 
 const openDisputeSchema = z.object({
   orderId: z.string().uuid(),
@@ -39,6 +40,33 @@ const resolveDisputeSchema = z.object({
 });
 
 export async function disputeRoutes(fastify: FastifyInstance): Promise<void> {
+  // Must be before /:id to avoid "me" being treated as UUID
+  fastify.get('/me', { preHandler: [requireAuth] }, async (req, reply) => {
+    const user = (req as AuthenticatedRequest).user;
+    const q = req.query as { page?: string; limit?: string };
+    const page = parseInt(q.page ?? '1', 10);
+    const limit = parseInt(q.limit ?? '20', 10);
+    const offset = (page - 1) * limit;
+    const [data, total] = await Promise.all([
+      prisma.dispute.findMany({
+        where: { buyerId: user.id },
+        orderBy: { createdAt: 'desc' },
+        skip: offset,
+        take: limit,
+        select: {
+          id: true, status: true, reason: true, description: true,
+          createdAt: true, updatedAt: true, resolvedAt: true, resolution: true,
+          order: { select: { id: true, orderNumber: true, total: true } },
+        },
+      }),
+      prisma.dispute.count({ where: { buyerId: user.id } }),
+    ]);
+    void reply.status(200).send({
+      success: true,
+      data: { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit), hasNextPage: page < Math.ceil(total / limit), hasPreviousPage: page > 1 } },
+    });
+  });
+
   fastify.post('/', { preHandler: [requireAuth] }, async (req, reply) => {
     const user = (req as AuthenticatedRequest).user;
     const body = openDisputeSchema.parse(req.body);

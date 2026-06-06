@@ -50,14 +50,6 @@ const orderDetailSelect = {
       listingImageUrl: true,
       sellerUsername: true,
       sellerId: true,
-      // Include seller user for seller-side views
-      seller: {
-        select: {
-          id: true,
-          username: true,
-          profile: { select: { displayName: true, avatarUrl: true } },
-        },
-      },
     },
   },
   payment: {
@@ -270,7 +262,7 @@ export class OrdersService {
       where: {
         id: orderId,
         items: { some: { sellerId } },
-        status: OrderStatus.PAID,
+        status: { in: [OrderStatus.PAID, OrderStatus.PROCESSING] },
       },
     });
 
