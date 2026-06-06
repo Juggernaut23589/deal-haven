@@ -363,6 +363,12 @@ export const listingsApi = {
 
   renew: (id: string): Promise<Listing> => post<Listing>(`/listings/${id}/renew`),
 
+  placeBid: (id: string, amount: number): Promise<{ bid: unknown; endsAt: string; currentBid: number; reserveMet: boolean }> =>
+    post(`/listings/${id}/bid`, { amount }),
+
+  getBids: (id: string): Promise<{ bids: unknown[]; auction: unknown }> =>
+    get(`/listings/${id}/bids`),
+
   getMyListings: (
     status?: string,
     page: number = 1,

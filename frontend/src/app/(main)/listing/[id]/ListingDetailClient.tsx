@@ -42,7 +42,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { MakeOfferModal } from '@/components/offers/MakeOfferModal';
-import { reviewsApi, ordersApi , getApiError } from '@/lib/api';
+import { reviewsApi, ordersApi, listingsApi, getApiError } from '@/lib/api';
 import { useToast } from '@/store/uiStore';
 import type { ListingImage, ListingShippingOption } from '@/types/listing';
 import type { Review } from '@/types/order';
@@ -704,7 +704,7 @@ function ReviewsSection({ listingId, sellerId }: { listingId: string; sellerId: 
 export default function ListingDetailClient({ id }: { id: string }) {
   const params = { id };
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   const { data: listing, isLoading, isError } = useListing(params.id);
   const { data: similarListings, isLoading: isSimilarLoading } = useSimilarListings(params.id, 4);
@@ -712,7 +712,27 @@ export default function ListingDetailClient({ id }: { id: string }) {
 
   const [offerModalOpen, setOfferModalOpen] = React.useState(false);
   const [bidAmount, setBidAmount] = React.useState('');
+  const [isBidding, setIsBidding] = React.useState(false);
   const [isSaved, setIsSaved] = React.useState(false);
+  const { toast } = useToast();
+
+  const handlePlaceBid = async () => {
+    if (!isAuthenticated) { router.push('/auth/login'); return; }
+    const amount = Number(bidAmount);
+    if (!amount || amount <= 0) { toast.error('Enter a valid bid amount'); return; }
+    setIsBidding(true);
+    try {
+      const result = await listingsApi.placeBid(params.id, amount);
+      toast.success('Bid placed!', `Current highest bid is now ${amount.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}`);
+      setBidAmount('');
+      // Refresh listing data to show updated bid
+      void result;
+    } catch (err: unknown) {
+      toast.error('Bid failed', getApiError(err, 'Could not place bid. Please try again.'));
+    } finally {
+      setIsBidding(false);
+    }
+  };
 
   React.useEffect(() => {
     if (listing) setIsSaved(listing.isSaved);
@@ -776,6 +796,7 @@ export default function ListingDetailClient({ id }: { id: string }) {
   }
 
   const isAuction = listing.type === 'auction' && listing.auction !== null;
+  const isOwnListing = isAuthenticated && user?.id === listing.seller?.id;
   const conditionLabel = formatListingCondition(listing.condition);
   const conditionColor = getConditionColorClass(listing.condition);
   const discount =
@@ -983,21 +1004,20 @@ export default function ListingDetailClient({ id }: { id: string }) {
                           </div>
                           <Button
                             className="w-full"
-                            disabled={!isAuthenticated || !bidAmount}
-                            onClick={() => {
-                              if (!isAuthenticated) router.push('/auth/login');
-                              // biddingApi.placeBid(params.id, Number(bidAmount))
-                            }}
+                            disabled={isBidding || !bidAmount || isOwnListing}
+                            isLoading={isBidding}
+                            loadingText="Placing bid…"
+                            onClick={() => void handlePlaceBid()}
                           >
-                            Place Bid
+                            {isOwnListing ? 'Cannot bid on your own listing' : 'Place Bid'}
                           </Button>
                         </div>
                       )}
                     </div>
                   )}
 
-                  {/* Request to Buy */}
-                  {(!isAuction || (listing.auction?.buyItNowAvailable)) && (
+                  {/* Request to Buy — hidden from listing owner */}
+                  {!isOwnListing && (!isAuction || (listing.auction?.buyItNowAvailable)) && (
                     <BuyButton
                       listingId={params.id}
                       isAuthenticated={isAuthenticated}
@@ -1006,8 +1026,15 @@ export default function ListingDetailClient({ id }: { id: string }) {
                     />
                   )}
 
-                  {/* Make Offer */}
-                  {listing.offersEnabled && !isAuction && (
+                  {/* Owner: link to edit their own listing */}
+                  {isOwnListing && (
+                    <Button variant="outline" className="w-full" size="lg" asChild>
+                      <Link href={`/listing/${params.id}/edit` as Route}>Edit Your Listing</Link>
+                    </Button>
+                  )}
+
+                  {/* Make Offer — hidden from listing owner */}
+                  {!isOwnListing && listing.offersEnabled && !isAuction && (
                     <Button
                       variant="outline"
                       className="w-full"

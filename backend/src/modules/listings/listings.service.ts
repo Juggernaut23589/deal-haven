@@ -401,8 +401,8 @@ export class ListingsService {
     if (!listing) throw new NotFoundError('Listing', listingId);
     if (listing.sellerId !== sellerId) throw new AuthorizationError();
 
-    if (listing.status !== ListingStatus.DRAFT) {
-      throw new BusinessRuleError('Only draft listings can be published');
+    if (listing.status !== ListingStatus.DRAFT && listing.status !== ListingStatus.PAUSED) {
+      throw new BusinessRuleError('Only draft or paused listings can be published');
     }
 
     const updated = await prisma.listing.update({
@@ -411,6 +411,28 @@ export class ListingsService {
         status: ListingStatus.ACTIVE,
         publishedAt: new Date(),
       },
+      select: listingCardSelect,
+    });
+
+    await cache.del(cache.key.listing(listingId));
+    return formatListingCard(updated);
+  }
+
+  async pauseListing(listingId: string, sellerId: string) {
+    const listing = await prisma.listing.findFirst({
+      where: { id: listingId, sellerId, deletedAt: null },
+      select: { status: true },
+    });
+
+    if (!listing) throw new NotFoundError('Listing', listingId);
+
+    if (listing.status !== ListingStatus.ACTIVE) {
+      throw new BusinessRuleError('Only active listings can be paused');
+    }
+
+    const updated = await prisma.listing.update({
+      where: { id: listingId },
+      data: { status: ListingStatus.PAUSED },
       select: listingCardSelect,
     });
 
@@ -783,6 +805,102 @@ export class ListingsService {
     }
 
     await cache.del(cache.key.listing(listingId));
+  }
+
+  async placeBid(listingId: string, bidderId: string, amount: number) {
+    const listing = await prisma.listing.findFirst({
+      where: { id: listingId, deletedAt: null, status: ListingStatus.ACTIVE, listingType: 'AUCTION' },
+      select: { sellerId: true, auction: true },
+    });
+
+    if (!listing) throw new NotFoundError('Listing', listingId);
+    if (!listing.auction) throw new BusinessRuleError('This listing is not an auction');
+    if (listing.sellerId === bidderId) throw new BusinessRuleError('You cannot bid on your own listing');
+
+    const auction = listing.auction;
+    const now = new Date();
+
+    if (auction.status === 'ENDED' || auction.status === 'CANCELLED') {
+      throw new BusinessRuleError('This auction has ended');
+    }
+    if (now > auction.endsAt) {
+      throw new BusinessRuleError('This auction has ended');
+    }
+    if (now < auction.startsAt) {
+      throw new BusinessRuleError('This auction has not started yet');
+    }
+
+    const currentBid = auction.currentBid ? Number(auction.currentBid) : null;
+    const minBid = currentBid !== null
+      ? currentBid + Number(auction.minBidIncrement)
+      : Number(auction.startPrice);
+
+    if (amount < minBid) {
+      throw new BusinessRuleError(`Minimum bid is ₦${minBid.toLocaleString()}`);
+    }
+
+    // Anti-snipe: extend by 2 minutes if bid placed in last 2 minutes
+    const twoMinutes = 2 * 60 * 1000;
+    const timeLeft = auction.endsAt.getTime() - now.getTime();
+    const newEndsAt = timeLeft < twoMinutes
+      ? new Date(auction.endsAt.getTime() + twoMinutes)
+      : auction.endsAt;
+
+    const reserveMet = auction.reservePrice ? amount >= Number(auction.reservePrice) : true;
+
+    const bid = await prisma.$transaction(async (tx) => {
+      const created = await tx.bid.create({
+        data: {
+          auctionId: auction.id,
+          bidderId,
+          amount,
+        },
+        include: {
+          bidder: { select: { id: true, username: true, profile: { select: { displayName: true, avatarUrl: true } } } },
+        },
+      });
+
+      await tx.auction.update({
+        where: { id: auction.id },
+        data: {
+          currentBid: amount,
+          bidCount: { increment: 1 },
+          endsAt: newEndsAt,
+          reserveMet,
+          status: 'ACTIVE',
+        },
+      });
+
+      return created;
+    });
+
+    await cache.del(cache.key.listing(listingId));
+    return { bid, endsAt: newEndsAt, currentBid: amount, reserveMet };
+  }
+
+  async getBids(listingId: string) {
+    const listing = await prisma.listing.findFirst({
+      where: { id: listingId, deletedAt: null },
+      select: { auction: { select: { id: true, currentBid: true, bidCount: true, endsAt: true, status: true, reserveMet: true } } },
+    });
+
+    if (!listing) throw new NotFoundError('Listing', listingId);
+
+    if (!listing.auction) return { bids: [], auction: null };
+
+    const bids = await prisma.bid.findMany({
+      where: { auctionId: listing.auction.id },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+      select: {
+        id: true,
+        amount: true,
+        createdAt: true,
+        bidder: { select: { id: true, username: true } },
+      },
+    });
+
+    return { bids, auction: listing.auction };
   }
 
   private async incrementViewCount(

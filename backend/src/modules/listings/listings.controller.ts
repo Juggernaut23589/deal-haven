@@ -86,6 +86,47 @@ export class ListingsController {
     });
   }
 
+  async placeBid(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    const user = (request as AuthenticatedRequest).user;
+    const { id } = request.params as { id: string };
+    const { amount } = request.body as { amount: number };
+
+    if (!amount || typeof amount !== 'number' || amount <= 0) {
+      throw new ValidationError('A valid bid amount is required');
+    }
+
+    const result = await listingsService.placeBid(id, user.id, amount);
+
+    void reply.status(201).send({
+      success: true,
+      data: result,
+      message: 'Bid placed successfully',
+    });
+  }
+
+  async getBids(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    const { id } = request.params as { id: string };
+    const result = await listingsService.getBids(id);
+
+    void reply.status(200).send({
+      success: true,
+      data: result,
+    });
+  }
+
+  async pauseListing(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    const user = (request as AuthenticatedRequest).user;
+    const { id } = request.params as { id: string };
+
+    const listing = await listingsService.pauseListing(id, user.id);
+
+    void reply.status(200).send({
+      success: true,
+      data: listing,
+      message: 'Listing paused',
+    });
+  }
+
   async searchListings(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     const query = searchListingsSchema.parse(request.query);
 

@@ -912,7 +912,7 @@ function Step5Shipping({
       ...shippingOptions,
       {
         name: 'Standard Shipping',
-        carrier: 'USPS',
+        carrier: 'GIG_LOGISTICS',
         price: 0,
         isFree: false,
         estimatedDaysMin: 3,

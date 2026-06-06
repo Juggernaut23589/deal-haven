@@ -7,7 +7,8 @@ export const createOfferSchema = z.object({
 });
 
 export const respondToOfferSchema = z.object({
-  action: z.enum(['ACCEPT', 'DECLINE', 'COUNTER']),
+  action: z.enum(['ACCEPT', 'DECLINE', 'COUNTER', 'accept', 'decline', 'counter'])
+    .transform((v) => v.toUpperCase() as 'ACCEPT' | 'DECLINE' | 'COUNTER'),
   counterAmount: z.number().positive().optional(),
   counterMessage: z.string().max(500).optional(),
 }).refine(
@@ -19,7 +20,8 @@ export const respondToOfferSchema = z.object({
 );
 
 export const respondToCounterSchema = z.object({
-  action: z.enum(['ACCEPT', 'DECLINE']),
+  action: z.enum(['ACCEPT', 'DECLINE', 'accept', 'decline'])
+    .transform((v) => v.toUpperCase() as 'ACCEPT' | 'DECLINE'),
 });
 
 export type CreateOfferInput = z.infer<typeof createOfferSchema>;
