@@ -6,7 +6,7 @@ import type { Route } from 'next';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Users, Package, AlertTriangle, Flag,
-  Settings, ChevronRight, ShieldCheck,
+  ShoppingBag, Layers, Percent, Settings, ChevronRight, ShieldCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Navbar } from '@/components/layout/Navbar';
@@ -16,8 +16,12 @@ const NAV_ITEMS = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/admin/users', label: 'Users', icon: Users },
   { href: '/admin/listings', label: 'Listings', icon: Package },
+  { href: '/admin/orders', label: 'Orders', icon: ShoppingBag },
   { href: '/admin/disputes', label: 'Disputes', icon: AlertTriangle },
   { href: '/admin/reports', label: 'Reports', icon: Flag },
+  { href: '/admin/categories', label: 'Categories', icon: Layers },
+  { href: '/admin/fees', label: 'Fees', icon: Percent },
+  { href: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

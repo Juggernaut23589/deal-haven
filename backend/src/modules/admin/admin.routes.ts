@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { prisma } from '../../config/database';
 import { requireAuth, requireRole } from '../../middleware/auth';
-import { UserRole, UserStatus, ListingStatus } from '@prisma/client';
+import { UserRole, UserStatus, ListingStatus, ReportStatus } from '@prisma/client';
 import { NotFoundError, ValidationError } from '../../shared/errors';
 
 const adminGuard = [requireAuth, requireRole(UserRole.ADMIN)];
@@ -207,6 +207,76 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     void reply.send({ success: true, data: updated });
   });
 
+  // ── GET /admin/orders ──────────────────────────────────────────────────────
+  fastify.get('/orders', { preHandler: adminGuard }, async (req: FastifyRequest, reply: FastifyReply) => {
+    const { page = 1, limit = 30, search, status } = req.query as {
+      page?: number; limit?: number; search?: string; status?: string;
+    };
+    const skip = (Number(page) - 1) * Number(limit);
+
+    const where = {
+      ...(search && {
+        OR: [
+          { orderNumber: { contains: search, mode: 'insensitive' as const } },
+          { buyer: { username: { contains: search, mode: 'insensitive' as const } } },
+        ],
+      }),
+      ...(status && { status: { equals: status as never } }),
+    };
+
+    const [data, total] = await Promise.all([
+      prisma.order.findMany({
+        where,
+        skip,
+        take: Number(limit),
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true, orderNumber: true, status: true, total: true, currency: true, createdAt: true,
+          buyer: { select: { id: true, username: true, email: true } },
+          items: { take: 1, select: { listingTitle: true, sellerUsername: true, sellerId: true } },
+        },
+      }),
+      prisma.order.count({ where }),
+    ]);
+
+    void reply.send({
+      success: true,
+      data,
+      meta: { total, page: Number(page), limit: Number(limit), totalPages: Math.ceil(total / Number(limit)) },
+    });
+  });
+
+  // ── GET /admin/categories ──────────────────────────────────────────────────
+  fastify.get('/categories', { preHandler: adminGuard }, async (_req: FastifyRequest, reply: FastifyReply) => {
+    const categories = await prisma.category.findMany({
+      where: { parentId: null },
+      orderBy: { sortOrder: 'asc' },
+      include: {
+        children: {
+          orderBy: { sortOrder: 'asc' },
+          select: { id: true, name: true, slug: true, isActive: true, sortOrder: true, _count: { select: { listings: true } } },
+        },
+        _count: { select: { listings: true } },
+      },
+    });
+    void reply.send({ success: true, data: categories });
+  });
+
+  // ── PATCH /admin/categories/:id ────────────────────────────────────────────
+  fastify.patch('/categories/:id', { preHandler: adminGuard }, async (req: FastifyRequest, reply: FastifyReply) => {
+    const { id } = req.params as { id: string };
+    const { isActive, sortOrder } = req.body as { isActive?: boolean; sortOrder?: number };
+    const updated = await prisma.category.update({
+      where: { id },
+      data: {
+        ...(isActive !== undefined && { isActive }),
+        ...(sortOrder !== undefined && { sortOrder }),
+      },
+      select: { id: true, name: true, isActive: true, sortOrder: true },
+    });
+    void reply.send({ success: true, data: updated });
+  });
+
   // ── GET /admin/reports ─────────────────────────────────────────────────────
   fastify.get('/reports', { preHandler: adminGuard }, async (req: FastifyRequest, reply: FastifyReply) => {
     const { page = 1, limit = 30, status } = req.query as {
@@ -233,5 +303,29 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
       data,
       meta: { total, page: Number(page), limit: Number(limit), totalPages: Math.ceil(total / Number(limit)) },
     });
+  });
+
+  // ── PATCH /admin/reports/:id/status ───────────────────────────────────────
+  fastify.patch('/reports/:id/status', { preHandler: adminGuard }, async (req: FastifyRequest, reply: FastifyReply) => {
+    const { id } = req.params as { id: string };
+    const { status: newStatus } = req.body as { status: ReportStatus };
+
+    if (!Object.values(ReportStatus).includes(newStatus)) {
+      throw new ValidationError('Invalid status value');
+    }
+
+    const report = await prisma.report.findUnique({ where: { id } });
+    if (!report) throw new NotFoundError('Report not found');
+
+    const updated = await prisma.report.update({
+      where: { id },
+      data: {
+        status: newStatus,
+        reviewedAt: new Date(),
+      },
+      select: { id: true, status: true },
+    });
+
+    void reply.send({ success: true, data: updated });
   });
 }

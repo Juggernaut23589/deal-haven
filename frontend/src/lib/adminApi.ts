@@ -29,4 +29,16 @@ export const adminApi = {
 
   getReports: (params?: { page?: number; limit?: number; status?: string }) =>
     get<{ data: unknown[]; meta: { total: number; totalPages: number } }>('/admin/reports', params as Record<string, unknown>),
+
+  updateReportStatus: (id: string, status: string) =>
+    patch(`/admin/reports/${id}/status`, { status }),
+
+  getOrders: (params?: { page?: number; limit?: number; search?: string; status?: string }) =>
+    get<{ data: unknown[]; meta: { total: number; totalPages: number } }>('/admin/orders', params as Record<string, unknown>),
+
+  getCategories: () =>
+    get<{ data: unknown[] }>('/admin/categories'),
+
+  updateCategory: (id: string, data: { isActive?: boolean; sortOrder?: number }) =>
+    patch(`/admin/categories/${id}`, data),
 };
