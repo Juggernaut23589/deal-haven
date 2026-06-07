@@ -170,6 +170,53 @@ export async function userRoutes(fastify: FastifyInstance): Promise<void> {
     void reply.status(200).send({ success: true, data: profile });
   });
 
+  // POST /users/me/become-seller — upgrade a buyer account to seller (idempotent)
+  fastify.post('/me/become-seller', { preHandler: [requireAuth] }, async (req, reply) => {
+    const { id: userId } = (req as AuthenticatedRequest).user;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, username: true, roles: true, profile: { select: { firstName: true, lastName: true } } },
+    });
+
+    if (!user) {
+      void reply.status(404).send({ success: false, error: { code: 'NOT_FOUND', message: 'User not found' } });
+      return;
+    }
+
+    if (user.roles.includes('SELLER' as never)) {
+      // Already a seller — ensure sellerProfile exists (safety net)
+      await prisma.sellerProfile.upsert({
+        where: { userId },
+        create: {
+          userId,
+          shopName: user.profile?.firstName ? `${user.profile.firstName}'s Shop` : `${user.username}'s Shop`,
+          shopSlug: user.username.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+        },
+        update: {},
+      });
+      void reply.status(200).send({ success: true, message: 'Already a seller' });
+      return;
+    }
+
+    // Add SELLER role and create sellerProfile atomically
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: userId },
+        data: { roles: { push: 'SELLER' as never } },
+      }),
+      prisma.sellerProfile.create({
+        data: {
+          userId,
+          shopName: user.profile?.firstName ? `${user.profile.firstName}'s Shop` : `${user.username}'s Shop`,
+          shopSlug: user.username.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+        },
+      }),
+    ]);
+
+    void reply.status(200).send({ success: true, message: 'Seller account activated. You can now post listings.' });
+  });
+
   // GET /users/me/notifications/preferences
   fastify.patch('/me/notification-preferences', { preHandler: [requireAuth] }, async (req, reply) => {
     const { id: userId } = (req as AuthenticatedRequest).user;

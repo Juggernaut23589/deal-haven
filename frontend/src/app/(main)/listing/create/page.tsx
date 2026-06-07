@@ -30,7 +30,7 @@ import { cn } from '@/lib/utils';
 import { useRequireAuth } from '@/hooks/useAuth';
 import { useCreateListing, useUploadListingImages, usePublishListing } from '@/hooks/useListings';
 import { useToast } from '@/store/uiStore';
-import { listingsApi , getApiError } from '@/lib/api';
+import { listingsApi, usersApi, getApiError } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { formatPrice } from '@/lib/formatters';
@@ -1316,6 +1316,8 @@ export default function CreateListingPage() {
   const { mutateAsync: uploadImages } = useUploadListingImages();
   const { mutateAsync: publishListing } = usePublishListing();
   const { toast } = useToast();
+  const [showBecomeSeller, setShowBecomeSeller] = React.useState(false);
+  const [isUpgradingSeller, setIsUpgradingSeller] = React.useState(false);
 
   // ── Multi-step state ─────────────────────────────────────────────────────
   const [step, setStep] = React.useState<Step>(1);
@@ -1442,10 +1444,21 @@ export default function CreateListingPage() {
     await listingsApi.uploadImages(listingId, form);
   };
 
+  const handleBecomeSeller = async () => {
+    setIsUpgradingSeller(true);
+    try {
+      await usersApi.becomeSeller();
+      // Refresh the user profile so isSeller updates immediately
+      window.location.reload();
+    } catch (err: unknown) {
+      toast.error('Upgrade failed', getApiError(err, 'Could not activate seller account. Please try again.'));
+      setIsUpgradingSeller(false);
+    }
+  };
+
   const handlePublish = async () => {
-    // Check seller role
     if (!user?.isSeller && !user?.isAdmin) {
-      toast.error('Seller account required', 'You need a seller account to post listings. Please register as a seller.');
+      setShowBecomeSeller(true);
       return;
     }
     if (!categoryId) { toast.error('Select a category first'); return; }
@@ -1478,7 +1491,7 @@ export default function CreateListingPage() {
 
   const handleSaveDraft = async () => {
     if (!user?.isSeller && !user?.isAdmin) {
-      toast.error('Seller account required', 'You need a seller account to post listings.');
+      setShowBecomeSeller(true);
       return;
     }
     setIsSavingDraft(true);
@@ -1649,6 +1662,37 @@ export default function CreateListingPage() {
           </div>
         </div>
       </div>
+
+      {/* Become a Seller modal */}
+      {showBecomeSeller && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-800 p-6 shadow-xl">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+              Activate Seller Account
+            </h2>
+            <p className="text-slate-600 dark:text-slate-400 text-sm mb-6">
+              Your account is currently set up as a buyer. Activate your free seller account to start posting listings on Ashimarket.
+            </p>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setShowBecomeSeller(false)}
+                disabled={isUpgradingSeller}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={handleBecomeSeller}
+                disabled={isUpgradingSeller}
+              >
+                {isUpgradingSeller ? 'Activating…' : 'Activate Seller Account'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

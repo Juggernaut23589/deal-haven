@@ -337,6 +337,9 @@ export const usersApi = {
   getPublicUser: (username: string): Promise<import('@/types/user').PublicUser> =>
     get(`/users/${username}`),
 
+  becomeSeller: (): Promise<{ message: string }> =>
+    post<{ message: string }>('/users/me/become-seller', {}),
+
   getSellerStats: (range?: '7d' | '30d'): Promise<{
     totalListings: number;
     activeListings: number;
