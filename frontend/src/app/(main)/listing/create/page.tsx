@@ -28,9 +28,10 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useRequireAuth } from '@/hooks/useAuth';
+import { useAuthStore } from '@/store/authStore';
 import { useCreateListing, useUploadListingImages, usePublishListing } from '@/hooks/useListings';
 import { useToast } from '@/store/uiStore';
-import { listingsApi, usersApi, getApiError } from '@/lib/api';
+import { listingsApi, usersApi, getApiError, storeTokens, authApi } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { formatPrice } from '@/lib/formatters';
@@ -1310,6 +1311,7 @@ function Step6Review({
 
 export default function CreateListingPage() {
   const { user } = useRequireAuth();
+  const { setAuth, accessToken } = useAuthStore();
 
   const router = useRouter();
   const { mutateAsync: createListing } = useCreateListing();
@@ -1457,11 +1459,20 @@ export default function CreateListingPage() {
   const handleBecomeSeller = async () => {
     setIsUpgradingSeller(true);
     try {
-      await usersApi.becomeSeller();
-      // Refresh the user profile so isSeller updates immediately
-      window.location.reload();
+      const result = await usersApi.becomeSeller();
+      // Store the new access token (which now carries the SELLER role in its JWT payload).
+      // requireSeller on the backend reads roles from the JWT, not the DB, so the old
+      // token would keep getting rejected even though the DB was updated.
+      const newToken = result.data.accessToken;
+      storeTokens({ accessToken: newToken, refreshToken: localStorage.getItem('dh_refresh_token') ?? '', expiresIn: 900 });
+      // Re-fetch the full user profile with updated roles and push it into the auth store.
+      const updatedUser = await authApi.me();
+      setAuth(updatedUser, newToken);
+      setShowBecomeSeller(false);
+      toast.success('Seller account activated', 'You can now publish listings.');
     } catch (err: unknown) {
       toast.error('Upgrade failed', getApiError(err, 'Could not activate seller account. Please try again.'));
+    } finally {
       setIsUpgradingSeller(false);
     }
   };

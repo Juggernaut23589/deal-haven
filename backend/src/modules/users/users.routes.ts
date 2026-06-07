@@ -4,6 +4,7 @@ import { requireAuth } from '../../middleware/auth';
 import { processAndSaveImage } from '../../middleware/upload';
 import { NotFoundError, ValidationError } from '../../shared/errors';
 import type { AuthenticatedRequest } from '../../shared/types';
+import { authService } from '../auth/auth.service';
 
 // ─── PATCH /users/me/profile ──────────────────────────────────────────────────
 
@@ -184,37 +185,47 @@ export async function userRoutes(fastify: FastifyInstance): Promise<void> {
       return;
     }
 
+    const shopName = user.profile?.firstName
+      ? `${user.profile.firstName}'s Shop`
+      : `${user.username}'s Shop`;
+    const shopSlug = user.username.toLowerCase().replace(/[^a-z0-9]/g, '-');
+
     if (user.roles.includes('SELLER' as never)) {
       // Already a seller — ensure sellerProfile exists (safety net)
       await prisma.sellerProfile.upsert({
         where: { userId },
-        create: {
-          userId,
-          shopName: user.profile?.firstName ? `${user.profile.firstName}'s Shop` : `${user.username}'s Shop`,
-          shopSlug: user.username.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-        },
+        create: { userId, shopName, shopSlug },
         update: {},
       });
-      void reply.status(200).send({ success: true, message: 'Already a seller' });
-      return;
+    } else {
+      // Add SELLER role and create sellerProfile atomically
+      await prisma.$transaction([
+        prisma.user.update({
+          where: { id: userId },
+          data: { roles: { push: 'SELLER' as never } },
+        }),
+        prisma.sellerProfile.upsert({
+          where: { userId },
+          create: { userId, shopName, shopSlug },
+          update: {},
+        }),
+      ]);
     }
 
-    // Add SELLER role and create sellerProfile atomically
-    await prisma.$transaction([
-      prisma.user.update({
-        where: { id: userId },
-        data: { roles: { push: 'SELLER' as never } },
-      }),
-      prisma.sellerProfile.create({
-        data: {
-          userId,
-          shopName: user.profile?.firstName ? `${user.profile.firstName}'s Shop` : `${user.username}'s Shop`,
-          shopSlug: user.username.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-        },
-      }),
-    ]);
+    // Re-fetch user with updated roles and issue a fresh access token.
+    // requireSeller reads roles from the JWT payload — the old token still
+    // contains BUYER-only roles, so the client must replace it immediately.
+    const updatedUser = await prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { id: true, email: true, username: true, roles: true },
+    });
+    const newAccessToken = authService.generateAccessToken(updatedUser);
 
-    void reply.status(200).send({ success: true, message: 'Seller account activated. You can now post listings.' });
+    void reply.status(200).send({
+      success: true,
+      message: 'Seller account activated. You can now post listings.',
+      data: { accessToken: newAccessToken },
+    });
   });
 
   // GET /users/me/notifications/preferences
