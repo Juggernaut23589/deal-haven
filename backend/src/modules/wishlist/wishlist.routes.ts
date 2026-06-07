@@ -103,6 +103,31 @@ export async function wishlistRoutes(fastify: FastifyInstance): Promise<void> {
     void reply.status(201).send({ success: true, added: true, message: 'Added to wishlist' });
   });
 
+  // PATCH /:itemId — update price-drop alert preference
+  fastify.patch('/:itemId', { preHandler: [requireAuth] }, async (req, reply) => {
+    const user = (req as AuthenticatedRequest).user;
+    const { itemId } = req.params as { itemId: string };
+    const body = req.body as { notifyOnPriceDrop?: boolean };
+
+    const item = await prisma.wishlistItem.findFirst({
+      where: { id: itemId, userId: user.id },
+    });
+    if (!item) {
+      void reply.status(404).send({ success: false, error: { code: 'NOT_FOUND', message: 'Wishlist item not found' } });
+      return;
+    }
+
+    const updated = await prisma.wishlistItem.update({
+      where: { id: itemId },
+      data: {
+        ...(body.notifyOnPriceDrop !== undefined ? { notifyOnPriceDrop: body.notifyOnPriceDrop } : {}),
+      },
+      include: { listing: { select: { id: true, title: true, price: true } } },
+    });
+
+    void reply.status(200).send({ success: true, data: updated });
+  });
+
   fastify.delete('/:listingId', { preHandler: [requireAuth] }, async (req, reply) => {
     const user = (req as AuthenticatedRequest).user;
     const { listingId } = req.params as { listingId: string };
