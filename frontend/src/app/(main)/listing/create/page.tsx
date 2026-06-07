@@ -1463,7 +1463,8 @@ export default function CreateListingPage() {
       // Store the new access token (which now carries the SELLER role in its JWT payload).
       // requireSeller on the backend reads roles from the JWT, not the DB, so the old
       // token would keep getting rejected even though the DB was updated.
-      const newToken = result.data.accessToken;
+      // Note: the axios interceptor unwraps { success, data } → so result IS the accessToken object.
+      const newToken = result.accessToken;
       storeTokens({ accessToken: newToken, refreshToken: localStorage.getItem('dh_refresh_token') ?? '', expiresIn: 900 });
       // Re-fetch the full user profile with updated roles and push it into the auth store.
       const updatedUser = await authApi.me();
