@@ -298,7 +298,7 @@ export class OrdersService {
       await tx.order.update({
         where: { id: orderId },
         data: {
-          status: OrderStatus.DELIVERED,
+          status: OrderStatus.COMPLETED,
           deliveredAt: new Date(),
         },
       });

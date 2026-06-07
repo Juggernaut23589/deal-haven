@@ -22,7 +22,7 @@ export class ReviewsService {
       where: {
         id: input.orderId,
         buyerId: reviewerId,
-        status: OrderStatus.COMPLETED,
+        status: { in: [OrderStatus.COMPLETED, OrderStatus.DELIVERED] },
       },
       select: {
         id: true,
