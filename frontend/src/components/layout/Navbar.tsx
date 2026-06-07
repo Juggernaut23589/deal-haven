@@ -14,8 +14,7 @@ import {
   ChevronDown,
   Menu,
   X,
-  Sun,
-  Moon,
+
   LogOut,
   User,
   LayoutDashboard,
@@ -27,7 +26,6 @@ import {
   MapPin,
   Grid3X3,
 } from 'lucide-react';
-import { useTheme } from 'next-themes';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -353,37 +351,6 @@ function UserMenu() {
   );
 }
 
-// ─── Dark Mode Toggle ─────────────────────────────────────────────────────────
-
-function ThemeToggle() {
-  const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
-
-  React.useEffect(() => setMounted(true), []);
-  if (!mounted) return <div className="h-9 w-9" aria-hidden="true" />;
-
-  const isDark = resolvedTheme === 'dark';
-
-  return (
-    <button
-      onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      className={cn(
-        'flex h-9 w-9 items-center justify-center rounded-lg',
-        'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800',
-        'hover:text-slate-700 dark:hover:text-slate-300',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-        'transition-colors duration-150'
-      )}
-      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-    >
-      {isDark ? (
-        <Sun className="h-4.5 w-4.5" aria-hidden="true" />
-      ) : (
-        <Moon className="h-4.5 w-4.5" aria-hidden="true" />
-      )}
-    </button>
-  );
-}
 
 // ─── Mobile Menu Drawer ───────────────────────────────────────────────────────
 
@@ -677,9 +644,6 @@ export function Navbar() {
 
             {/* Right side actions */}
             <div className="hidden md:flex items-center gap-1 ml-auto">
-              {/* Theme toggle */}
-              <ThemeToggle />
-
               {isAuthenticated && user ? (
                 <>
                   {/* Messages */}
