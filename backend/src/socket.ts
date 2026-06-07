@@ -87,8 +87,8 @@ export function initSocket(httpServer: HttpServer | HttpsServer): SocketIOServer
             data: { updatedAt: new Date() },
           });
 
-          // Emit to all in the conversation room
-          io.to(`conv:${data.conversationId}`).emit('message_received', message);
+          // Emit to all in the conversation room (add body alias for frontend compat)
+          io.to(`conv:${data.conversationId}`).emit('message_received', { ...message, body: message.content });
 
           // Notify the other participant via their personal room
           const others = await prisma.conversationParticipant.findMany({

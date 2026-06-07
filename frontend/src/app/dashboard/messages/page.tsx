@@ -48,8 +48,8 @@ function ConversationList({
   return (
     <div className="divide-y divide-slate-100 dark:divide-slate-800">
       {conversations.map((conv) => {
-        const other = conv.seller?.id === conv.buyerId ? conv.buyer : conv.seller;
-        const otherName = (other as { profile?: { displayName?: string }; username?: string })?.profile?.displayName ?? (other as { username?: string })?.username ?? 'User';
+        const other = conv.otherUser;
+        const otherName = other?.profile?.displayName ?? other?.username ?? 'User';
         const hasUnread = (conv.unreadCount ?? 0) > 0;
         return (
           <button
@@ -61,7 +61,7 @@ function ConversationList({
               hasUnread && activeId !== conv.id && 'bg-primary/5 dark:bg-primary/10'
             )}
           >
-            <Avatar src={(other as { profile?: { avatarUrl?: string } })?.profile?.avatarUrl} name={otherName} size="md" className="shrink-0 mt-0.5" />
+            <Avatar src={other?.profile?.avatarUrl ?? undefined} name={otherName} size="md" className="shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-1">
                 <p className={cn('text-sm truncate', hasUnread ? 'font-bold text-slate-900 dark:text-white' : 'font-medium text-slate-700 dark:text-slate-300')}>
@@ -106,10 +106,8 @@ function MessageThread({
   const typingTimeout = React.useRef<ReturnType<typeof setTimeout>>();
   const token = useAuthStore((s) => s.accessToken);
 
-  const other = (conversation as { seller?: { id?: string }; buyerId?: string; buyer?: unknown }).seller?.id === (conversation as { buyerId?: string }).buyerId
-    ? (conversation as { buyer?: { profile?: { displayName?: string; avatarUrl?: string }; username?: string } }).buyer
-    : (conversation as { seller?: { profile?: { displayName?: string; avatarUrl?: string }; username?: string } }).seller;
-  const otherName = (other as { profile?: { displayName?: string }; username?: string })?.profile?.displayName ?? (other as { username?: string })?.username ?? 'User';
+  const other = conversation.otherUser;
+  const otherName = other?.profile?.displayName ?? other?.username ?? 'User';
 
   React.useEffect(() => {
     setIsLoading(true);
@@ -181,13 +179,13 @@ function MessageThread({
         <button onClick={onBack} className="md:hidden p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Back">
           <ArrowLeft className="h-5 w-5 text-slate-500" />
         </button>
-        <Avatar src={(other as { profile?: { avatarUrl?: string } })?.profile?.avatarUrl} name={otherName} size="sm" />
+        <Avatar src={other?.profile?.avatarUrl ?? undefined} name={otherName} size="sm" />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">{otherName}</p>
           {conversation.listing && <p className="text-xs text-slate-400 truncate">Re: {conversation.listing.title}</p>}
         </div>
         {conversation.listing && (
-          <Link href={`/listing/${conversation.listing.id}`} className="shrink-0">
+          <Link href={`/listing/${conversation.listing.id}`}>
             <Button variant="ghost" size="sm" leftIcon={<Package className="h-3.5 w-3.5" />}>View listing</Button>
           </Link>
         )}
@@ -211,14 +209,15 @@ function MessageThread({
         ) : (
           messages.map((msg) => {
             const isOwn = msg.senderId === currentUserId;
+            const text = msg.body ?? msg.content;
             return (
               <div key={msg.id} className={cn('flex gap-2 items-end', isOwn && 'flex-row-reverse')}>
-                {!isOwn && <Avatar src={(other as { profile?: { avatarUrl?: string } })?.profile?.avatarUrl} name={otherName} size="xs" className="shrink-0" />}
+                {!isOwn && <Avatar src={other?.profile?.avatarUrl ?? undefined} name={otherName} size="xs" className="shrink-0" />}
                 <div className={cn(
                   'max-w-[75%] rounded-2xl px-4 py-2.5 text-sm',
                   isOwn ? 'bg-primary text-white rounded-br-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-bl-sm'
                 )}>
-                  <p className="whitespace-pre-wrap break-words">{msg.body}</p>
+                  <p className="whitespace-pre-wrap break-words">{text}</p>
                   <p className={cn('text-[10px] mt-1', isOwn ? 'text-white/70 text-right' : 'text-slate-400')}>
                     {formatPostedAgo(msg.createdAt)}
                   </p>
@@ -229,7 +228,7 @@ function MessageThread({
         )}
         {typingUsers.length > 0 && (
           <div className="flex gap-2 items-end">
-            <Avatar src={(other as { profile?: { avatarUrl?: string } })?.profile?.avatarUrl} name={otherName} size="xs" className="shrink-0" />
+            <Avatar src={other?.profile?.avatarUrl ?? undefined} name={otherName} size="xs" className="shrink-0" />
             <div className="bg-slate-100 dark:bg-slate-800 rounded-2xl rounded-bl-sm px-4 py-3 flex gap-1">
               {[0, 1, 2].map((i) => <span key={i} className="h-1.5 w-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />)}
             </div>
@@ -279,6 +278,7 @@ function MessagesInner() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [activeConversation, setActiveConversation] = React.useState<Conversation | null>(null);
   const [showThread, setShowThread] = React.useState(false);
+  const [isCreatingConversation, setIsCreatingConversation] = React.useState(false);
 
   React.useEffect(() => {
     messagesApi.getConversations(1)
@@ -287,18 +287,13 @@ function MessagesInner() {
       .finally(() => setIsLoading(false));
   }, []);
 
-  const [isCreatingConversation, setIsCreatingConversation] = React.useState(false);
-
   React.useEffect(() => {
     const listingId = searchParams.get('listing');
     const sellerId = searchParams.get('seller');
     const quick = searchParams.get('quick');
     if (!listingId) return;
-
-    // Wait for conversations to load before deciding whether to create
     if (isLoading) return;
 
-    // Check if a conversation for this listing already exists
     const existing = conversations.find((c) => c.listing?.id === listingId);
     if (existing) {
       setActiveConversation(existing);
@@ -306,7 +301,6 @@ function MessagesInner() {
       return;
     }
 
-    // No existing conversation — create one if we have the sellerId
     if (!sellerId || isCreatingConversation) return;
     setIsCreatingConversation(true);
     messagesApi.getOrCreateConversation(listingId, sellerId)
@@ -314,9 +308,7 @@ function MessagesInner() {
         setConversations((prev) => [conv, ...prev.filter((c) => c.id !== conv.id)]);
         setActiveConversation(conv);
         setShowThread(true);
-        // Auto-send quick message if requested
         if (quick === 'available') {
-          // Short delay so the thread renders first
           setTimeout(() => {
             messagesApi.sendMessage(conv.id, 'Is this still available?').catch(() => {});
           }, 400);

@@ -379,26 +379,24 @@ export interface Message {
   conversationId: string;
   senderId: string;
   sender: Pick<PublicUser, 'id' | 'username' | 'profile'>;
+  /** `body` is an alias for `content` added by the backend for frontend compatibility */
   body: string;
+  content: string;
   attachments: MessageAttachment[];
   isRead: boolean;
   readAt: string | null;
-  offerId: string | null;
   createdAt: string;
-  updatedAt: string;
 }
 
 export interface Conversation {
   id: string;
-  listingId: string;
-  listing: Pick<ListingCard, 'id' | 'title' | 'coverImage' | 'price' | 'status' | 'slug'>;
-  buyerId: string;
-  buyer: Pick<PublicUser, 'id' | 'username' | 'profile'>;
-  sellerId: string;
-  seller: Pick<PublicUser, 'id' | 'username' | 'profile'>;
-  lastMessage: Pick<Message, 'id' | 'body' | 'createdAt' | 'senderId'> | null;
+  listingId: string | null;
+  listing: { id: string; title: string; price: number | null; status: string; images: { thumbnailUrl: string | null }[] } | null;
+  /** The other participant (not the current user) */
+  otherUser: Pick<PublicUser, 'id' | 'username' | 'profile'> | null;
+  participants: Pick<PublicUser, 'id' | 'username' | 'profile'>[];
+  lastMessage: { id: string; body: string; senderId: string; createdAt: string } | null;
   unreadCount: number;
-  isArchived: boolean;
   createdAt: string;
   updatedAt: string;
 }
