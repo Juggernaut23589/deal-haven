@@ -146,10 +146,12 @@ export class ListingsController {
       sortBy: query.sort,
     };
 
+    const viewer = (request as Partial<import('../../shared/types').AuthenticatedRequest>).user;
     const result = await listingsService.searchListings(
       filters,
       query.page,
       query.limit,
+      viewer?.id,
     );
 
     // Shape into SearchResults: { listings, meta, facets }

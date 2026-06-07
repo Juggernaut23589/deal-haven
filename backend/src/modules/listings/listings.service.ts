@@ -468,6 +468,15 @@ export class ListingsService {
     // Async increment view count
     this.incrementViewCount(id, viewerUserId).catch(() => null);
 
+    // Overlay viewer-specific isSaved (not cached — per-user)
+    if (viewerUserId) {
+      const saved = await prisma.wishlistItem.findFirst({
+        where: { userId: viewerUserId, listingId: id },
+        select: { id: true },
+      });
+      return { ...formatted, isSaved: !!saved };
+    }
+
     return formatted;
   }
 
@@ -588,6 +597,7 @@ export class ListingsService {
     filters: SearchFilters,
     page: number,
     limit: number,
+    viewerUserId?: string,
   ): Promise<PaginatedResponse<unknown>> {
     const { offset, limit: normalizedLimit, page: normalizedPage } = paginate(page, limit);
 
@@ -671,7 +681,25 @@ export class ListingsService {
       prisma.listing.count({ where }),
     ]);
 
-    return buildPaginatedResponse(data.map(formatListingCard), total, normalizedPage, normalizedLimit);
+    const formatted = data.map(formatListingCard);
+
+    // Overlay isSaved per viewer (batch query)
+    if (viewerUserId && formatted.length > 0) {
+      const listingIds = formatted.map((l) => (l as { id: string }).id);
+      const saved = await prisma.wishlistItem.findMany({
+        where: { userId: viewerUserId, listingId: { in: listingIds } },
+        select: { listingId: true },
+      });
+      const savedSet = new Set(saved.map((s) => s.listingId));
+      return buildPaginatedResponse(
+        formatted.map((l) => ({ ...l, isSaved: savedSet.has((l as { id: string }).id) })),
+        total,
+        normalizedPage,
+        normalizedLimit,
+      );
+    }
+
+    return buildPaginatedResponse(formatted, total, normalizedPage, normalizedLimit);
   }
 
   async getSellerListings(

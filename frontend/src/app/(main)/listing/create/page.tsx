@@ -1413,6 +1413,16 @@ export default function CreateListingPage() {
       offersEnabled: pricing.offersEnabled || pricing.type === 'make_offer',
       offerAutoAcceptThreshold: pricing.offerAutoAccept ? Number(pricing.offerAutoAccept) : undefined,
       offerAutoDeclineThreshold: pricing.offerAutoDecline ? Number(pricing.offerAutoDecline) : undefined,
+      ...(pricing.type === 'auction' && pricing.auctionStartPrice
+        ? {
+            auction: {
+              startPrice: Number(pricing.auctionStartPrice),
+              reservePrice: pricing.auctionReservePrice ? Number(pricing.auctionReservePrice) : undefined,
+              buyItNowPrice: pricing.auctionBuyItNow ? Number(pricing.auctionBuyItNow) : undefined,
+              durationDays: pricing.auctionDurationDays,
+            },
+          }
+        : {}),
       location: locationLga ? `${locationLga}, ${locationState}` : locationState,
       tags: [],
       imageIds: images.filter((i) => i.id !== null).map((i) => i.id as string),

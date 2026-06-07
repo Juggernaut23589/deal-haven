@@ -114,6 +114,24 @@ export async function buildApp(options?: { https?: { key: Buffer; cert: Buffer }
     }
   });
 
+  // Allow POST/PUT/PATCH requests with empty body + Content-Type: application/json
+  // (e.g. /listings/:id/publish, /listings/:id/unpublish — no body needed)
+  fastify.addContentTypeParser(
+    'application/json',
+    { parseAs: 'string' },
+    (_req, body, done) => {
+      if (!body || (body as string).trim() === '') {
+        done(null, {});
+        return;
+      }
+      try {
+        done(null, JSON.parse(body as string));
+      } catch (err) {
+        done(err as Error, undefined);
+      }
+    },
+  );
+
   // Error handler MUST be registered before routes so child plugins inherit it
   fastify.setErrorHandler(errorHandler);
 
