@@ -4,7 +4,6 @@ import * as React from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
 import { ArrowLeft, Mail } from 'lucide-react';
-import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
 import { authApi } from '@/lib/api';
@@ -33,7 +32,6 @@ export default function ForgotPasswordPage() {
 
   return (
     <>
-      <Navbar />
       <main className="flex min-h-[70vh] items-center justify-center px-4 py-16">
         <div className="w-full max-w-sm">
           <Link

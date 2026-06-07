@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRequireAuth } from '@/hooks/useAuth';
-import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -51,7 +50,6 @@ export default function SellerEarningsPage() {
 
   return (
     <div className="min-h-screen bg-background dark:bg-background-dark">
-      <Navbar />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex gap-8 items-start">
           <SellerSidebar />

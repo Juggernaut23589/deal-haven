@@ -1,11 +1,9 @@
 import Link from 'next/link';
-import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 
 export default function NotFound() {
   return (
     <>
-      <Navbar />
       <main className="flex min-h-[70vh] items-center justify-center px-4">
         <div className="text-center max-w-sm">
           <p className="text-8xl font-bold text-primary/20 dark:text-primary/10 mb-4 font-mono">404</p>

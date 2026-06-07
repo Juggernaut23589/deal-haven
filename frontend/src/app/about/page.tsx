@@ -1,10 +1,8 @@
-import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 
 export default function AboutPage() {
   return (
     <>
-      <Navbar />
       <main className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-16">
         <h1 className="text-4xl font-bold font-display text-slate-900 dark:text-slate-100 mb-6">About Ashimarket</h1>
         <div className="prose dark:prose-invert max-w-none">

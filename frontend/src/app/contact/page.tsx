@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
 import { Mail, MessageSquare, HelpCircle } from 'lucide-react';
@@ -29,7 +28,6 @@ export default function ContactPage() {
 
   return (
     <>
-      <Navbar />
       <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16">
         <h1 className="text-4xl font-bold font-display text-slate-900 dark:text-slate-100 mb-4">Contact Us</h1>
         <p className="text-lg text-slate-500 dark:text-slate-400 mb-12">

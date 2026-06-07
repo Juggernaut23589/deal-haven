@@ -9,7 +9,6 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRequireAuth } from '@/hooks/useAuth';
-import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -110,7 +109,6 @@ export default function BuyerOffersPage() {
 
   return (
     <>
-      <Navbar />
       <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-sm mb-6">

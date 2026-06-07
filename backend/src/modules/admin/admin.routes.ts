@@ -246,6 +246,30 @@ export async function adminRoutes(fastify: FastifyInstance): Promise<void> {
     });
   });
 
+  // ── POST /admin/categories ─────────────────────────────────────────────────
+  fastify.post('/categories', { preHandler: adminGuard }, async (req: FastifyRequest, reply: FastifyReply) => {
+    const { name, slug, parentId, iconUrl, sortOrder = 0 } = req.body as {
+      name: string; slug: string; parentId?: string; iconUrl?: string; sortOrder?: number;
+    };
+    if (!name?.trim() || !slug?.trim()) {
+      throw new ValidationError('name and slug are required');
+    }
+    const existing = await prisma.category.findUnique({ where: { slug: slug.trim().toLowerCase() } });
+    if (existing) throw new ValidationError('A category with this slug already exists');
+
+    const category = await prisma.category.create({
+      data: {
+        name: name.trim(),
+        slug: slug.trim().toLowerCase(),
+        ...(parentId ? { parentId } : {}),
+        ...(iconUrl ? { iconUrl } : {}),
+        sortOrder,
+        isActive: true,
+      },
+    });
+    void reply.status(201).send({ success: true, data: category });
+  });
+
   // ── GET /admin/categories ──────────────────────────────────────────────────
   fastify.get('/categories', { preHandler: adminGuard }, async (_req: FastifyRequest, reply: FastifyReply) => {
     const categories = await prisma.category.findMany({

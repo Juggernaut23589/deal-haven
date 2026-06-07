@@ -9,7 +9,6 @@ import {
   ShoppingBag, Layers, Percent, Settings, ChevronRight, ShieldCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Navbar } from '@/components/layout/Navbar';
 import { useRequireAuth } from '@/hooks/useAuth';
 
 const NAV_ITEMS = [
@@ -45,7 +44,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <>
-      <Navbar />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center gap-2 text-sm mb-6 text-slate-500">
           <ShieldCheck className="h-4 w-4 text-primary" />

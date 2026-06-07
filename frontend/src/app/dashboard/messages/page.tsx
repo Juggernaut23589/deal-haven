@@ -7,7 +7,6 @@ import {
   MessageSquare, ChevronRight, Send, Loader2, ArrowLeft, Package,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { useRequireAuth } from '@/hooks/useAuth';
 import { Avatar } from '@/components/ui/Avatar';
@@ -323,7 +322,6 @@ function MessagesInner() {
 
   return (
     <>
-      <Navbar />
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm mb-6">
           <Link href="/dashboard" className="text-slate-500 hover:text-primary transition-colors">Dashboard</Link>

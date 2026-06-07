@@ -1,4 +1,3 @@
-import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { ShieldCheck, AlertTriangle, MapPin, MessageSquare } from 'lucide-react';
 
@@ -48,7 +47,6 @@ const TIPS = [
 export default function SafetyPage() {
   return (
     <>
-      <Navbar />
       <main className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-16">
         <h1 className="text-4xl font-bold font-display text-slate-900 dark:text-slate-100 mb-4">Safety Tips</h1>
         <p className="text-lg text-slate-500 dark:text-slate-400 mb-12">

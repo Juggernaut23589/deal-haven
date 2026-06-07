@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { motion, useInView } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { ListingGrid } from '@/components/listings/ListingGrid';
 import { useListings } from '@/hooks/useListings';
@@ -294,7 +293,6 @@ export default function CategoryPage() {
   if (!category) {
     return (
       <>
-        <Navbar />
         <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-24 text-center">
           <p className="text-6xl mb-4" aria-hidden="true">
             {'\u{1F50D}'}
@@ -316,7 +314,6 @@ export default function CategoryPage() {
 
   return (
     <>
-      <Navbar />
 
       <main className="min-h-screen">
         {/* ── Hero banner with full-bleed photo ──────────────────────────── */}

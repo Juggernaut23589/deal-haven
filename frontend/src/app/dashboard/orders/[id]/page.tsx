@@ -9,7 +9,6 @@ import {
   AlertCircle, MapPin, Star, ShieldCheck, ExternalLink, MessageSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { useRequireAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
@@ -107,7 +106,6 @@ export default function BuyerOrderDetailPage() {
   if (isLoading) {
     return (
       <>
-        <Navbar />
         <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8 space-y-4">
           <Skeleton className="h-8 w-64 rounded" />
           <Skeleton className="h-32 rounded-xl" />
@@ -121,7 +119,6 @@ export default function BuyerOrderDetailPage() {
   if (!order) {
     return (
       <>
-        <Navbar />
         <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-20 text-center">
           <Package className="h-16 w-16 text-slate-300 mx-auto mb-4" />
           <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">Order not found</h1>
@@ -142,7 +139,6 @@ export default function BuyerOrderDetailPage() {
 
   return (
     <>
-      <Navbar />
       <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
         <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm mb-6 flex-wrap">
           <Link href="/dashboard" className="text-slate-500 hover:text-primary transition-colors">Dashboard</Link>

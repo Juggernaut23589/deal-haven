@@ -9,7 +9,6 @@ import {
   CheckCircle2, Clock, XCircle, Tag,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { useRequireAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
@@ -88,7 +87,6 @@ export default function SellerListingsPage() {
 
   return (
     <>
-      <Navbar />
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm mb-6">

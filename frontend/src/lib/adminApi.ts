@@ -6,6 +6,9 @@ const get = <T>(url: string, params?: Record<string, unknown>): Promise<T> =>
 const patch = <T>(url: string, data?: unknown): Promise<T> =>
   apiClient.patch(url, data).then((r) => r.data);
 
+const post = <T>(url: string, data?: unknown): Promise<T> =>
+  apiClient.post(url, data).then((r) => r.data);
+
 export const adminApi = {
   getStats: () => get<{ data: { users: number; listings: number; orders: number; disputes: number; openDisputes: number } }>('/admin/stats'),
 
@@ -41,4 +44,7 @@ export const adminApi = {
 
   updateCategory: (id: string, data: { isActive?: boolean; sortOrder?: number }) =>
     patch(`/admin/categories/${id}`, data),
+
+  createCategory: (data: { name: string; slug: string; parentId?: string; iconUrl?: string; sortOrder?: number }) =>
+    post<{ data: unknown }>('/admin/categories', data),
 };

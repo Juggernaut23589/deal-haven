@@ -8,7 +8,6 @@ import {
   Star, TrendingDown, ShieldCheck, CheckCheck, Trash2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { useRequireAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
@@ -91,7 +90,6 @@ export default function NotificationsPage() {
 
   return (
     <>
-      <Navbar />
       <main className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-8">
         <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm mb-6">
           <Link href="/dashboard" className="text-slate-500 hover:text-primary transition-colors">Dashboard</Link>

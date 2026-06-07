@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { ListingGrid } from '@/components/listings/ListingGrid';
 import { useAuth } from '@/hooks/useAuth';
@@ -117,7 +116,6 @@ export default function ShopPage() {
 
   return (
     <>
-      <Navbar />
       <main className="min-h-screen">
         {/* Banner */}
         <section className="relative">

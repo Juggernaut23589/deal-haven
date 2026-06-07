@@ -31,7 +31,6 @@ import {
   PawPrint,
   Palette,
 } from 'lucide-react';
-import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils';
@@ -642,7 +641,6 @@ import { AnimatedHomeSections } from './AnimatedHomeSections';
 export default function HomePage() {
   return (
     <>
-      <Navbar />
 
       <main id="main-content">
         {/* ── Hero ──────────────────────────────────────────────────────── */}
