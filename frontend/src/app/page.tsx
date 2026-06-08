@@ -298,44 +298,45 @@ function HeroSearchBar() {
     <form
       action="/search"
       method="GET"
-      className="flex w-full max-w-2xl shadow-xl rounded-lg overflow-hidden"
+      className="flex flex-col sm:flex-row w-full max-w-2xl shadow-xl rounded-lg overflow-hidden gap-px sm:gap-0"
       role="search"
       aria-label="Search all listings"
     >
-      {/* Location selector */}
-      <div className="relative flex items-center border-r border-slate-200 bg-white">
-        <select
-          name="location"
-          className="h-13 appearance-none bg-white pl-4 pr-8 text-sm font-medium text-slate-700 focus:outline-none cursor-pointer"
-          aria-label="Select location"
-          style={{ height: '52px' }}
+      {/* Row 1 on mobile: location + button; row 1 on desktop: all inline */}
+      <div className="flex flex-1">
+        {/* Location selector */}
+        <div className="relative flex items-center border-r border-slate-200 bg-white shrink-0">
+          <select
+            name="location"
+            className="appearance-none bg-white pl-3 pr-7 text-sm font-medium text-slate-700 focus:outline-none cursor-pointer h-12 sm:h-[52px]"
+            aria-label="Select location"
+          >
+            <option value="">All Nigeria</option>
+            {NIGERIA_STATES.map((s) => (
+              <option key={s.name} value={s.name}>{s.name}</option>
+            ))}
+          </select>
+          <ChevronRight className="pointer-events-none absolute right-1.5 h-3.5 w-3.5 rotate-90 text-slate-400" />
+        </div>
+
+        {/* Search input */}
+        <input
+          id="hero-search"
+          name="q"
+          type="search"
+          placeholder="I am looking for..."
+          className="flex-1 bg-white px-4 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none h-12 sm:h-[52px] min-w-0"
+        />
+
+        {/* Search button */}
+        <button
+          type="submit"
+          className="flex items-center justify-center bg-accent px-5 text-white hover:bg-amber-500 transition-colors h-12 sm:h-[52px] shrink-0"
+          aria-label="Search listings"
         >
-          <option value="">All Nigeria</option>
-          {NIGERIA_STATES.map((s) => (
-            <option key={s.name} value={s.name}>{s.name}</option>
-          ))}
-        </select>
-        <ChevronRight className="pointer-events-none absolute right-2 h-3.5 w-3.5 rotate-90 text-slate-400" />
+          <Search className="h-5 w-5" />
+        </button>
       </div>
-
-      {/* Search input */}
-      <input
-        id="hero-search"
-        name="q"
-        type="search"
-        placeholder="I am looking for..."
-        className="h-13 flex-1 bg-white px-4 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
-        style={{ height: '52px' }}
-      />
-
-      {/* Search button */}
-      <button
-        type="submit"
-        className="flex items-center justify-center bg-accent px-5 text-white hover:bg-amber-500 transition-colors"
-        aria-label="Search listings"
-      >
-        <Search className="h-5 w-5" />
-      </button>
     </form>
   );
 }

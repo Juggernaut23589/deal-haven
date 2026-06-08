@@ -1,6 +1,6 @@
 'use client';
 
-import { SellerSidebar } from '@/components/seller/SellerSidebar';
+import { SellerSidebar, SellerMobileNav } from '@/components/seller/SellerSidebar';
 import * as React from 'react';
 import {
   TrendingUp, Eye, ShoppingBag, Star, BarChart3, Package, RefreshCw,
@@ -82,6 +82,7 @@ export default function SellerAnalyticsPage() {
         <div className="flex gap-8 items-start">
           <SellerSidebar />
           <main className="flex-1 min-w-0 space-y-6">
+            <SellerMobileNav />
             <div className="flex items-center justify-between flex-wrap gap-3">
               <h1 className="text-2xl font-bold font-display text-slate-900 dark:text-slate-100">Analytics</h1>
               <div className="flex items-center gap-2">

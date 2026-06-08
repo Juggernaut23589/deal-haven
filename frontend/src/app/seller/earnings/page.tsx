@@ -1,6 +1,6 @@
 'use client';
 
-import { SellerSidebar } from '@/components/seller/SellerSidebar';
+import { SellerSidebar, SellerMobileNav } from '@/components/seller/SellerSidebar';
 import * as React from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
@@ -54,6 +54,7 @@ export default function SellerEarningsPage() {
         <div className="flex gap-8 items-start">
           <SellerSidebar />
           <main className="flex-1 min-w-0 space-y-6">
+            <SellerMobileNav />
             <h1 className="text-2xl font-bold font-display text-slate-900 dark:text-slate-100">Earnings</h1>
 
             <div className="flex items-start gap-3 rounded-xl bg-primary/5 border border-primary/20 p-4">

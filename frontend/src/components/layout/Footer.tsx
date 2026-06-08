@@ -106,7 +106,7 @@ function NewsletterForm() {
           You&apos;re subscribed. Welcome to Ashimarket!
         </p>
       ) : (
-        <form onSubmit={handleSubmit} className="flex gap-2" noValidate>
+        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2" noValidate>
           <label htmlFor="footer-email" className="sr-only">
             Email address
           </label>

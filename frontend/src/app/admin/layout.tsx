@@ -54,9 +54,37 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </span>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6">
-          {/* Sidebar */}
-          <nav className="space-y-1 lg:sticky lg:top-20 lg:self-start" aria-label="Admin navigation">
+        {/* Mobile nav — horizontal scrollable tabs */}
+        <nav className="lg:hidden -mx-4 px-4 sm:-mx-6 sm:px-6 mb-6 overflow-x-auto scrollbar-hide" aria-label="Admin navigation">
+          <ul className="flex gap-1.5 min-w-max pb-2" role="list">
+            {NAV_ITEMS.map((item) => {
+              const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+              const Icon = item.icon;
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href as Route}
+                    className={cn(
+                      'flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-medium whitespace-nowrap',
+                      'border border-slate-200 dark:border-slate-700',
+                      'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800',
+                      'transition-colors duration-100',
+                      active && 'bg-primary border-primary text-white'
+                    )}
+                    aria-current={active ? 'page' : undefined}
+                  >
+                    <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    {item.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+
+        <div className="lg:grid lg:grid-cols-[220px_1fr] lg:gap-6">
+          {/* Sidebar — desktop only */}
+          <nav className="hidden lg:block space-y-1 lg:sticky lg:top-20 lg:self-start" aria-label="Admin navigation">
             {NAV_ITEMS.map((item) => {
               const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
               const Icon = item.icon;

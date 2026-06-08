@@ -264,7 +264,8 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div className="rounded-xl overflow-hidden bg-white dark:bg-surface-dark border border-slate-100 dark:border-slate-800 shadow-card">
-                  <table className="w-full text-sm">
+                  <div className="overflow-x-auto">
+                  <table className="w-full text-sm min-w-[480px]">
                     <thead>
                       <tr className="border-b border-slate-100 dark:border-slate-800">
                         {['Order', 'Item', 'Status', 'Total', ''].map(h => (
@@ -305,6 +306,7 @@ export default function DashboardPage() {
                       })}
                     </tbody>
                   </table>
+                  </div>
                 </div>
               )}
             </section>

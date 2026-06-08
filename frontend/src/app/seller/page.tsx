@@ -1,6 +1,6 @@
 'use client';
 
-import { SellerSidebar } from '@/components/seller/SellerSidebar';
+import { SellerSidebar, SellerMobileNav } from '@/components/seller/SellerSidebar';
 import * as React from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
@@ -101,6 +101,7 @@ export default function SellerDashboardPage() {
           <SellerSidebar />
 
           <main className="flex-1 min-w-0 space-y-6 sm:space-y-8">
+            <SellerMobileNav />
             {/* Header */}
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
@@ -172,7 +173,8 @@ export default function SellerDashboardPage() {
                 </div>
               ) : (
                 <div className="rounded-xl overflow-hidden bg-white dark:bg-surface-dark border border-slate-100 dark:border-slate-800 shadow-card">
-                  <table className="w-full text-sm">
+                  <div className="overflow-x-auto">
+                  <table className="w-full text-sm min-w-[600px]">
                     <thead>
                       <tr className="border-b border-slate-100 dark:border-slate-800">
                         {['Order', 'Item', 'Buyer', 'Status', 'Total', ''].map(h => (
@@ -211,6 +213,7 @@ export default function SellerDashboardPage() {
                       })}
                     </tbody>
                   </table>
+                  </div>
                 </div>
               )}
             </section>

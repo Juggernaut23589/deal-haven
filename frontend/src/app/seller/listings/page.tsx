@@ -1,5 +1,6 @@
 'use client';
 
+import { SellerMobileNav } from '@/components/seller/SellerSidebar';
 import * as React from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
@@ -88,6 +89,7 @@ export default function SellerListingsPage() {
   return (
     <>
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <SellerMobileNav />
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm mb-6">
           <Link href="/seller" className="text-slate-500 hover:text-primary transition-colors">Seller Dashboard</Link>

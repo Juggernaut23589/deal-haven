@@ -1,6 +1,6 @@
 'use client';
 
-import { SellerSidebar } from '@/components/seller/SellerSidebar';
+import { SellerSidebar, SellerMobileNav } from '@/components/seller/SellerSidebar';
 import * as React from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
@@ -90,6 +90,7 @@ export default function SellerStorefrontPage() {
         <div className="flex gap-8 items-start">
           <SellerSidebar />
           <main className="flex-1 min-w-0 space-y-6 max-w-2xl">
+            <SellerMobileNav />
             <div className="flex items-center justify-between">
               <h1 className="text-2xl font-bold font-display text-slate-900 dark:text-slate-100">Storefront</h1>
               {user && (
