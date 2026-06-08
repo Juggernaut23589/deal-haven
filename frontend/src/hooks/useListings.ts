@@ -210,7 +210,10 @@ export function usePublishListing(
   return useMutation<Listing, Error, string>({
     mutationFn: (listingId) => listingsApi.publish(listingId),
     onSuccess: (data) => {
-      queryClient.setQueryData(listingKeys.detail(data.id), data);
+      // Invalidate the detail cache so the next fetch gets the full ListingDetail shape.
+      // Do NOT setQueryData here — the publish endpoint returns a card (partial), not a
+      // full detail, so caching it here causes the detail page to crash on missing fields.
+      queryClient.invalidateQueries({ queryKey: listingKeys.detail(data.id) });
       queryClient.invalidateQueries({ queryKey: listingKeys.myListings() });
       toast.success('Listing published!', `"${data.title}" is now live.`);
     },
