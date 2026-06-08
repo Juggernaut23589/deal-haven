@@ -153,7 +153,20 @@ export function errorHandler(
   }
 
   // ── Unexpected errors ─────────────────────────────────────────────────────
-  logger.error({ correlationId, path: request.url, error }, 'Unexpected error');
+  const cause = (error as { cause?: unknown }).cause;
+  logger.error(
+    {
+      correlationId,
+      path: request.url,
+      error: {
+        name: error.name,
+        message: error.message,
+        cause: cause instanceof Error ? { name: cause.name, message: cause.message } : cause,
+        stack: error.stack?.split('\n').slice(0, 5).join('\n'),
+      },
+    },
+    'Unexpected error',
+  );
   void reply.status(500).send({
     success: false,
     error: {
