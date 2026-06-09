@@ -2,12 +2,13 @@
 
 import { SellerMobileNav, SellerSidebar } from '@/components/seller/SellerSidebar';
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import type { Route } from 'next';
 import { useSearchParams } from 'next/navigation';
 import {
   Plus, Search, MoreHorizontal, Eye, Edit, Pause, Play,
-  Trash2, RefreshCw, ChevronRight, Package, AlertCircle,
+  Trash2, RefreshCw, ChevronRight, Package,
   CheckCircle2, Clock, XCircle, Tag,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -77,16 +78,25 @@ export default function SellerListingsPage() {
   }, [listings, search]);
 
   const [confirmDelete, setConfirmDelete] = React.useState<{ id: string; title: string } | null>(null);
+  const [menuPos, setMenuPos] = React.useState<{ top: number; right: number } | null>(null);
 
-  // Close action menu on outside click
+  const openMenuForListing = (id: string, btnEl: HTMLButtonElement) => {
+    if (openMenu === id) { setOpenMenu(null); setMenuPos(null); return; }
+    const rect = btnEl.getBoundingClientRect();
+    setMenuPos({ top: rect.bottom + window.scrollY + 4, right: window.innerWidth - rect.right });
+    setOpenMenu(id);
+  };
+
+  // Close menu on outside click or scroll
   React.useEffect(() => {
     if (!openMenu) return;
-    const handler = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (!target.closest('[data-listing-menu]')) setOpenMenu(null);
+    const close = () => { setOpenMenu(null); setMenuPos(null); };
+    document.addEventListener('mousedown', close);
+    window.addEventListener('scroll', close, true);
+    return () => {
+      document.removeEventListener('mousedown', close);
+      window.removeEventListener('scroll', close, true);
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
   }, [openMenu]);
 
   const handleAction = async (id: string, action: 'publish' | 'unpublish' | 'delete' | 'renew', title?: string) => {
@@ -252,44 +262,17 @@ export default function SellerListingsPage() {
                     </span>
 
                     {/* Actions */}
-                    <div className="relative shrink-0" data-listing-menu>
+                    <div className="shrink-0">
                       <button
                         disabled={isActioning}
-                        onClick={() => setOpenMenu((prev) => prev === listing.id ? null : listing.id)}
+                        onClick={(e) => openMenuForListing(listing.id, e.currentTarget)}
                         className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors"
                         aria-label="Listing actions"
+                        aria-expanded={openMenu === listing.id}
+                        aria-haspopup="menu"
                       >
                         {isActioning ? <RefreshCw className="h-4 w-4 animate-spin" /> : <MoreHorizontal className="h-4 w-4" />}
                       </button>
-                      {openMenu === listing.id && (
-                        <div className="absolute right-0 top-full mt-1 z-[200] w-44 rounded-xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl py-1">
-                          <Link href={`/listing/${listing.id}` as Route} className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
-                            <Eye className="h-3.5 w-3.5" /> View
-                          </Link>
-                          <Link href={`/listing/${listing.id}/edit` as Route} className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
-                            <Edit className="h-3.5 w-3.5" /> Edit
-                          </Link>
-                          {['ACTIVE', 'active'].includes(listing.status) && (
-                            <button onClick={() => void handleAction(listing.id, 'unpublish')} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
-                              <Pause className="h-3.5 w-3.5" /> Pause
-                            </button>
-                          )}
-                          {(['PAUSED', 'paused', 'DRAFT', 'draft'] as string[]).includes(listing.status) && (
-                            <button onClick={() => void handleAction(listing.id, 'publish')} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
-                              <Play className="h-3.5 w-3.5" /> Publish
-                            </button>
-                          )}
-                          {['EXPIRED', 'expired'].includes(listing.status) && (
-                            <button onClick={() => void handleAction(listing.id, 'renew')} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
-                              <RefreshCw className="h-3.5 w-3.5" /> Renew
-                            </button>
-                          )}
-                          <hr className="my-1 border-slate-100 dark:border-slate-800" />
-                          <button onClick={() => void handleAction(listing.id, 'delete', listing.title)} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-error hover:bg-error/5">
-                            <Trash2 className="h-3.5 w-3.5" /> Delete
-                          </button>
-                        </div>
-                      )}
                     </div>
                   </div>
                 );
@@ -302,6 +285,74 @@ export default function SellerListingsPage() {
         </div>
       </div>
       <Footer />
+
+      {/* Portal dropdown — rendered at body level so no overflow/z-index clipping */}
+      {openMenu && menuPos && typeof document !== 'undefined' && (() => {
+        const activeListing = filtered.find((l) => l.id === openMenu);
+        if (!activeListing) return null;
+        return createPortal(
+          <div
+            role="menu"
+            aria-label="Listing actions"
+            onMouseDown={(e) => e.stopPropagation()}
+            style={{ position: 'absolute', top: menuPos.top, right: menuPos.right }}
+            className="z-[9999] w-48 rounded-xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl py-1"
+          >
+            <Link
+              href={`/listing/${activeListing.id}` as Route}
+              role="menuitem"
+              onClick={() => { setOpenMenu(null); setMenuPos(null); }}
+              className="flex items-center gap-2 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+            >
+              <Eye className="h-3.5 w-3.5 shrink-0" /> View listing
+            </Link>
+            <Link
+              href={`/listing/${activeListing.id}/edit` as Route}
+              role="menuitem"
+              onClick={() => { setOpenMenu(null); setMenuPos(null); }}
+              className="flex items-center gap-2 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+            >
+              <Edit className="h-3.5 w-3.5 shrink-0" /> Edit listing
+            </Link>
+            {['ACTIVE', 'active'].includes(activeListing.status) && (
+              <button
+                role="menuitem"
+                onClick={() => { void handleAction(activeListing.id, 'unpublish'); setMenuPos(null); }}
+                className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                <Pause className="h-3.5 w-3.5 shrink-0" /> Pause listing
+              </button>
+            )}
+            {(['PAUSED', 'paused', 'DRAFT', 'draft'] as string[]).includes(activeListing.status) && (
+              <button
+                role="menuitem"
+                onClick={() => { void handleAction(activeListing.id, 'publish'); setMenuPos(null); }}
+                className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                <Play className="h-3.5 w-3.5 shrink-0" /> Publish listing
+              </button>
+            )}
+            {['EXPIRED', 'expired'].includes(activeListing.status) && (
+              <button
+                role="menuitem"
+                onClick={() => { void handleAction(activeListing.id, 'renew'); setMenuPos(null); }}
+                className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                <RefreshCw className="h-3.5 w-3.5 shrink-0" /> Renew listing
+              </button>
+            )}
+            <hr className="my-1 border-slate-100 dark:border-slate-800" />
+            <button
+              role="menuitem"
+              onClick={() => { void handleAction(activeListing.id, 'delete', activeListing.title); setMenuPos(null); }}
+              className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-error hover:bg-error/5 transition-colors"
+            >
+              <Trash2 className="h-3.5 w-3.5 shrink-0" /> Delete listing
+            </button>
+          </div>,
+          document.body
+        );
+      })()}
     </>
   );
 }
