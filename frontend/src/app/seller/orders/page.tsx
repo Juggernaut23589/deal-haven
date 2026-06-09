@@ -1,6 +1,6 @@
 'use client';
 
-import { SellerMobileNav } from '@/components/seller/SellerSidebar';
+import { SellerSidebar, SellerMobileNav } from '@/components/seller/SellerSidebar';
 import * as React from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
@@ -87,7 +87,11 @@ export default function SellerOrdersPage() {
 
   return (
     <>
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+      <div className="min-h-screen bg-background dark:bg-background-dark">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex gap-8 items-start">
+            <SellerSidebar />
+            <main className="flex-1 min-w-0">
         <SellerMobileNav />
         <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm mb-6">
           <Link href="/seller" className="text-slate-500 hover:text-primary transition-colors">Seller Dashboard</Link>
@@ -168,7 +172,10 @@ export default function SellerOrdersPage() {
             </div>
           )}
         </div>
-      </main>
+            </main>
+          </div>
+        </div>
+      </div>
       <Footer />
     </>
   );

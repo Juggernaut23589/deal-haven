@@ -1,9 +1,10 @@
 'use client';
 
-import { SellerMobileNav } from '@/components/seller/SellerSidebar';
+import { SellerMobileNav, SellerSidebar } from '@/components/seller/SellerSidebar';
 import * as React from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
+import { useSearchParams } from 'next/navigation';
 import {
   Plus, Search, MoreHorizontal, Eye, Edit, Pause, Play,
   Trash2, RefreshCw, ChevronRight, Package, AlertCircle,
@@ -44,12 +45,20 @@ const TABS = [
 export default function SellerListingsPage() {
   const { isLoading: authLoading } = useRequireAuth();
   const { toast } = useToast();
+  const searchParams = useSearchParams();
   const [listings, setListings] = React.useState<ListingCard[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
-  const [activeTab, setActiveTab] = React.useState('');
+  // Initialise tab from URL query param (set by Manage Listings sub-menu links)
+  const [activeTab, setActiveTab] = React.useState(() => searchParams.get('status') ?? '');
   const [search, setSearch] = React.useState('');
   const [openMenu, setOpenMenu] = React.useState<string | null>(null);
   const [actionLoading, setActionLoading] = React.useState<string | null>(null);
+
+  // Sync tab when URL param changes (e.g. back/forward navigation)
+  React.useEffect(() => {
+    const s = searchParams.get('status') ?? '';
+    setActiveTab(s);
+  }, [searchParams]);
 
   const load = React.useCallback((status?: string) => {
     setIsLoading(true);
@@ -67,18 +76,50 @@ export default function SellerListingsPage() {
     return listings.filter((l) => l.title.toLowerCase().includes(q));
   }, [listings, search]);
 
-  const handleAction = async (id: string, action: 'publish' | 'unpublish' | 'delete' | 'renew') => {
+  const [confirmDelete, setConfirmDelete] = React.useState<{ id: string; title: string } | null>(null);
+
+  // Close action menu on outside click
+  React.useEffect(() => {
+    if (!openMenu) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-listing-menu]')) setOpenMenu(null);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [openMenu]);
+
+  const handleAction = async (id: string, action: 'publish' | 'unpublish' | 'delete' | 'renew', title?: string) => {
+    if (action === 'delete') {
+      setConfirmDelete({ id, title: title ?? 'this listing' });
+      setOpenMenu(null);
+      return;
+    }
     setActionLoading(id);
     setOpenMenu(null);
     try {
       if (action === 'publish') await listingsApi.publish(id);
       else if (action === 'unpublish') await listingsApi.unpublish(id);
-      else if (action === 'delete') await listingsApi.delete(id);
       else if (action === 'renew') await listingsApi.renew(id);
-      toast.success(`Listing ${action === 'delete' ? 'deleted' : action + 'd'} successfully`);
+      toast.success(`Listing ${action + 'd'} successfully`);
       load(activeTab);
     } catch {
       toast.error('Action failed');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const confirmDeleteListing = async () => {
+    if (!confirmDelete) return;
+    setActionLoading(confirmDelete.id);
+    setConfirmDelete(null);
+    try {
+      await listingsApi.delete(confirmDelete.id);
+      toast.success('Listing deleted successfully');
+      load(activeTab);
+    } catch {
+      toast.error('Failed to delete listing');
     } finally {
       setActionLoading(null);
     }
@@ -88,18 +129,40 @@ export default function SellerListingsPage() {
 
   return (
     <>
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        <SellerMobileNav />
+      {/* Delete confirmation dialog */}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" role="dialog" aria-modal="true" aria-labelledby="confirm-delete-title">
+          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-slate-100 dark:border-slate-800">
+            <h3 id="confirm-delete-title" className="text-base font-semibold text-slate-900 dark:text-slate-100 mb-2">Delete listing?</h3>
+            <p className="text-sm text-slate-500 mb-5">
+              <span className="font-medium text-slate-700 dark:text-slate-300">&ldquo;{confirmDelete.title}&rdquo;</span> will be permanently deleted and cannot be recovered.
+            </p>
+            <div className="flex gap-3">
+              <Button variant="outline" size="sm" className="flex-1" onClick={() => setConfirmDelete(null)}>Cancel</Button>
+              <Button size="sm" className="flex-1 bg-error hover:bg-error/90 text-white border-0" onClick={() => void confirmDeleteListing()}>
+                <Trash2 className="h-3.5 w-3.5 mr-1.5" />Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="min-h-screen bg-background dark:bg-background-dark">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex gap-8 items-start">
+            <SellerSidebar activePage="Manage Listings" />
+            <main className="flex-1 min-w-0">
+      <SellerMobileNav />
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm mb-6">
           <Link href="/seller" className="text-slate-500 hover:text-primary transition-colors">Seller Dashboard</Link>
           <ChevronRight className="h-3.5 w-3.5 text-slate-300" />
-          <span className="font-medium text-slate-900 dark:text-slate-100">My Listings</span>
+          <span className="font-medium text-slate-900 dark:text-slate-100">Manage Listings</span>
         </nav>
 
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold font-display text-slate-900 dark:text-slate-100">My Listings</h1>
+          <h1 className="text-2xl font-bold font-display text-slate-900 dark:text-slate-100">Manage Listings</h1>
           <Link href={'/listing/create' as Route}>
             <Button leftIcon={<Plus className="h-4 w-4" />}>New Listing</Button>
           </Link>
@@ -135,7 +198,7 @@ export default function SellerListingsPage() {
         </div>
 
         {/* Table */}
-        <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-surface-dark overflow-hidden shadow-card">
+        <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-surface-dark shadow-card">
           {isLoading ? (
             <div className="p-4 space-y-3">
               {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-16 rounded-lg" />)}
@@ -189,7 +252,7 @@ export default function SellerListingsPage() {
                     </span>
 
                     {/* Actions */}
-                    <div className="relative shrink-0">
+                    <div className="relative shrink-0" data-listing-menu>
                       <button
                         disabled={isActioning}
                         onClick={() => setOpenMenu((prev) => prev === listing.id ? null : listing.id)}
@@ -199,7 +262,7 @@ export default function SellerListingsPage() {
                         {isActioning ? <RefreshCw className="h-4 w-4 animate-spin" /> : <MoreHorizontal className="h-4 w-4" />}
                       </button>
                       {openMenu === listing.id && (
-                        <div className="absolute right-0 top-full mt-1 z-20 w-44 rounded-xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl py-1">
+                        <div className="absolute right-0 top-full mt-1 z-[200] w-44 rounded-xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl py-1">
                           <Link href={`/listing/${listing.id}` as Route} className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
                             <Eye className="h-3.5 w-3.5" /> View
                           </Link>
@@ -222,7 +285,7 @@ export default function SellerListingsPage() {
                             </button>
                           )}
                           <hr className="my-1 border-slate-100 dark:border-slate-800" />
-                          <button onClick={() => void handleAction(listing.id, 'delete')} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-error hover:bg-error/5">
+                          <button onClick={() => void handleAction(listing.id, 'delete', listing.title)} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-error hover:bg-error/5">
                             <Trash2 className="h-3.5 w-3.5" /> Delete
                           </button>
                         </div>
@@ -234,7 +297,10 @@ export default function SellerListingsPage() {
             </div>
           )}
         </div>
-      </main>
+            </main>
+          </div>
+        </div>
+      </div>
       <Footer />
     </>
   );
