@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { NIGERIA_CITIES } from '@/lib/nigeriaLocations';
+import { NIGERIA_STATES } from '@/lib/nigeriaLocations';
 import { useListings } from '@/hooks/useListings';
 import { ListingGrid } from '@/components/listings/ListingGrid';
 import { Button } from '@/components/ui/Button';
@@ -248,6 +248,7 @@ interface FilterState {
   maxPrice: string;
   conditions: ListingCondition[];
   types: ListingType[];
+  state: string;
   city: string;
   minRating: number;
 }
@@ -362,24 +363,42 @@ function FilterSidebar({
 
       {/* Location */}
       <FilterSection title="Location">
-        <div>
-          <label htmlFor="city-filter" className="text-xs text-slate-500 mb-1 block">City</label>
-          <select
-            id="city-filter"
-            value={filters.city}
-            onChange={(e) => setFilter('city', e.target.value)}
-            className={cn(
-              'w-full rounded-md border border-slate-200 dark:border-slate-700',
-              'bg-white dark:bg-slate-900 px-3 py-1.5 text-sm',
-              'text-slate-900 dark:text-slate-100',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
-            )}
-          >
-            <option value="">All cities</option>
-            {NIGERIA_CITIES.map(({ city, state }) => (
-              <option key={`${state}-${city}`} value={city}>{city} ({state})</option>
-            ))}
-          </select>
+        <div className="space-y-3">
+          <div>
+            <label htmlFor="state-filter" className="text-xs text-slate-500 mb-1 block">State</label>
+            <select
+              id="state-filter"
+              value={filters.state}
+              onChange={(e) => setFilter('state', e.target.value)}
+              className={cn(
+                'w-full rounded-md border border-slate-200 dark:border-slate-700',
+                'bg-white dark:bg-slate-900 px-3 py-1.5 text-sm',
+                'text-slate-900 dark:text-slate-100',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
+              )}
+            >
+              <option value="">All states</option>
+              {NIGERIA_STATES.map((s) => (
+                <option key={s.name} value={s.name}>{s.name}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="city-filter" className="text-xs text-slate-500 mb-1 block">City / Town</label>
+            <input
+              id="city-filter"
+              type="text"
+              value={filters.city}
+              onChange={(e) => setFilter('city', e.target.value)}
+              placeholder="e.g. Ikeja, Lekki, Aba"
+              className={cn(
+                'w-full rounded-md border border-slate-200 dark:border-slate-700',
+                'bg-white dark:bg-slate-900 px-3 py-1.5 text-sm',
+                'text-slate-900 dark:text-slate-100 placeholder:text-slate-400',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
+              )}
+            />
+          </div>
         </div>
       </FilterSection>
 
@@ -508,6 +527,7 @@ function SearchPageInner() {
     maxPrice: searchParams.get('maxPrice') ?? '',
     conditions: (searchParams.getAll('condition') as ListingCondition[]),
     types: (searchParams.getAll('type') as ListingType[]),
+    state: searchParams.get('state') ?? '',
     city: searchParams.get('city') ?? '',
     minRating: parseIntParam(searchParams.get('minRating')) ?? 0,
   });
@@ -531,6 +551,7 @@ function SearchPageInner() {
       maxPrice: parseFloatParam(filters.maxPrice),
       condition: filters.conditions.length > 0 ? filters.conditions : undefined,
       type: filters.types.length > 0 ? filters.types : undefined,
+      state: filters.state || undefined,
       city: filters.city || undefined,
       minRating: filters.minRating > 0 ? filters.minRating : undefined,
       sort: currentSort,
@@ -551,6 +572,7 @@ function SearchPageInner() {
       if (filters.maxPrice) params.set('maxPrice', filters.maxPrice);
       filters.conditions.forEach((c) => params.append('condition', c));
       filters.types.forEach((t) => params.append('type', t));
+      if (filters.state) params.set('state', filters.state);
       if (filters.city) params.set('city', filters.city);
       if (filters.minRating > 0) params.set('minRating', String(filters.minRating));
       if (currentSort !== 'relevance') params.set('sort', currentSort);
@@ -573,6 +595,7 @@ function SearchPageInner() {
     filters.maxPrice,
     ...filters.conditions,
     ...filters.types,
+    filters.state,
     filters.city,
     filters.minRating > 0 ? 'rating' : '',
   ].filter(Boolean).length;
@@ -584,6 +607,7 @@ function SearchPageInner() {
       maxPrice: '',
       conditions: [],
       types: [],
+      state: '',
       city: '',
       minRating: 0,
     });
@@ -616,9 +640,15 @@ function SearchPageInner() {
       label: LISTING_TYPE_OPTIONS.find((o) => o.value === t)?.label ?? t,
       remove: () => setFilter('types', filters.types.filter((v) => v !== t)),
     })),
+    ...(filters.state
+      ? [{
+          label: `📍 ${filters.state}`,
+          remove: () => setFilter('state', ''),
+        }]
+      : []),
     ...(filters.city
       ? [{
-          label: `📍 ${filters.city}`,
+          label: `🏙 ${filters.city}`,
           remove: () => setFilter('city', ''),
         }]
       : []),

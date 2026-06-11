@@ -29,6 +29,7 @@ const listingCardSelect = {
   offersEnabled: true,
   city: true,
   area: true,
+  lga: true,
   state: true,
   country: true,
   latitude: true,
@@ -150,9 +151,10 @@ function formatListingCard(raw: any) {
       ? { url: coverImg.url ?? coverImg.thumbnailUrl, thumbnailUrl: coverImg.thumbnailUrl, alt: coverImg.altText ?? raw.title }
       : null,
     imageCount: raw.images?.length ?? 0,
-    location: [raw.city, raw.state].filter(Boolean).join(', ') || null,
+    location: [raw.area, raw.lga, raw.state].filter(Boolean).join(', ') || [raw.city, raw.state].filter(Boolean).join(', ') || null,
     city: raw.city,
     area: raw.area,
+    lga: raw.lga,
     state: raw.state,
     country: raw.country,
     dealScore: raw.dealScore,
@@ -310,6 +312,7 @@ export class ListingsService {
           autoDeclinePrice: input.autoDeclinePrice,
           city: input.city,
           area: input.area,
+          lga: input.lga,
           state: input.state,
           country: input.country ?? 'NG',
           zipCode: input.zipCode,
@@ -540,6 +543,7 @@ export class ListingsService {
           ...(input.shipsNationally !== undefined && { shipsNationally: input.shipsNationally }),
           ...(input.city && { city: input.city }),
           ...(input.area !== undefined && { area: input.area }),
+          ...(input.lga && { lga: input.lga }),
           ...(input.state && { state: input.state }),
           ...(input.zipCode && { zipCode: input.zipCode }),
         },
@@ -638,6 +642,7 @@ export class ListingsService {
     }
 
     if (filters.city) where.city = { contains: filters.city, mode: 'insensitive' };
+    if (filters.lga) where.lga = { contains: filters.lga, mode: 'insensitive' };
     if (filters.state) where.state = { equals: filters.state, mode: 'insensitive' };
 
     // Full-text search via PostgreSQL tsvector

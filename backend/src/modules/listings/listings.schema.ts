@@ -82,6 +82,7 @@ export const createListingSchema = z
     // Accept both separate city/state and combined 'location' string
     city: z.string().max(100).optional(),
     area: z.string().max(200).optional(),
+    lga: z.string().max(100).optional(),
     state: z.string().max(100).optional(),
     location: z.string().max(200).optional(),
     country: z.string().length(2).optional().default('NG'),
@@ -128,6 +129,7 @@ export const createListingSchema = z
       city: resolvedCity,
       state: resolvedState,
       area: data.area,
+      lga: data.lga,
     };
   })
   .refine(
@@ -167,6 +169,7 @@ export const updateListingSchema = z.object({
   shipsInternationally: z.boolean().optional(),
   city: z.string().max(100).optional(),
   area: z.string().max(200).optional(),
+  lga: z.string().max(100).optional(),
   state: z.string().max(100).optional(),
   zipCode: z.string().max(20).optional(),
   attributes: z.array(attributeSchema).optional(),
@@ -181,6 +184,7 @@ export const searchListingsSchema = z.object({
   type: z.string().optional(),
   sellerId: z.string().uuid().optional(),
   city: z.string().optional(),
+  lga: z.string().optional(),
   state: z.string().optional(),
   lat: z.coerce.number().optional(),
   lng: z.coerce.number().optional(),

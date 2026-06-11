@@ -884,14 +884,39 @@ export default function ListingDetailClient({ id }: { id: string }) {
                 </div>
 
                 {/* Location */}
-                {(listing.city || listing.location) && (
-                  <div className="mt-2 flex items-center gap-1.5 text-sm text-slate-500">
-                    <MapPin className="h-4 w-4 text-slate-400 shrink-0" aria-hidden="true" />
-                    <span>
-                      {listing.city
-                        ? [listing.area, listing.city, listing.state].filter(Boolean).join(', ')
-                        : listing.location}
-                    </span>
+                {(listing.area || listing.city || listing.lga || listing.state || listing.location) && (
+                  <div className="mt-3 flex items-start gap-2 text-sm text-slate-500">
+                    <MapPin className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" aria-hidden="true" />
+                    {(listing.area || listing.city || listing.lga || listing.state) ? (
+                      <dl className="space-y-0.5">
+                        {listing.area && (
+                          <div className="flex gap-1.5">
+                            <dt className="font-medium text-slate-600 w-12 shrink-0">Area:</dt>
+                            <dd>{listing.area}</dd>
+                          </div>
+                        )}
+                        {listing.city && (
+                          <div className="flex gap-1.5">
+                            <dt className="font-medium text-slate-600 w-12 shrink-0">City:</dt>
+                            <dd>{listing.city}</dd>
+                          </div>
+                        )}
+                        {listing.lga && (
+                          <div className="flex gap-1.5">
+                            <dt className="font-medium text-slate-600 w-12 shrink-0">LGA:</dt>
+                            <dd>{listing.lga}</dd>
+                          </div>
+                        )}
+                        {listing.state && (
+                          <div className="flex gap-1.5">
+                            <dt className="font-medium text-slate-600 w-12 shrink-0">State:</dt>
+                            <dd>{listing.state}</dd>
+                          </div>
+                        )}
+                      </dl>
+                    ) : (
+                      <span>{listing.location}</span>
+                    )}
                   </div>
                 )}
               </div>

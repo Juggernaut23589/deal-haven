@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { NIGERIA_CITIES, getStateForCity } from '@/lib/nigeriaLocations';
+import { NIGERIA_STATES, getLGAs } from '@/lib/nigeriaLocations';
 import { useRouter } from 'next/navigation';
 import type { Route } from 'next';
 import { useDropzone } from 'react-dropzone';
@@ -900,14 +900,11 @@ function Step4Pricing({
 
 // ─── Step 5 — Shipping & Location ─────────────────────────────────────────────
 
-// Group cities by state for the dropdown
-const CITIES_BY_STATE = NIGERIA_CITIES.reduce<Record<string, string[]>>((acc, { city, state }) => {
-  if (!acc[state]) acc[state] = [];
-  acc[state].push(city);
-  return acc;
-}, {});
-
 function Step5Shipping({
+  locationState,
+  setLocationState,
+  locationLga,
+  setLocationLga,
   locationCity,
   setLocationCity,
   locationArea,
@@ -919,6 +916,10 @@ function Step5Shipping({
   shippingOptions,
   setShippingOptions,
 }: {
+  locationState: string;
+  setLocationState: (v: string) => void;
+  locationLga: string;
+  setLocationLga: (v: string) => void;
   locationCity: string;
   setLocationCity: (v: string) => void;
   locationArea: string;
@@ -970,12 +971,13 @@ function Step5Shipping({
           Item Location <span className="text-error" aria-hidden="true">*</span>
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* State */}
           <div>
-            <label htmlFor="item-city" className="block text-xs text-slate-500 mb-1">City <span className="text-error">*</span></label>
+            <label htmlFor="item-state" className="block text-xs text-slate-500 mb-1">State <span className="text-error">*</span></label>
             <select
-              id="item-city"
-              value={locationCity}
-              onChange={(e) => setLocationCity(e.target.value)}
+              id="item-state"
+              value={locationState}
+              onChange={(e) => { setLocationState(e.target.value); setLocationLga(''); }}
               required
               className={cn(
                 'w-full rounded-lg border border-slate-200 dark:border-slate-700',
@@ -984,24 +986,63 @@ function Step5Shipping({
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
               )}
             >
-              <option value="">Select city</option>
-              {Object.entries(CITIES_BY_STATE).sort(([a], [b]) => a.localeCompare(b)).map(([state, cities]) => (
-                <optgroup key={state} label={state}>
-                  {cities.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </optgroup>
+              <option value="">Select state</option>
+              {NIGERIA_STATES.map((s) => (
+                <option key={s.name} value={s.name}>{s.name}</option>
               ))}
             </select>
           </div>
+          {/* LGA */}
           <div>
-            <label htmlFor="item-area" className="block text-xs text-slate-500 mb-1">Area / Neighbourhood <span className="text-error">*</span></label>
+            <label htmlFor="item-lga" className="block text-xs text-slate-500 mb-1">Local Government Area <span className="text-error">*</span></label>
+            <select
+              id="item-lga"
+              value={locationLga}
+              onChange={(e) => setLocationLga(e.target.value)}
+              required
+              disabled={!locationState}
+              className={cn(
+                'w-full rounded-lg border border-slate-200 dark:border-slate-700',
+                'bg-white dark:bg-slate-900 px-3 py-2.5 text-sm',
+                'text-slate-900 dark:text-slate-100',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                !locationState && 'opacity-50 cursor-not-allowed'
+              )}
+            >
+              <option value="">{locationState ? 'Select LGA' : 'Select state first'}</option>
+              {getLGAs(locationState).map((lga) => (
+                <option key={lga} value={lga}>{lga}</option>
+              ))}
+            </select>
+          </div>
+          {/* City / Town */}
+          <div>
+            <label htmlFor="item-city" className="block text-xs text-slate-500 mb-1">City / Town <span className="text-error">*</span></label>
+            <input
+              id="item-city"
+              type="text"
+              value={locationCity}
+              onChange={(e) => setLocationCity(e.target.value)}
+              placeholder="e.g. Ikeja, Lekki, Aba"
+              maxLength={100}
+              required
+              className={cn(
+                'w-full rounded-lg border border-slate-200 dark:border-slate-700',
+                'bg-white dark:bg-slate-900 px-3 py-2.5 text-sm',
+                'text-slate-900 dark:text-slate-100 placeholder:text-slate-400',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
+              )}
+            />
+          </div>
+          {/* Area */}
+          <div>
+            <label htmlFor="item-area" className="block text-xs text-slate-500 mb-1">Area / Street <span className="text-error">*</span></label>
             <input
               id="item-area"
               type="text"
               value={locationArea}
               onChange={(e) => setLocationArea(e.target.value)}
-              placeholder="e.g. Yaba, Victoria Island, GRA"
+              placeholder="e.g. Allen Avenue, GRA, Victoria Island"
               maxLength={200}
               required
               className={cn(
@@ -1377,6 +1418,8 @@ export default function CreateListingPage() {
   });
 
   // Step 5 — Shipping
+  const [locationState, setLocationState] = React.useState('');
+  const [locationLga, setLocationLga] = React.useState('');
   const [locationCity, setLocationCity] = React.useState('');
   const [locationArea, setLocationArea] = React.useState('');
   const [localPickup, setLocalPickup] = React.useState(false);
@@ -1447,9 +1490,10 @@ export default function CreateListingPage() {
             },
           }
         : {}),
+      state: locationState,
+      lga: locationLga,
       city: locationCity,
       area: locationArea,
-      state: getStateForCity(locationCity),
       tags: [],
       imageIds: images.filter((i) => i.id !== null).map((i) => i.id as string),
       shippingOptions: [
@@ -1510,8 +1554,10 @@ export default function CreateListingPage() {
     if (!categoryId) { toast.error('Select a category first'); return; }
     if (details.title.length < 5) { toast.error('Title too short', 'Please enter a more descriptive title.'); return; }
     if (!pricing.price && pricing.type !== 'auction') { toast.error('Price required', 'Please enter a price for your listing.'); return; }
-    if (!locationCity) { toast.error('Location required', 'Please select your city.'); return; }
-    if (!locationArea.trim()) { toast.error('Location required', 'Please enter your area or neighbourhood.'); return; }
+    if (!locationState) { toast.error('Location required', 'Please select your state.'); return; }
+    if (!locationLga) { toast.error('Location required', 'Please select your local government area.'); return; }
+    if (!locationCity.trim()) { toast.error('Location required', 'Please enter your city or town.'); return; }
+    if (!locationArea.trim()) { toast.error('Location required', 'Please enter your area or street.'); return; }
 
     setIsPublishing(true);
     try {
@@ -1570,7 +1616,7 @@ export default function CreateListingPage() {
       case 4: return pricing.type === 'auction'
         ? !!pricing.auctionStartPrice
         : !!pricing.price;
-      case 5: return !!locationCity && locationArea.trim().length >= 2;
+      case 5: return !!locationState && !!locationLga && locationCity.trim().length >= 2 && locationArea.trim().length >= 2;
       default: return true;
     }
   }
@@ -1646,6 +1692,10 @@ export default function CreateListingPage() {
               )}
               {step === 5 && (
                 <Step5Shipping
+                  locationState={locationState}
+                  setLocationState={setLocationState}
+                  locationLga={locationLga}
+                  setLocationLga={setLocationLga}
                   locationCity={locationCity}
                   setLocationCity={setLocationCity}
                   locationArea={locationArea}
@@ -1669,7 +1719,7 @@ export default function CreateListingPage() {
                     condition: details.condition.replace(/_/g, ' '),
                     type: pricing.type.replace(/_/g, ' '),
                     price: pricing.price,
-                    location: locationArea ? `${locationArea}, ${locationCity}` : locationCity,
+                    location: [locationArea, locationCity, locationLga, locationState].filter(Boolean).join(', '),
                     localPickup,
                     shipsNationally,
                     shippingOptions,

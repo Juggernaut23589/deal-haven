@@ -192,6 +192,7 @@ export interface ListingCard {
   location: string | null;
   city: string | null;
   area: string | null;
+  lga: string | null;
   state: string | null;
   latitude: number | null;
   longitude: number | null;
@@ -260,6 +261,9 @@ export interface SearchFilters {
   maxPrice?: number;
   location?: string;
   city?: string;
+  area?: string;
+  lga?: string;
+  state?: string;
   latitude?: number;
   longitude?: number;
   radiusKm?: number;

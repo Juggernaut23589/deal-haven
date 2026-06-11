@@ -485,6 +485,7 @@ model Listing {
   // Location
   city             String?          @db.VarChar(100)
   area             String?          @db.VarChar(200)
+  lga              String?          @db.VarChar(100)
   state            String?          @db.VarChar(100)
   country          String           @default("NG") @db.VarChar(2)
   zipCode          String?          @map("zip_code") @db.VarChar(20)

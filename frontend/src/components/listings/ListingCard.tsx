@@ -188,6 +188,8 @@ export function ListingCard({
     location,
     city,
     area,
+    lga,
+    state,
     distanceMeters,
     dealScore,
     isPromoted,
@@ -375,11 +377,11 @@ export function ListingCard({
         {/* Meta: location + seller */}
         <div className="mt-3 space-y-1.5">
           {/* Location */}
-          {(city || location) && (
+          {(area || lga || state || location) && (
             <div className="flex items-center gap-1 text-xs text-slate-400">
               <MapPin className="h-3 w-3 shrink-0" aria-hidden="true" />
               <span className="truncate">
-                {city ? (area ? `${area}, ${city}` : city) : location}
+                {[area, lga, state].filter(Boolean).join(', ') || location}
               </span>
               {distanceMeters !== null && distanceMeters !== undefined && (
                 <span className="shrink-0 text-slate-300">
