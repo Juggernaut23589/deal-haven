@@ -27,7 +27,7 @@ const STATUS_COLOR: Record<string, string> = {
   DELETED: 'bg-slate-100 text-slate-400 border-slate-200',
 };
 
-export default function AdminUsersPage() {
+function AdminUsersContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { toast } = useToast();
@@ -183,5 +183,13 @@ export default function AdminUsersPage() {
         )}
       </Modal>
     </div>
+  );
+}
+
+export default function AdminUsersPage() {
+  return (
+    <React.Suspense>
+      <AdminUsersContent />
+    </React.Suspense>
   );
 }

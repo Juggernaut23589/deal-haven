@@ -43,7 +43,7 @@ const TABS = [
   { key: 'EXPIRED', label: 'Expired' },
 ];
 
-export default function SellerListingsPage() {
+function SellerListingsContent() {
   const { isLoading: authLoading } = useRequireAuth();
   const { toast } = useToast();
   const searchParams = useSearchParams();
@@ -287,6 +287,7 @@ export default function SellerListingsPage() {
       <Footer />
 
       {/* Portal dropdown — rendered at body level so no overflow/z-index clipping */}
+
       {openMenu && menuPos && typeof document !== 'undefined' && (() => {
         const activeListing = filtered.find((l) => l.id === openMenu);
         if (!activeListing) return null;
@@ -354,5 +355,13 @@ export default function SellerListingsPage() {
         );
       })()}
     </>
+  );
+}
+
+export default function SellerListingsPage() {
+  return (
+    <React.Suspense>
+      <SellerListingsContent />
+    </React.Suspense>
   );
 }

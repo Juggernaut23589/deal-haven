@@ -33,7 +33,7 @@ const STATUS_COLOR: Record<string, string> = {
 
 const STATUS_OPTIONS = ['', 'ACTIVE', 'PENDING_REVIEW', 'PAUSED', 'REJECTED', 'SOLD', 'EXPIRED'];
 
-export default function AdminListingsPage() {
+function AdminListingsContent() {
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const [listings, setListings] = React.useState<AdminListing[]>([]);
@@ -190,5 +190,13 @@ export default function AdminListingsPage() {
         )}
       </Modal>
     </div>
+  );
+}
+
+export default function AdminListingsPage() {
+  return (
+    <React.Suspense>
+      <AdminListingsContent />
+    </React.Suspense>
   );
 }

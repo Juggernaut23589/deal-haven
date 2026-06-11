@@ -39,7 +39,7 @@ const RESOLUTION_OPTIONS = [
   { value: 'return_for_refund', label: 'Return Item for Refund' },
 ];
 
-export default function AdminDisputesPage() {
+function AdminDisputesContent() {
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const [disputes, setDisputes] = React.useState<AdminDispute[]>([]);
@@ -183,5 +183,13 @@ export default function AdminDisputesPage() {
         )}
       </Modal>
     </div>
+  );
+}
+
+export default function AdminDisputesPage() {
+  return (
+    <React.Suspense>
+      <AdminDisputesContent />
+    </React.Suspense>
   );
 }
