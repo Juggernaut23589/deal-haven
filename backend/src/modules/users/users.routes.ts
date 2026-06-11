@@ -136,7 +136,26 @@ async function getMe(request: FastifyRequest, reply: FastifyReply): Promise<void
   if (!user || user.deletedAt) throw new NotFoundError('User not found');
 
   const { passwordHash: _ph, twoFactorSecret: _tfs, ...safeUser } = user;
-  void reply.status(200).send({ success: true, data: safeUser });
+
+  const emailOn = user.profile?.emailNotifications ?? true;
+  const pushOn = user.profile?.pushNotifications ?? true;
+
+  void reply.status(200).send({
+    success: true,
+    data: {
+      ...safeUser,
+      notificationPreferences: {
+        emailOnMessage: emailOn,
+        emailOnOffer: emailOn,
+        emailOnOrderUpdate: emailOn,
+        emailOnPriceAlert: emailOn,
+        emailOnNewListing: emailOn,
+        pushOnMessage: pushOn,
+        pushOnOffer: pushOn,
+        pushOnOrderUpdate: pushOn,
+      },
+    },
+  });
 }
 
 // ─── Route registration ───────────────────────────────────────────────────────
@@ -231,15 +250,49 @@ export async function userRoutes(fastify: FastifyInstance): Promise<void> {
   // GET /users/me/notifications/preferences
   fastify.patch('/me/notification-preferences', { preHandler: [requireAuth] }, async (req, reply) => {
     const { id: userId } = (req as AuthenticatedRequest).user;
-    const body = req.body as { emailNotifications?: boolean; pushNotifications?: boolean };
+    const body = req.body as Record<string, boolean>;
+
+    // Accept either simple or granular fields; collapse to the two stored booleans
+    const emailFields = ['emailOnMessage', 'emailOnOffer', 'emailOnOrderUpdate', 'emailOnPriceAlert', 'emailOnNewListing'];
+    const pushFields = ['pushOnMessage', 'pushOnOffer', 'pushOnOrderUpdate'];
+
+    const data: { emailNotifications?: boolean; pushNotifications?: boolean } = {};
+
+    if ('emailNotifications' in body) data.emailNotifications = body.emailNotifications;
+    if ('pushNotifications' in body) data.pushNotifications = body.pushNotifications;
+
+    const granularEmail = emailFields.filter((f) => f in body).map((f) => body[f]);
+    if (granularEmail.length > 0) {
+      data.emailNotifications = granularEmail.some(Boolean);
+    }
+    const granularPush = pushFields.filter((f) => f in body).map((f) => body[f]);
+    if (granularPush.length > 0) {
+      data.pushNotifications = granularPush.some(Boolean);
+    }
+
     const updated = await prisma.userProfile.update({
       where: { userId },
+      data,
+    });
+
+    const emailOn = updated.emailNotifications;
+    const pushOn = updated.pushNotifications;
+
+    void reply.status(200).send({
+      success: true,
       data: {
-        ...(body.emailNotifications !== undefined && { emailNotifications: body.emailNotifications }),
-        ...(body.pushNotifications !== undefined && { pushNotifications: body.pushNotifications }),
+        notificationPreferences: {
+          emailOnMessage: emailOn,
+          emailOnOffer: emailOn,
+          emailOnOrderUpdate: emailOn,
+          emailOnPriceAlert: emailOn,
+          emailOnNewListing: emailOn,
+          pushOnMessage: pushOn,
+          pushOnOffer: pushOn,
+          pushOnOrderUpdate: pushOn,
+        },
       },
     });
-    void reply.status(200).send({ success: true, data: updated });
   });
 
   // GET /users/:username/public — public profile by username
@@ -327,4 +380,227 @@ export async function userRoutes(fastify: FastifyInstance): Promise<void> {
       },
     });
   });
+
+  // ── Addresses ──────────────────────────────────────────────────────────────
+
+  // GET /users/me/addresses
+  fastify.get('/me/addresses', { preHandler: [requireAuth] }, async (req, reply) => {
+    const { id: userId } = (req as AuthenticatedRequest).user;
+    const addresses = await prisma.address.findMany({
+      where: { userId },
+      orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }],
+    });
+    const mapped = addresses.map((a) => ({
+      id: a.id,
+      label: a.label ?? '',
+      type: deriveAddressType(a.label),
+      recipientName: a.fullName,
+      line1: a.line1,
+      line2: a.line2,
+      city: a.city,
+      state: a.state,
+      postalCode: a.zipCode,
+      country: a.country,
+      phone: a.phoneNumber,
+      isDefault: a.isDefault,
+      createdAt: a.createdAt,
+    }));
+    void reply.status(200).send({ success: true, data: mapped });
+  });
+
+  // POST /users/me/addresses
+  fastify.post('/me/addresses', { preHandler: [requireAuth] }, async (req, reply) => {
+    const { id: userId } = (req as AuthenticatedRequest).user;
+    const body = req.body as {
+      label?: string; recipientName: string; line1: string; line2?: string;
+      city: string; state: string; postalCode?: string; country?: string;
+      phone?: string; isDefault?: boolean;
+    };
+
+    if (body.isDefault) {
+      await prisma.address.updateMany({ where: { userId }, data: { isDefault: false } });
+    }
+
+    const address = await prisma.address.create({
+      data: {
+        userId,
+        label: body.label ?? '',
+        fullName: body.recipientName,
+        line1: body.line1,
+        line2: body.line2 ?? null,
+        city: body.city,
+        state: body.state,
+        zipCode: body.postalCode ?? '',
+        country: body.country ?? 'Nigeria',
+        phoneNumber: body.phone ?? null,
+        isDefault: body.isDefault ?? false,
+      },
+    });
+
+    void reply.status(201).send({
+      success: true,
+      data: {
+        id: address.id,
+        label: address.label ?? '',
+        type: deriveAddressType(address.label),
+        recipientName: address.fullName,
+        line1: address.line1,
+        line2: address.line2,
+        city: address.city,
+        state: address.state,
+        postalCode: address.zipCode,
+        country: address.country,
+        phone: address.phoneNumber,
+        isDefault: address.isDefault,
+        createdAt: address.createdAt,
+      },
+    });
+  });
+
+  // PATCH /users/me/addresses/:id
+  fastify.patch('/me/addresses/:id', { preHandler: [requireAuth] }, async (req, reply) => {
+    const { id: userId } = (req as AuthenticatedRequest).user;
+    const { id } = req.params as { id: string };
+    const body = req.body as {
+      label?: string; recipientName?: string; line1?: string; line2?: string;
+      city?: string; state?: string; postalCode?: string; country?: string;
+      phone?: string; isDefault?: boolean;
+    };
+
+    const existing = await prisma.address.findFirst({ where: { id, userId } });
+    if (!existing) throw new NotFoundError('Address', id);
+
+    if (body.isDefault) {
+      await prisma.address.updateMany({ where: { userId, NOT: { id } }, data: { isDefault: false } });
+    }
+
+    const address = await prisma.address.update({
+      where: { id },
+      data: {
+        ...(body.label !== undefined && { label: body.label }),
+        ...(body.recipientName !== undefined && { fullName: body.recipientName }),
+        ...(body.line1 !== undefined && { line1: body.line1 }),
+        ...(body.line2 !== undefined && { line2: body.line2 }),
+        ...(body.city !== undefined && { city: body.city }),
+        ...(body.state !== undefined && { state: body.state }),
+        ...(body.postalCode !== undefined && { zipCode: body.postalCode }),
+        ...(body.country !== undefined && { country: body.country }),
+        ...(body.phone !== undefined && { phoneNumber: body.phone }),
+        ...(body.isDefault !== undefined && { isDefault: body.isDefault }),
+      },
+    });
+
+    void reply.status(200).send({
+      success: true,
+      data: {
+        id: address.id,
+        label: address.label ?? '',
+        type: deriveAddressType(address.label),
+        recipientName: address.fullName,
+        line1: address.line1,
+        line2: address.line2,
+        city: address.city,
+        state: address.state,
+        postalCode: address.zipCode,
+        country: address.country,
+        phone: address.phoneNumber,
+        isDefault: address.isDefault,
+        createdAt: address.createdAt,
+      },
+    });
+  });
+
+  // DELETE /users/me/addresses/:id
+  fastify.delete('/me/addresses/:id', { preHandler: [requireAuth] }, async (req, reply) => {
+    const { id: userId } = (req as AuthenticatedRequest).user;
+    const { id } = req.params as { id: string };
+    const existing = await prisma.address.findFirst({ where: { id, userId } });
+    if (!existing) throw new NotFoundError('Address', id);
+    await prisma.address.delete({ where: { id } });
+    void reply.status(200).send({ success: true });
+  });
+
+  // ── Bank Accounts ───────────────────────────────────────────────────────────
+
+  // GET /users/me/bank-accounts
+  fastify.get('/me/bank-accounts', { preHandler: [requireAuth] }, async (req, reply) => {
+    const { id: userId } = (req as AuthenticatedRequest).user;
+    const accounts = await prisma.bankAccount.findMany({
+      where: { userId },
+      orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }],
+    });
+    void reply.status(200).send({ success: true, data: accounts });
+  });
+
+  // POST /users/me/bank-accounts
+  fastify.post('/me/bank-accounts', { preHandler: [requireAuth] }, async (req, reply) => {
+    const { id: userId } = (req as AuthenticatedRequest).user;
+    const body = req.body as {
+      bankName: string; accountName: string; accountNumber: string;
+      bankCode?: string; isDefault?: boolean;
+    };
+
+    if (!body.bankName || !body.accountName || !body.accountNumber) {
+      throw new ValidationError('bankName, accountName, and accountNumber are required');
+    }
+    if (!/^\d{10}$/.test(body.accountNumber)) {
+      throw new ValidationError('Account number must be exactly 10 digits');
+    }
+
+    const count = await prisma.bankAccount.count({ where: { userId } });
+    if (count >= 3) throw new ValidationError('Maximum of 3 bank accounts allowed');
+
+    if (body.isDefault) {
+      await prisma.bankAccount.updateMany({ where: { userId }, data: { isDefault: false } });
+    }
+
+    const account = await prisma.bankAccount.create({
+      data: {
+        userId,
+        bankName: body.bankName,
+        accountName: body.accountName,
+        accountNumber: body.accountNumber,
+        bankCode: body.bankCode ?? null,
+        isDefault: body.isDefault ?? (count === 0),
+      },
+    });
+    void reply.status(201).send({ success: true, data: account });
+  });
+
+  // PATCH /users/me/bank-accounts/:id
+  fastify.patch('/me/bank-accounts/:id', { preHandler: [requireAuth] }, async (req, reply) => {
+    const { id: userId } = (req as AuthenticatedRequest).user;
+    const { id } = req.params as { id: string };
+    const body = req.body as { isDefault?: boolean };
+
+    const existing = await prisma.bankAccount.findFirst({ where: { id, userId } });
+    if (!existing) throw new NotFoundError('BankAccount', id);
+
+    if (body.isDefault) {
+      await prisma.bankAccount.updateMany({ where: { userId, NOT: { id } }, data: { isDefault: false } });
+    }
+
+    const account = await prisma.bankAccount.update({
+      where: { id },
+      data: { ...(body.isDefault !== undefined && { isDefault: body.isDefault }) },
+    });
+    void reply.status(200).send({ success: true, data: account });
+  });
+
+  // DELETE /users/me/bank-accounts/:id
+  fastify.delete('/me/bank-accounts/:id', { preHandler: [requireAuth] }, async (req, reply) => {
+    const { id: userId } = (req as AuthenticatedRequest).user;
+    const { id } = req.params as { id: string };
+    const existing = await prisma.bankAccount.findFirst({ where: { id, userId } });
+    if (!existing) throw new NotFoundError('BankAccount', id);
+    await prisma.bankAccount.delete({ where: { id } });
+    void reply.status(200).send({ success: true });
+  });
+}
+
+function deriveAddressType(label: string | null | undefined): 'home' | 'work' | 'other' {
+  const l = (label ?? '').toLowerCase();
+  if (l.includes('home') || l.includes('house')) return 'home';
+  if (l.includes('work') || l.includes('office') || l.includes('business')) return 'work';
+  return 'other';
 }

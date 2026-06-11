@@ -125,6 +125,7 @@ export type AuthenticatedUser = Omit<User, 'addresses'> & {
   isSeller: boolean;
   isAdmin: boolean;
   isModerator: boolean;
+  notificationPreferences?: NotificationPreferences;
 };
 
 /**

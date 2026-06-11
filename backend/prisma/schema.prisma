@@ -253,6 +253,7 @@ model User {
   profile              UserProfile?
   sellerProfile        SellerProfile?
   addresses            Address[]
+  bankAccounts         BankAccount[]
   listings             Listing[]
   buyerOrders          Order[]                @relation("BuyerOrders")
   sentOffers           Offer[]                @relation("BuyerOffers")
@@ -391,6 +392,23 @@ model Address {
 
   @@index([userId])
   @@map("addresses")
+}
+
+model BankAccount {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  bankName      String   @map("bank_name") @db.VarChar(100)
+  accountName   String   @map("account_name") @db.VarChar(100)
+  accountNumber String   @map("account_number") @db.VarChar(10)
+  bankCode      String?  @map("bank_code") @db.VarChar(10)
+  isDefault     Boolean  @default(false) @map("is_default")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("bank_accounts")
 }
 
 // ─────────────────────────────────────────────
