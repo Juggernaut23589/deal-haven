@@ -186,6 +186,8 @@ export function ListingCard({
     imageCount,
     seller,
     location,
+    city,
+    area,
     distanceMeters,
     dealScore,
     isPromoted,
@@ -373,18 +375,22 @@ export function ListingCard({
         {/* Meta: location + seller */}
         <div className="mt-3 space-y-1.5">
           {/* Location */}
-          <div className="flex items-center gap-1 text-xs text-slate-400">
-            <MapPin className="h-3 w-3 shrink-0" aria-hidden="true" />
-            <span className="truncate">{location}</span>
-            {distanceMeters !== null && distanceMeters !== undefined && (
-              <span className="shrink-0 text-slate-300">
-                &middot;{' '}
-                {distanceMeters < 1000
-                  ? `${Math.round(distanceMeters)}m`
-                  : `${(distanceMeters / 1000).toFixed(1)}km`}
+          {(city || location) && (
+            <div className="flex items-center gap-1 text-xs text-slate-400">
+              <MapPin className="h-3 w-3 shrink-0" aria-hidden="true" />
+              <span className="truncate">
+                {city ? (area ? `${area}, ${city}` : city) : location}
               </span>
-            )}
-          </div>
+              {distanceMeters !== null && distanceMeters !== undefined && (
+                <span className="shrink-0 text-slate-300">
+                  &middot;{' '}
+                  {distanceMeters < 1000
+                    ? `${Math.round(distanceMeters)}m`
+                    : `${(distanceMeters / 1000).toFixed(1)}km`}
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Seller + time */}
           <div className="flex items-center justify-between gap-2">

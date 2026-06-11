@@ -189,7 +189,10 @@ export interface ListingCard {
   imageCount: number;
   category: CategorySummary;
   seller: ListingSellerSummary;
-  location: string;
+  location: string | null;
+  city: string | null;
+  area: string | null;
+  state: string | null;
   latitude: number | null;
   longitude: number | null;
   distanceMeters: number | null;
@@ -256,6 +259,7 @@ export interface SearchFilters {
   minPrice?: number;
   maxPrice?: number;
   location?: string;
+  city?: string;
   latitude?: number;
   longitude?: number;
   radiusKm?: number;
@@ -319,7 +323,10 @@ export interface CreateListingPayload {
   offerAutoDeclineThreshold?: number;
   allowBundleDiscount?: boolean;
   isDigital?: boolean;
-  location: string;
+  location?: string;
+  city?: string;
+  area?: string;
+  state?: string;
   latitude?: number;
   longitude?: number;
   localPickup?: boolean;

@@ -81,6 +81,7 @@ export const createListingSchema = z
     offerAutoDeclineThreshold: z.number().positive().optional(),
     // Accept both separate city/state and combined 'location' string
     city: z.string().max(100).optional(),
+    area: z.string().max(200).optional(),
     state: z.string().max(100).optional(),
     location: z.string().max(200).optional(),
     country: z.string().length(2).optional().default('NG'),
@@ -126,6 +127,7 @@ export const createListingSchema = z
       autoDeclinePrice: resolvedAutoDecline,
       city: resolvedCity,
       state: resolvedState,
+      area: data.area,
     };
   })
   .refine(
@@ -164,6 +166,7 @@ export const updateListingSchema = z.object({
   shipsNationally: z.boolean().optional(),
   shipsInternationally: z.boolean().optional(),
   city: z.string().max(100).optional(),
+  area: z.string().max(200).optional(),
   state: z.string().max(100).optional(),
   zipCode: z.string().max(20).optional(),
   attributes: z.array(attributeSchema).optional(),

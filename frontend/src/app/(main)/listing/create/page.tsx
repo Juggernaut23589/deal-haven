@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { NIGERIA_STATES, getLGAs } from '@/lib/nigeriaLocations';
+import { NIGERIA_CITIES, getStateForCity } from '@/lib/nigeriaLocations';
 import { useRouter } from 'next/navigation';
 import type { Route } from 'next';
 import { useDropzone } from 'react-dropzone';
@@ -900,11 +900,18 @@ function Step4Pricing({
 
 // ─── Step 5 — Shipping & Location ─────────────────────────────────────────────
 
+// Group cities by state for the dropdown
+const CITIES_BY_STATE = NIGERIA_CITIES.reduce<Record<string, string[]>>((acc, { city, state }) => {
+  if (!acc[state]) acc[state] = [];
+  acc[state].push(city);
+  return acc;
+}, {});
+
 function Step5Shipping({
-  locationState,
-  setLocationState,
-  locationLga,
-  setLocationLga,
+  locationCity,
+  setLocationCity,
+  locationArea,
+  setLocationArea,
   localPickup,
   setLocalPickup,
   shipsNationally,
@@ -912,10 +919,10 @@ function Step5Shipping({
   shippingOptions,
   setShippingOptions,
 }: {
-  locationState: string;
-  setLocationState: (v: string) => void;
-  locationLga: string;
-  setLocationLga: (v: string) => void;
+  locationCity: string;
+  setLocationCity: (v: string) => void;
+  locationArea: string;
+  setLocationArea: (v: string) => void;
   localPickup: boolean;
   setLocalPickup: (v: boolean) => void;
   shipsNationally: boolean;
@@ -964,11 +971,11 @@ function Step5Shipping({
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="item-state" className="block text-xs text-slate-500 mb-1">State</label>
+            <label htmlFor="item-city" className="block text-xs text-slate-500 mb-1">City <span className="text-error">*</span></label>
             <select
-              id="item-state"
-              value={locationState}
-              onChange={(e) => { setLocationState(e.target.value); setLocationLga(''); }}
+              id="item-city"
+              value={locationCity}
+              onChange={(e) => setLocationCity(e.target.value)}
               required
               className={cn(
                 'w-full rounded-lg border border-slate-200 dark:border-slate-700',
@@ -977,33 +984,33 @@ function Step5Shipping({
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
               )}
             >
-              <option value="">Select state</option>
-              {NIGERIA_STATES.map((s) => (
-                <option key={s.name} value={s.name}>{s.name}</option>
+              <option value="">Select city</option>
+              {Object.entries(CITIES_BY_STATE).sort(([a], [b]) => a.localeCompare(b)).map(([state, cities]) => (
+                <optgroup key={state} label={state}>
+                  {cities.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </optgroup>
               ))}
             </select>
           </div>
           <div>
-            <label htmlFor="item-lga" className="block text-xs text-slate-500 mb-1">Local Government Area</label>
-            <select
-              id="item-lga"
-              value={locationLga}
-              onChange={(e) => setLocationLga(e.target.value)}
-              disabled={!locationState}
+            <label htmlFor="item-area" className="block text-xs text-slate-500 mb-1">Area / Neighbourhood <span className="text-error">*</span></label>
+            <input
+              id="item-area"
+              type="text"
+              value={locationArea}
+              onChange={(e) => setLocationArea(e.target.value)}
+              placeholder="e.g. Yaba, Victoria Island, GRA"
+              maxLength={200}
               required
               className={cn(
                 'w-full rounded-lg border border-slate-200 dark:border-slate-700',
                 'bg-white dark:bg-slate-900 px-3 py-2.5 text-sm',
-                'text-slate-900 dark:text-slate-100',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                !locationState && 'opacity-50 cursor-not-allowed'
+                'text-slate-900 dark:text-slate-100 placeholder:text-slate-400',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
               )}
-            >
-              <option value="">{locationState ? 'Select LGA' : 'Select state first'}</option>
-              {getLGAs(locationState).map((l) => (
-                <option key={l} value={l}>{l}</option>
-              ))}
-            </select>
+            />
           </div>
         </div>
       </div>
@@ -1370,8 +1377,8 @@ export default function CreateListingPage() {
   });
 
   // Step 5 — Shipping
-  const [locationState, setLocationState] = React.useState('');
-  const [locationLga, setLocationLga] = React.useState('');
+  const [locationCity, setLocationCity] = React.useState('');
+  const [locationArea, setLocationArea] = React.useState('');
   const [localPickup, setLocalPickup] = React.useState(false);
   const [shipsNationally, setShipsNationally] = React.useState(true);
   const [shippingOptions, setShippingOptions] = React.useState<ShippingOption[]>([]);
@@ -1440,7 +1447,9 @@ export default function CreateListingPage() {
             },
           }
         : {}),
-      location: locationLga ? `${locationLga}, ${locationState}` : locationState,
+      city: locationCity,
+      area: locationArea,
+      state: getStateForCity(locationCity),
       tags: [],
       imageIds: images.filter((i) => i.id !== null).map((i) => i.id as string),
       shippingOptions: [
@@ -1501,7 +1510,8 @@ export default function CreateListingPage() {
     if (!categoryId) { toast.error('Select a category first'); return; }
     if (details.title.length < 5) { toast.error('Title too short', 'Please enter a more descriptive title.'); return; }
     if (!pricing.price && pricing.type !== 'auction') { toast.error('Price required', 'Please enter a price for your listing.'); return; }
-    if (!locationState) { toast.error('Location required', 'Please select your state and LGA.'); return; }
+    if (!locationCity) { toast.error('Location required', 'Please select your city.'); return; }
+    if (!locationArea.trim()) { toast.error('Location required', 'Please enter your area or neighbourhood.'); return; }
 
     setIsPublishing(true);
     try {
@@ -1560,7 +1570,7 @@ export default function CreateListingPage() {
       case 4: return pricing.type === 'auction'
         ? !!pricing.auctionStartPrice
         : !!pricing.price;
-      case 5: return !!locationState && !!locationLga;
+      case 5: return !!locationCity && locationArea.trim().length >= 2;
       default: return true;
     }
   }
@@ -1636,10 +1646,10 @@ export default function CreateListingPage() {
               )}
               {step === 5 && (
                 <Step5Shipping
-                  locationState={locationState}
-                  setLocationState={setLocationState}
-                  locationLga={locationLga}
-                  setLocationLga={setLocationLga}
+                  locationCity={locationCity}
+                  setLocationCity={setLocationCity}
+                  locationArea={locationArea}
+                  setLocationArea={setLocationArea}
                   localPickup={localPickup}
                   setLocalPickup={setLocalPickup}
                   shipsNationally={shipsNationally}
@@ -1659,7 +1669,7 @@ export default function CreateListingPage() {
                     condition: details.condition.replace(/_/g, ' '),
                     type: pricing.type.replace(/_/g, ' '),
                     price: pricing.price,
-                    location: locationLga ? `${locationLga}, ${locationState}` : locationState,
+                    location: locationArea ? `${locationArea}, ${locationCity}` : locationCity,
                     localPickup,
                     shipsNationally,
                     shippingOptions,

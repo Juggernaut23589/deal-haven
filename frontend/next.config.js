@@ -7,6 +7,7 @@ const nextConfig = {
       { protocol: 'https', hostname: 'images.unsplash.com' },
       { protocol: 'http', hostname: 'localhost' },
       { protocol: 'https', hostname: 'ashimarket.com' },
+      { protocol: 'http', hostname: 'ashimarket.com' },
       { protocol: 'http', hostname: '152.67.143.188' },
       { protocol: 'https', hostname: '*.cloudfront.net' },
       { protocol: 'https', hostname: '*.amazonaws.com' },

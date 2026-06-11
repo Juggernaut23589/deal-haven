@@ -882,6 +882,18 @@ export default function ListingDetailClient({ id }: { id: string }) {
                   </span>
                   <span>{formatPostedAgo(listing.createdAt)}</span>
                 </div>
+
+                {/* Location */}
+                {(listing.city || listing.location) && (
+                  <div className="mt-2 flex items-center gap-1.5 text-sm text-slate-500">
+                    <MapPin className="h-4 w-4 text-slate-400 shrink-0" aria-hidden="true" />
+                    <span>
+                      {listing.city
+                        ? [listing.area, listing.city, listing.state].filter(Boolean).join(', ')
+                        : listing.location}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Description */}

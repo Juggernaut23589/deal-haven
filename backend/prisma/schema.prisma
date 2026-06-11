@@ -484,8 +484,9 @@ model Listing {
   autoDeclinePrice Decimal?         @map("auto_decline_price") @db.Decimal(12, 2)
   // Location
   city             String?          @db.VarChar(100)
+  area             String?          @db.VarChar(200)
   state            String?          @db.VarChar(100)
-  country          String           @default("US") @db.VarChar(2)
+  country          String           @default("NG") @db.VarChar(2)
   zipCode          String?          @map("zip_code") @db.VarChar(20)
   latitude         Decimal?         @db.Decimal(10, 7)
   longitude        Decimal?         @db.Decimal(10, 7)
