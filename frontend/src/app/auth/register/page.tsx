@@ -42,6 +42,13 @@ const registerSchema = z
       .regex(/[A-Z]/, 'Must contain at least one uppercase letter')
       .regex(/[0-9]/, 'Must contain at least one number'),
     confirmPassword: z.string().min(1, 'Please confirm your password'),
+    whatsappNumber: z
+      .string()
+      .min(1, 'WhatsApp number is required')
+      .refine(
+        (v) => /^\+234[789][01]\d{8}$/.test(v.replace(/\s/g, '')),
+        'Enter a valid Nigerian number (e.g. +2348012345678)',
+      ),
     agreedToTerms: z
       .boolean()
       .refine((v) => v === true, 'You must agree to the Terms of Service'),
@@ -233,6 +240,7 @@ export default function RegisterPage() {
         firstName: values.firstName,
         lastName: values.lastName,
         asSeller: accountType === 'seller' || accountType === 'both',
+        whatsappNumber: values.whatsappNumber.replace(/\s/g, ''),
       });
     } catch (err: unknown) {
       setServerError(getApiError(err, 'Registration failed. Please try again.'));
@@ -581,6 +589,37 @@ export default function RegisterPage() {
                       <p id="confirm-error" role="alert" className="mt-1 text-xs text-error flex items-center gap-1">
                         <AlertCircle className="h-3 w-3" aria-hidden="true" />
                         {errors.confirmPassword.message}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* WhatsApp number */}
+                  <div>
+                    <label htmlFor="whatsappNumber" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                      WhatsApp number <span className="text-error">*</span>
+                    </label>
+                    <input
+                      id="whatsappNumber"
+                      type="tel"
+                      autoComplete="tel"
+                      placeholder="+2348012345678"
+                      aria-invalid={!!errors.whatsappNumber}
+                      aria-describedby={errors.whatsappNumber ? 'whatsapp-error' : 'whatsapp-hint'}
+                      {...register('whatsappNumber')}
+                      className={cn(
+                        'w-full rounded-lg border px-3 py-2.5 text-sm',
+                        'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400',
+                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-primary',
+                        errors.whatsappNumber ? 'border-error' : 'border-slate-200 dark:border-slate-700'
+                      )}
+                    />
+                    <p id="whatsapp-hint" className="mt-1 text-xs text-slate-400">
+                      Nigerian numbers only — e.g. +2348012345678
+                    </p>
+                    {errors.whatsappNumber && (
+                      <p id="whatsapp-error" role="alert" className="mt-1 text-xs text-error flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" aria-hidden="true" />
+                        {errors.whatsappNumber.message}
                       </p>
                     )}
                   </div>

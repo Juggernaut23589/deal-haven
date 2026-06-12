@@ -4,7 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
 import Image from 'next/image';
-import { Heart, MapPin, Star, Images, Clock, Tag, Zap, TrendingUp } from 'lucide-react';
+import { Heart, MapPin, Star, Images, Clock, Tag, Zap, TrendingUp, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { formatPrice, formatPostedAgo, formatListingCondition, getConditionColorClass } from '@/lib/formatters';
@@ -150,6 +150,45 @@ function WishlistButton({
   );
 }
 
+// ─── WhatsApp Copy Button ─────────────────────────────────────────────────────
+
+function WhatsAppCopyButton({ whatsappNumber, isAuthenticated }: { whatsappNumber?: string | null; isAuthenticated: boolean }) {
+  const [copied, setCopied] = React.useState(false);
+  if (!whatsappNumber && !isAuthenticated) return null;
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      window.location.href = '/auth/login';
+      return;
+    }
+    if (!whatsappNumber) return;
+    navigator.clipboard.writeText(whatsappNumber).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      title={copied ? 'Copied!' : 'Copy WhatsApp number'}
+      className={cn(
+        'flex items-center gap-1 rounded-full px-2 py-0.5 text-2xs font-medium transition-colors',
+        copied
+          ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+          : 'bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400'
+      )}
+      aria-label={copied ? 'WhatsApp number copied' : 'Copy WhatsApp number'}
+    >
+      <MessageCircle className="h-3 w-3 shrink-0" aria-hidden="true" />
+      {copied ? 'Copied!' : 'WhatsApp'}
+    </button>
+  );
+}
+
 // ─── Main Card ────────────────────────────────────────────────────────────────
 
 export interface ListingCardProps {
@@ -199,6 +238,7 @@ export function ListingCard({
     auction,
   } = listing;
 
+  const { isAuthenticated } = useAuth();
   const conditionLabel = formatListingCondition(condition);
   const conditionColor = getConditionColorClass(condition);
   const isAuction = type === 'auction' && auction;
@@ -410,6 +450,11 @@ export function ListingCard({
             </div>
             <StarRating rating={seller.rating} count={seller.reviewCount} />
           </div>
+
+          {/* WhatsApp */}
+          {seller.whatsappNumber && (
+            <WhatsAppCopyButton whatsappNumber={seller.whatsappNumber} isAuthenticated={isAuthenticated} />
+          )}
 
           {/* Posted time */}
           <p className="text-2xs text-slate-400">{formatPostedAgo(createdAt)}</p>

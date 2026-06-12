@@ -80,6 +80,29 @@ const listingCardSelect = {
 // Full detail select
 const listingDetailSelect = {
   ...listingCardSelect,
+  seller: {
+    select: {
+      id: true,
+      username: true,
+      createdAt: true,
+      whatsappNumber: true,
+      profile: {
+        select: { displayName: true, avatarUrl: true, bio: true },
+      },
+      sellerProfile: {
+        select: {
+          shopName: true,
+          shopSlug: true,
+          averageRating: true,
+          totalReviews: true,
+          totalSales: true,
+          isStarSeller: true,
+          verificationStatus: true,
+          responseTimeHours: true,
+        },
+      },
+    },
+  },
   description: true,
   quantity: true,
   soldCount: true,
@@ -217,6 +240,7 @@ function formatListingDetail(raw: any) {
         : null,
       totalSales: raw.seller.sellerProfile?.totalSales ?? 0,
       reviewCount: raw.seller.sellerProfile?.totalReviews ?? 0,
+      whatsappNumber: raw.seller.whatsappNumber ?? null,
     } : null,
     quantity: raw.quantity ?? 1,
     stockQuantity: raw.quantity ?? 1,
@@ -450,8 +474,11 @@ export class ListingsService {
     const cacheKey = cache.key.listing(id);
     const cached = await cache.get(cacheKey);
     if (cached) {
-      // Async increment view count (don't await)
       this.incrementViewCount(id, viewerUserId).catch(() => null);
+      if (!viewerUserId && (cached as any).seller) {
+        const { whatsappNumber: _w, ..._sellerPublic } = (cached as any).seller;
+        return { ...(cached as any), seller: _sellerPublic };
+      }
       return cached;
     }
 
@@ -481,6 +508,12 @@ export class ListingsService {
         select: { id: true },
       });
       return { ...formatted, isSaved: !!saved };
+    }
+
+    // Strip seller WhatsApp number for unauthenticated viewers
+    if (formatted.seller) {
+      const { whatsappNumber: _w, ...sellerPublic } = formatted.seller as Record<string, unknown>;
+      return { ...formatted, seller: sellerPublic };
     }
 
     return formatted;

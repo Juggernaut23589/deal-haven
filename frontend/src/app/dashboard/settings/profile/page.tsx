@@ -27,6 +27,13 @@ const profileSchema = z.object({
   firstName: z.string().max(50).optional(),
   lastName: z.string().max(50).optional(),
   phoneNumber: z.string().max(20).optional(),
+  whatsappNumber: z
+    .string()
+    .optional()
+    .refine(
+      (v) => !v || /^\+234[789][01]\d{8}$/.test(v.replace(/\s/g, '')),
+      'Enter a valid Nigerian number (e.g. +2348012345678)',
+    ),
   bio: z.string().max(500).optional(),
   city: z.string().max(100).optional(),
   state: z.string().max(100).optional(),
@@ -59,6 +66,7 @@ export default function ProfileSettingsPage() {
       firstName: '',
       lastName: '',
       phoneNumber: '',
+      whatsappNumber: '',
       bio: '',
       city: '',
       state: '',
@@ -75,6 +83,7 @@ export default function ProfileSettingsPage() {
       firstName: (user.profile as any)?.firstName ?? '',
       lastName: (user.profile as any)?.lastName ?? '',
       phoneNumber: (user as any).phoneNumber ?? '',
+      whatsappNumber: (user as any).whatsappNumber ?? '',
       bio: user.profile?.bio ?? '',
       city: (user.profile as any)?.city ?? '',
       state: (user.profile as any)?.state ?? '',
@@ -91,6 +100,7 @@ export default function ProfileSettingsPage() {
         firstName: values.firstName,
         lastName: values.lastName,
         phoneNumber: values.phoneNumber,
+        whatsappNumber: values.whatsappNumber?.replace(/\s/g, '') || undefined,
         bio: values.bio,
         city: values.city,
         state: values.state,
@@ -289,6 +299,27 @@ export default function ProfileSettingsPage() {
                 {...register('phoneNumber')}
                 className={inputCls()}
               />
+            </div>
+            <div>
+              <label htmlFor="whatsappNumber" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                WhatsApp Number
+              </label>
+              <input
+                id="whatsappNumber"
+                type="tel"
+                placeholder="+2348012345678"
+                aria-invalid={!!errors.whatsappNumber}
+                aria-describedby={errors.whatsappNumber ? 'whatsapp-err' : 'whatsapp-hint'}
+                {...register('whatsappNumber')}
+                className={cn(inputCls(), errors.whatsappNumber ? 'border-error' : '')}
+              />
+              <p id="whatsapp-hint" className="mt-1 text-xs text-slate-400">Nigerian numbers only (+234...)</p>
+              {errors.whatsappNumber && (
+                <p id="whatsapp-err" role="alert" className="mt-1 text-xs text-error flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" aria-hidden="true" />
+                  {errors.whatsappNumber.message}
+                </p>
+              )}
             </div>
             <div>
               <label htmlFor="city" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">

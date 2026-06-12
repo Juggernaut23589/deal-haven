@@ -30,6 +30,7 @@ import {
   ChevronDown,
   ChevronUp,
   Tag,
+  MessageCircle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -699,6 +700,42 @@ function ReviewsSection({ listingId, sellerId }: { listingId: string; sellerId: 
   );
 }
 
+// ─── WhatsApp Reveal ──────────────────────────────────────────────────────────
+
+function WhatsAppReveal({ whatsappNumber, isAuthenticated }: { whatsappNumber?: string | null; isAuthenticated: boolean }) {
+  const [revealed, setRevealed] = React.useState(false);
+  const router = useRouter();
+
+  if (!whatsappNumber && !isAuthenticated) return null;
+  if (!whatsappNumber) return null;
+
+  const handleReveal = () => {
+    if (!isAuthenticated) {
+      router.push('/auth/login' as Route);
+      return;
+    }
+    setRevealed(true);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleReveal}
+      className={cn(
+        'w-full flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+        revealed
+          ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 cursor-default'
+          : 'bg-green-500 hover:bg-green-600 text-white'
+      )}
+      disabled={revealed}
+      aria-label={revealed ? `WhatsApp: ${whatsappNumber}` : 'Tap to reveal WhatsApp number'}
+    >
+      <MessageCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+      {revealed ? whatsappNumber : 'Tap to reveal WhatsApp'}
+    </button>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ListingDetailClient({ id }: { id: string }) {
@@ -1203,6 +1240,10 @@ export default function ListingDetailClient({ id }: { id: string }) {
                     >
                       Message Seller
                     </Button>
+                    <WhatsAppReveal
+                      whatsappNumber={listing.seller.whatsappNumber}
+                      isAuthenticated={isAuthenticated}
+                    />
                     <Button
                       variant="ghost"
                       className="w-full text-primary hover:text-primary-dark"

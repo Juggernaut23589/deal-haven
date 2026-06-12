@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { prisma } from '../../config/database';
-import { requireAuth } from '../../middleware/auth';
+import { requireAuth, optionalAuth } from '../../middleware/auth';
 import { processAndSaveImage } from '../../middleware/upload';
 import { NotFoundError, ValidationError } from '../../shared/errors';
 import type { AuthenticatedRequest } from '../../shared/types';
@@ -11,6 +11,13 @@ import { authService } from '../auth/auth.service';
 async function updateProfile(request: FastifyRequest, reply: FastifyReply): Promise<void> {
   const { id: userId } = (request as AuthenticatedRequest).user;
   const body = request.body as Record<string, unknown>;
+
+  const NIGERIAN_WHATSAPP_RE = /^\+234[789][01]\d{8}$/;
+  if ('whatsappNumber' in body && body.whatsappNumber !== undefined && body.whatsappNumber !== '') {
+    if (!NIGERIAN_WHATSAPP_RE.test(body.whatsappNumber as string)) {
+      throw new ValidationError('Enter a valid Nigerian WhatsApp number (e.g. +2348012345678)');
+    }
+  }
 
   const allowedFields = [
     'displayName', 'firstName', 'lastName', 'bio',
@@ -29,6 +36,10 @@ async function updateProfile(request: FastifyRequest, reply: FastifyReply): Prom
         profileData[key] = body[key];
       }
     }
+  }
+
+  if ('whatsappNumber' in body) {
+    userData.whatsappNumber = body.whatsappNumber || null;
   }
 
   // Also handle username update (stored on User table)
@@ -296,14 +307,16 @@ export async function userRoutes(fastify: FastifyInstance): Promise<void> {
   });
 
   // GET /users/:username/public — public profile by username
-  fastify.get('/:username/public', async (req, reply) => {
+  fastify.get('/:username/public', { preHandler: [optionalAuth] }, async (req, reply) => {
     const { username } = req.params as { username: string };
+    const viewer = (req as Partial<AuthenticatedRequest>).user;
     const user = await prisma.user.findUnique({
       where: { username },
       select: {
         id: true,
         username: true,
         createdAt: true,
+        whatsappNumber: true,
         profile: { select: { displayName: true, avatarUrl: true, bio: true, city: true, state: true } },
         sellerProfile: {
           select: {
@@ -314,7 +327,9 @@ export async function userRoutes(fastify: FastifyInstance): Promise<void> {
       },
     });
     if (!user) throw new NotFoundError('User', username);
-    void reply.status(200).send({ success: true, data: user });
+    const { whatsappNumber, ...publicUser } = user;
+    const data = viewer ? { ...publicUser, whatsappNumber } : publicUser;
+    void reply.status(200).send({ success: true, data });
   });
 
   // ── GET /users/me/seller-stats ─────────────────────────────────────────────

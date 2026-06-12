@@ -135,6 +135,11 @@ export interface ListingSellerSummary {
   isVerified: boolean;
   memberSince: string;
   responseTimeHours: number | null;
+  /** Only present when the viewer is authenticated */
+  whatsappNumber?: string | null;
+  bio?: string | null;
+  totalSales?: number;
+  responseTime?: string | null;
 }
 
 // ─── Auction ─────────────────────────────────────────────────────────────────

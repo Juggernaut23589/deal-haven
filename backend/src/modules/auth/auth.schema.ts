@@ -19,6 +19,10 @@ export const registerSchema = z.object({
   firstName: z.string().max(50).optional(),
   lastName: z.string().max(50).optional(),
   asSeller: z.boolean().optional().default(false),
+  whatsappNumber: z
+    .string()
+    .regex(/^\+234[789][01]\d{8}$/, 'Enter a valid Nigerian WhatsApp number (e.g. +2348012345678)')
+    .optional(),
 });
 
 export const loginSchema = z.object({

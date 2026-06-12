@@ -134,6 +134,7 @@ export type AuthenticatedUser = Omit<User, 'addresses'> & {
 export interface PublicUser {
   id: string;
   username: string;
+  whatsappNumber?: string | null;
   profile: Pick<
     UserProfile,
     'displayName' | 'avatarUrl' | 'location' | 'bio'
@@ -182,6 +183,7 @@ export interface RegisterPayload {
   firstName?: string;
   lastName?: string;
   asSeller?: boolean;
+  whatsappNumber?: string;
 }
 
 export interface UpdateProfilePayload {
@@ -195,6 +197,7 @@ export interface UpdateProfilePayload {
   location?: string;
   website?: string;
   phoneNumber?: string;
+  whatsappNumber?: string;
   dateOfBirth?: string;
   gender?: string;
   preferredCurrency?: string;

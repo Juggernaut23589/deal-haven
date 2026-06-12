@@ -7,7 +7,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {
   Star, MapPin, Calendar, ShieldCheck, MessageSquare,
-  Clock, Package, ArrowRight, Share2, BadgeCheck,
+  Clock, Package, ArrowRight, Share2, BadgeCheck, MessageCircle,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -23,6 +23,37 @@ import type { PublicUser } from '@/types/user';
 import type { ListingCard } from '@/types/listing';
 
 const DEFAULT_BANNER = 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1400&h=400&fit=crop';
+
+function StorefrontWhatsApp({ whatsappNumber, isAuthenticated }: { whatsappNumber: string; isAuthenticated: boolean }) {
+  const [revealed, setRevealed] = React.useState(false);
+  const router = useRouter();
+
+  const handleReveal = () => {
+    if (!isAuthenticated) {
+      router.push('/auth/login' as Route);
+      return;
+    }
+    setRevealed(true);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleReveal}
+      disabled={revealed}
+      className={cn(
+        'inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+        revealed
+          ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 cursor-default'
+          : 'bg-green-500 hover:bg-green-600 text-white'
+      )}
+      aria-label={revealed ? `WhatsApp: ${whatsappNumber}` : 'Tap to reveal WhatsApp number'}
+    >
+      <MessageCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+      {revealed ? whatsappNumber : 'WhatsApp'}
+    </button>
+  );
+}
 
 function StatPill({ icon: Icon, children }: { icon: React.ElementType; children: React.ReactNode }) {
   return (
@@ -196,7 +227,7 @@ export default function ShopPage() {
                       {responseTime && <StatPill icon={Clock}>{responseTime}</StatPill>}
                     </div>
 
-                    <div className="mt-5 flex items-center gap-3">
+                    <div className="mt-5 flex flex-wrap items-center gap-3">
                       {currentUser?.id !== seller.id && (
                         <Button
                           size="sm"
@@ -206,6 +237,9 @@ export default function ShopPage() {
                         >
                           {contactingLoading ? 'Opening…' : 'Contact Seller'}
                         </Button>
+                      )}
+                      {seller.whatsappNumber && currentUser?.id !== seller.id && (
+                        <StorefrontWhatsApp whatsappNumber={seller.whatsappNumber} isAuthenticated={isAuthenticated} />
                       )}
                       <Button variant="outline" size="sm" onClick={handleShare} leftIcon={<Share2 className="h-4 w-4" />}>
                         Share

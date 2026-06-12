@@ -50,7 +50,7 @@ export interface AuthResult {
 
 export class AuthService {
   async register(input: RegisterInput): Promise<AuthResult> {
-    const { email, password, username, firstName, lastName, roles = [UserRole.BUYER] } = input;
+    const { email, password, username, firstName, lastName, roles = [UserRole.BUYER], whatsappNumber } = input;
 
     // Check for existing user
     const existing = await prisma.user.findFirst({
@@ -78,6 +78,7 @@ export class AuthService {
         passwordHash,
         username: username.toLowerCase(),
         roles,
+        ...(whatsappNumber && { whatsappNumber }),
         profile: {
           create: {
             firstName,
