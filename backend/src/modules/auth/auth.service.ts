@@ -21,6 +21,7 @@ export interface RegisterInput {
   firstName?: string;
   lastName?: string;
   roles?: UserRole[];
+  whatsappNumber?: string;
 }
 
 export interface LoginInput {

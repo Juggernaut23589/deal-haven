@@ -58,6 +58,7 @@ export interface SearchFilters {
   listingType?: string[];
   sellerId?: string;
   city?: string;
+  lga?: string;
   state?: string;
   country?: string;
   latitude?: number;
