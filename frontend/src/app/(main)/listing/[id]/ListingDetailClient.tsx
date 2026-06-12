@@ -48,6 +48,36 @@ import { useToast } from '@/store/uiStore';
 import type { ListingImage, ListingShippingOption } from '@/types/listing';
 import type { Review } from '@/types/order';
 
+// ─── Gallery Image (with fallback + unoptimized for uploads) ─────────────────
+
+function GalleryImage(props: React.ComponentProps<typeof Image>) {
+  const [errored, setErrored] = React.useState(false);
+  const src = typeof props.src === 'string' ? props.src : '';
+  const isUpload = src.includes('/uploads/');
+
+  if (errored) {
+    return (
+      <div
+        className={cn(
+          'flex items-center justify-center bg-slate-100 dark:bg-slate-800',
+          props.fill ? 'absolute inset-0' : ''
+        )}
+        style={!props.fill ? { width: props.width as number, height: props.height as number } : undefined}
+      >
+        <Tag className="h-10 w-10 text-slate-300" aria-hidden="true" />
+      </div>
+    );
+  }
+
+  return (
+    <Image
+      {...props}
+      unoptimized={isUpload}
+      onError={() => setErrored(true)}
+    />
+  );
+}
+
 // ─── Image Gallery ─────────────────────────────────────────────────────────────
 
 function ImageGallery({ images, title }: { images: ListingImage[]; title: string }) {
@@ -85,7 +115,7 @@ function ImageGallery({ images, title }: { images: ListingImage[]; title: string
         {/* Main image */}
         <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 group">
           {active && (
-            <Image
+            <GalleryImage
               src={active.url}
               alt={active.alt ?? title}
               fill
@@ -175,7 +205,7 @@ function ImageGallery({ images, title }: { images: ListingImage[]; title: string
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
                 )}
               >
-                <Image
+                <GalleryImage
                   src={img.thumbnailUrl || img.url}
                   alt={img.alt ?? `Thumbnail ${i + 1}`}
                   fill
@@ -212,7 +242,7 @@ function ImageGallery({ images, title }: { images: ListingImage[]; title: string
             </button>
 
             <div className="relative w-full max-w-5xl max-h-[90vh] mx-4">
-              <Image
+              <GalleryImage
                 src={active.url}
                 alt={active.alt ?? title}
                 width={active.width ?? 1200}

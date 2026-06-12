@@ -277,6 +277,7 @@ function AutocompleteDropdown({
                         alt={item.title}
                         width={40}
                         height={40}
+                        unoptimized={item.coverImageUrl.includes('/uploads/')}
                         className="h-full w-full object-cover"
                       />
                     ) : (

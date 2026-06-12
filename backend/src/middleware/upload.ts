@@ -19,8 +19,20 @@ export async function ensureUploadDirs(): Promise<void> {
 }
 
 export function getPublicUrl(relativePath: string): string {
-  const baseUrl = process.env.API_URL ?? 'http://localhost:4000';
-  return `${baseUrl}/uploads/${relativePath}`;
+  // Store as a root-relative path so the URL stays valid regardless of domain,
+  // protocol, or which environment the upload occurred in.
+  // The backend API response layer resolves this to an absolute URL at read time.
+  return `/uploads/${relativePath}`;
+}
+
+/** Resolve a stored image path (relative or legacy absolute) to a full URL. */
+export function resolveUploadUrl(storedUrl: string): string {
+  if (!storedUrl) return storedUrl;
+  if (storedUrl.startsWith('http://') || storedUrl.startsWith('https://')) {
+    return storedUrl; // legacy absolute URL — return as-is
+  }
+  const base = (process.env.API_URL ?? 'http://localhost:4000').replace(/\/$/, '');
+  return `${base}${storedUrl}`;
 }
 
 // Detect file extension from mimetype
@@ -110,8 +122,10 @@ export async function processAndSaveImage(
 
 export async function deleteUploadedFile(url: string): Promise<void> {
   try {
-    const baseUrl = process.env.API_URL ?? 'http://localhost:4000';
-    const relativePath = url.replace(`${baseUrl}/uploads/`, '');
+    // Handle both legacy absolute URLs and new root-relative paths
+    const relativePath = url
+      .replace(/^https?:\/\/[^/]+\/uploads\//, '')  // strip absolute prefix
+      .replace(/^\/uploads\//, '');                  // strip root-relative prefix
     const filePath = path.join(UPLOAD_BASE_DIR, relativePath);
     await fs.unlink(filePath);
   } catch {

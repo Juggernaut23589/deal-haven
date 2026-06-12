@@ -15,6 +15,7 @@ import {
 } from '../../shared/utils';
 import type { SearchFilters, PaginatedResponse } from '../../shared/types';
 import type { CreateListingInput, UpdateListingInput } from './listings.schema';
+import { resolveUploadUrl } from '../../middleware/upload';
 
 // Select shape for listing cards (list view)
 const listingCardSelect = {
@@ -42,7 +43,8 @@ const listingCardSelect = {
   publishedAt: true,
   createdAt: true,
   images: {
-    where: { isCover: true },
+    // Prefer cover image; fall back to lowest sort order if none is flagged
+    orderBy: [{ isCover: 'desc' as const }, { sortOrder: 'asc' as const }],
     select: { url: true, thumbnailUrl: true, altText: true },
     take: 1,
   },
@@ -171,7 +173,11 @@ function formatListingCard(raw: any) {
     status: raw.status,
     offersEnabled: raw.offersEnabled,
     coverImage: coverImg
-      ? { url: coverImg.url ?? coverImg.thumbnailUrl, thumbnailUrl: coverImg.thumbnailUrl, alt: coverImg.altText ?? raw.title }
+      ? {
+          url: resolveUploadUrl(coverImg.url ?? coverImg.thumbnailUrl),
+          thumbnailUrl: resolveUploadUrl(coverImg.thumbnailUrl ?? coverImg.url),
+          alt: coverImg.altText ?? raw.title,
+        }
       : null,
     imageCount: raw.images?.length ?? 0,
     location: [raw.area, raw.lga, raw.state].filter(Boolean).join(', ') || [raw.city, raw.state].filter(Boolean).join(', ') || null,
@@ -222,8 +228,8 @@ function formatListingDetail(raw: any) {
     description: raw.description,
     images: (raw.images ?? []).map((img: any) => ({
       id: img.id,
-      url: img.url,
-      thumbnailUrl: img.thumbnailUrl,
+      url: resolveUploadUrl(img.url),
+      thumbnailUrl: resolveUploadUrl(img.thumbnailUrl ?? img.url),
       alt: img.altText ?? raw.title,
       isCover: img.isCover ?? false,
       sortOrder: img.sortOrder ?? 0,

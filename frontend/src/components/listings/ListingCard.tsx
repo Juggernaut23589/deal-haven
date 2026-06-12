@@ -150,6 +150,62 @@ function WishlistButton({
   );
 }
 
+// ─── Listing Image (with fallback) ───────────────────────────────────────────
+
+function ListingImage({
+  src,
+  alt,
+  listView,
+  priority,
+}: {
+  src: string | null;
+  alt: string;
+  listView: boolean;
+  priority: boolean;
+}) {
+  const [errored, setErrored] = React.useState(false);
+
+  if (!src || errored) {
+    return (
+      <div
+        className={cn(
+          'flex items-center justify-center bg-slate-100 dark:bg-slate-800',
+          listView ? 'h-full w-full' : 'absolute inset-0'
+        )}
+      >
+        <Tag className="h-10 w-10 text-slate-300" aria-hidden="true" />
+      </div>
+    );
+  }
+
+  // Use unoptimized for user-uploaded images served from /uploads/ to bypass
+  // Next.js hostname restrictions and avoid /_next/image proxy failures.
+  const isUpload = src.includes('/uploads/');
+
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      fill={!listView}
+      width={listView ? 192 : undefined}
+      height={listView ? 128 : undefined}
+      unoptimized={isUpload}
+      onError={() => setErrored(true)}
+      className={cn(
+        'object-cover',
+        listView ? 'h-full w-full' : 'absolute inset-0',
+        'transition-transform duration-300 group-hover:scale-105'
+      )}
+      sizes={
+        listView
+          ? '192px'
+          : '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw'
+      }
+      priority={priority}
+    />
+  );
+}
+
 // ─── WhatsApp Copy Button ─────────────────────────────────────────────────────
 
 function WhatsAppCopyButton({ whatsappNumber, isAuthenticated }: { whatsappNumber?: string | null; isAuthenticated: boolean }) {
@@ -285,35 +341,12 @@ export function ListingCard({
         style={listView ? undefined : { paddingTop: '66.67%' } /* 3:2 aspect ratio */}
       >
         <Link href={href} aria-hidden="true" tabIndex={-1}>
-          {coverImage ? (
-            <Image
-              src={coverImage.url}
-              alt={coverImage.alt ?? title}
-              fill={!listView}
-              width={listView ? 192 : undefined}
-              height={listView ? 128 : undefined}
-              className={cn(
-                'object-cover',
-                listView ? 'h-full w-full' : 'absolute inset-0',
-                'transition-transform duration-300 group-hover:scale-105'
-              )}
-              sizes={
-                listView
-                  ? '192px'
-                  : '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw'
-              }
-              priority={priority}
-            />
-          ) : (
-            <div
-              className={cn(
-                'flex items-center justify-center',
-                listView ? 'h-full w-full' : 'absolute inset-0'
-              )}
-            >
-              <Tag className="h-10 w-10 text-slate-300" aria-hidden="true" />
-            </div>
-          )}
+          <ListingImage
+            src={coverImage?.url ?? null}
+            alt={coverImage?.alt ?? title}
+            listView={listView}
+            priority={priority}
+          />
         </Link>
 
         {/* Overlays on image */}

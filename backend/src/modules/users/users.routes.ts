@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { prisma } from '../../config/database';
 import { requireAuth, optionalAuth } from '../../middleware/auth';
-import { processAndSaveImage } from '../../middleware/upload';
+import { processAndSaveImage, resolveUploadUrl } from '../../middleware/upload';
 import { NotFoundError, ValidationError } from '../../shared/errors';
 import type { AuthenticatedRequest } from '../../shared/types';
 import { authService } from '../auth/auth.service';
@@ -113,13 +113,14 @@ async function uploadAvatar(request: FastifyRequest, reply: FastifyReply): Promi
   if (buffer.length > 5 * 1024 * 1024) throw new ValidationError('File too large. Max 5MB.');
 
   const result = await processAndSaveImage(buffer, data.mimetype, 'images/avatars');
+  const avatarUrl = result.url ? resolveUploadUrl(result.url) : null;
 
   await prisma.userProfile.update({
     where: { userId },
-    data: { avatarUrl: result.url },
+    data: { avatarUrl: avatarUrl ?? undefined },
   });
 
-  void reply.status(200).send({ success: true, data: { avatarUrl: result.url } });
+  void reply.status(200).send({ success: true, data: { avatarUrl } });
 }
 
 // ─── GET /users/me ────────────────────────────────────────────────────────────
