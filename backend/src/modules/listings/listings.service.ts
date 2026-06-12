@@ -100,7 +100,7 @@ const listingDetailSelect = {
           totalSales: true,
           isStarSeller: true,
           verificationStatus: true,
-          responseTimeHours: true,
+          avgResponseTime: true,
         },
       },
     },
@@ -241,8 +241,8 @@ function formatListingDetail(raw: any) {
       username: raw.seller.username,
       bio: raw.seller.profile?.bio ?? null,
       memberSince: raw.seller.createdAt ?? null,
-      responseTime: raw.seller.sellerProfile?.responseTimeHours
-        ? `${raw.seller.sellerProfile.responseTimeHours}h`
+      responseTime: raw.seller.sellerProfile?.avgResponseTime
+        ? `${raw.seller.sellerProfile.avgResponseTime}h`
         : null,
       totalSales: raw.seller.sellerProfile?.totalSales ?? 0,
       reviewCount: raw.seller.sellerProfile?.totalReviews ?? 0,
