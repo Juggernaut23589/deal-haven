@@ -71,6 +71,7 @@ function GalleryImage(props: React.ComponentProps<typeof Image>) {
 
   return (
     <Image
+      alt=""
       {...props}
       unoptimized={isUpload}
       onError={() => setErrored(true)}

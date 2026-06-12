@@ -265,6 +265,8 @@ export function ListingCard({
   className,
   priority = false,
 }: ListingCardProps) {
+  const { isAuthenticated } = useAuth();
+
   if (isLoading) {
     return <ListingCardSkeleton className={className} />;
   }
@@ -294,7 +296,6 @@ export function ListingCard({
     auction,
   } = listing;
 
-  const { isAuthenticated } = useAuth();
   const conditionLabel = formatListingCondition(condition);
   const conditionColor = getConditionColorClass(condition);
   const isAuction = type === 'auction' && auction;
