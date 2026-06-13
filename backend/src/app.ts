@@ -19,7 +19,7 @@ import { searchRoutes } from './modules/search/search.routes';
 import { userRoutes } from './modules/users/users.routes';
 import { adminRoutes } from './modules/admin/admin.routes';
 import { reportRoutes } from './modules/reports/reports.routes';
-import { FILE_UPLOAD } from './config/constants';
+import { FILE_UPLOAD, LISTING } from './config/constants';
 import { nanoid } from 'nanoid';
 
 export async function buildApp(options?: { https?: { key: Buffer; cert: Buffer } }) {
@@ -95,7 +95,7 @@ export async function buildApp(options?: { https?: { key: Buffer; cert: Buffer }
   await fastify.register(multipart, {
     limits: {
       fileSize: FILE_UPLOAD.MAX_IMAGE_SIZE_BYTES,
-      files: FILE_UPLOAD.MAX_IMAGE_SIZE_BYTES,
+      files: LISTING.MAX_IMAGES,
     },
   });
 

@@ -287,7 +287,7 @@ function Step2Photos({
 }) {
   const canAddMore = images.length < MAX_IMAGES;
 
-  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+  const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB
 
   const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
     accept: { 'image/*': ['.jpg', '.jpeg', '.png', '.webp', '.gif'] },
@@ -341,7 +341,7 @@ function Step2Photos({
               {isDragActive ? 'Drop photos here' : 'Drag & drop photos here'}
             </p>
             <p className="text-sm text-slate-400 mt-0.5">
-              or click to browse — JPG, PNG, WebP (max 5 MB each)
+              or click to browse — JPG, PNG, WebP (max 20 MB each)
             </p>
           </div>
           {images.length > 0 && (
@@ -358,7 +358,7 @@ function Step2Photos({
           {fileRejections.map(({ file, errors }) => (
             <p key={file.name}>
               <span className="font-medium">{file.name}</span>:{' '}
-              {errors.map((e) => (e.code === 'file-too-large' ? 'File exceeds 5 MB limit' : e.message)).join(', ')}
+              {errors.map((e) => (e.code === 'file-too-large' ? 'File exceeds 20 MB limit' : e.message)).join(', ')}
             </p>
           ))}
         </div>

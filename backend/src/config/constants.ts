@@ -76,8 +76,8 @@ export const CACHE_TTL = {
 } as const;
 
 export const FILE_UPLOAD = {
-  MAX_IMAGE_SIZE_MB: 5,
-  MAX_IMAGE_SIZE_BYTES: 5 * 1024 * 1024,
+  MAX_IMAGE_SIZE_MB: 20,
+  MAX_IMAGE_SIZE_BYTES: 20 * 1024 * 1024,
   ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
   MAX_DOCUMENT_SIZE_MB: 20,
   MAX_DOCUMENT_SIZE_BYTES: 20 * 1024 * 1024,
