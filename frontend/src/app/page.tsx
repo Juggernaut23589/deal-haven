@@ -373,32 +373,59 @@ function CategorySidebar() {
 
 function TopCategories() {
   return (
-    <div className="grid grid-cols-2 gap-3 mb-6">
-      {TOP_CATEGORIES.map((cat) => (
-        <Link
-          key={cat.label}
-          href={cat.href}
-          className="group relative flex flex-col justify-end overflow-hidden rounded-xl aspect-[4/3] shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-        >
-          {/* Background image */}
-          <Image
-            src={cat.image}
-            alt={cat.label}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            sizes="(max-width: 640px) 45vw, 200px"
-          />
-          {/* Gradient overlay */}
-          <div className={cn('absolute inset-0 bg-gradient-to-t', cat.gradient)} />
-          {/* Content */}
-          <div className="relative z-10 p-3">
-            <span className="text-lg leading-none" aria-hidden="true">{cat.icon}</span>
-            <p className="text-sm font-bold text-white mt-1 leading-tight">{cat.label}</p>
-            <p className="text-[11px] text-white/70 mt-0.5 leading-tight">{cat.description}</p>
-          </div>
-        </Link>
-      ))}
-    </div>
+    <>
+      {/* Mobile: horizontal scroll strip showing all categories */}
+      <div
+        className="flex sm:hidden gap-3 overflow-x-auto pb-2 -mx-4 px-4 mb-6 snap-x snap-mandatory"
+        style={{ scrollbarWidth: 'none' }}
+      >
+        {CATEGORIES_GRID.map((cat) => (
+          <Link
+            key={cat.label}
+            href={cat.href}
+            className="group relative flex flex-col justify-end overflow-hidden rounded-xl aspect-[4/3] shadow-card shrink-0 w-36 snap-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            <Image
+              src={cat.image}
+              alt={cat.label}
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              sizes="144px"
+            />
+            <div className={cn('absolute inset-0 bg-gradient-to-t', cat.gradient)} />
+            <div className="relative z-10 p-2">
+              <p className="text-xs font-bold text-white leading-tight">{cat.label}</p>
+              <p className="text-[10px] text-white/70">{cat.count}</p>
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      {/* Tablet+: original 2-col grid with TOP_CATEGORIES */}
+      <div className="hidden sm:grid grid-cols-2 gap-3 mb-6">
+        {TOP_CATEGORIES.map((cat) => (
+          <Link
+            key={cat.label}
+            href={cat.href}
+            className="group relative flex flex-col justify-end overflow-hidden rounded-xl aspect-[4/3] shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            <Image
+              src={cat.image}
+              alt={cat.label}
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              sizes="200px"
+            />
+            <div className={cn('absolute inset-0 bg-gradient-to-t', cat.gradient)} />
+            <div className="relative z-10 p-3">
+              <span className="text-lg leading-none" aria-hidden="true">{cat.icon}</span>
+              <p className="text-sm font-bold text-white mt-1 leading-tight">{cat.label}</p>
+              <p className="text-[11px] text-white/70 mt-0.5 leading-tight">{cat.description}</p>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </>
   );
 }
 
