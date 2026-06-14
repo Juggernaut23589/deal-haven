@@ -702,8 +702,22 @@ export default function HomePage() {
             href="/search"
             hrefLabel="View all categories"
           />
+          {/* Mobile: horizontal scroll strip showing all categories */}
           <div
-            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4"
+            className="flex sm:hidden gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory scrollbar-none"
+            role="list"
+            aria-label="Browse categories"
+            style={{ scrollbarWidth: 'none' }}
+          >
+            {CATEGORIES_GRID.map((cat, i) => (
+              <div key={cat.href} role="listitem" className="snap-start shrink-0 w-36">
+                <CategoryCard {...cat} index={i} />
+              </div>
+            ))}
+          </div>
+          {/* Tablet+: grid */}
+          <div
+            className="hidden sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4"
             role="list"
             aria-label="Browse categories"
           >

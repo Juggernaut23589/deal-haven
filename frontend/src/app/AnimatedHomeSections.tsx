@@ -154,27 +154,31 @@ function SocialProofStrip() {
 
   const testimonials = [
     {
-      avatar: 'https://i.pravatar.cc/48?img=1',
-      name: 'Jessica M.',
-      text: 'Sold my car in 3 days! The escrow system made me feel totally safe.',
+      avatar: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=96&h=96&fit=crop&crop=face',
+      name: 'Chidinma Okafor',
+      location: 'Lagos',
+      text: 'Sold my Toyota Camry in 4 days! Buyers contacted me directly on WhatsApp and we sorted everything out fast.',
       rating: 5,
     },
     {
-      avatar: 'https://i.pravatar.cc/48?img=3',
-      name: 'Marcus T.',
-      text: 'Found a MacBook Pro for ₦620,000 less than retail. Deal Score is a game changer.',
+      avatar: 'https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?w=96&h=96&fit=crop&crop=face',
+      name: 'Emeka Nwosu',
+      location: 'Abuja',
+      text: 'Got a brand new iPhone for ₦180,000 less than what the stores were asking. The Deal Score showed me it was a great price.',
       rating: 5,
     },
     {
-      avatar: 'https://i.pravatar.cc/48?img=5',
-      name: 'Priya K.',
-      text: 'The Make an Offer feature helped me negotiate the perfect price.',
+      avatar: 'https://images.unsplash.com/photo-1589156229687-496a31ad1d1f?w=96&h=96&fit=crop&crop=face',
+      name: 'Fatima Abdullahi',
+      location: 'Kano',
+      text: 'I used the Make an Offer feature to negotiate my living room set. The seller accepted within the hour. Very smooth!',
       rating: 5,
     },
     {
-      avatar: 'https://i.pravatar.cc/48?img=7',
-      name: 'David L.',
-      text: 'Best marketplace for finding local furniture deals. Love the map view!',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=face',
+      name: 'Tunde Adeleke',
+      location: 'Ibadan',
+      text: 'Listed my spare generator and had 12 serious buyers messaging me same day. Best platform for selling in Nigeria.',
       rating: 5,
     },
   ];
@@ -224,10 +228,13 @@ function SocialProofStrip() {
                 <img
                   src={t.avatar}
                   alt={t.name}
-                  className="h-9 w-9 rounded-full object-cover"
+                  className="h-10 w-10 rounded-full object-cover shrink-0"
                   loading="lazy"
                 />
-                <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{t.name}</span>
+                <div>
+                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{t.name}</p>
+                  <p className="text-xs text-slate-400">{t.location}</p>
+                </div>
               </div>
             </motion.div>
           ))}

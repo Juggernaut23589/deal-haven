@@ -1621,12 +1621,14 @@ export default function CreateListingPage() {
     }
   }
 
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+
   const goNext = () => {
-    if (step < 6) setStep((s) => (s + 1) as Step);
+    if (step < 6) { setStep((s) => (s + 1) as Step); scrollToTop(); }
   };
 
   const goPrev = () => {
-    if (step > 1) setStep((s) => (s - 1) as Step);
+    if (step > 1) { setStep((s) => (s - 1) as Step); scrollToTop(); }
   };
 
   return (
@@ -1724,7 +1726,7 @@ export default function CreateListingPage() {
                     shipsNationally,
                     shippingOptions,
                   }}
-                  onGoToStep={setStep}
+                  onGoToStep={(s) => { setStep(s); scrollToTop(); }}
                   isPublishing={isPublishing}
                   isSavingDraft={isSavingDraft}
                   onPublish={handlePublish}
