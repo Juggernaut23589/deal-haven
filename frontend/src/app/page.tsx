@@ -44,7 +44,7 @@ const SIDEBAR_CATEGORIES: { label: string; href: Route; icon: React.ElementType;
   { label: 'Electronics', href: '/category/electronics' as Route, icon: Smartphone, count: '265,961', thumb: 'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=56&h=56&fit=crop' },
   { label: 'Home & Furniture', href: '/category/furniture-home' as Route, icon: Home, count: '51,002', thumb: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=56&h=56&fit=crop' },
   { label: 'Fashion', href: '/category/clothing' as Route, icon: Shirt, count: '143,777', thumb: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=56&h=56&fit=crop' },
-  { label: 'Sports & Outdoors', href: '/category/sports-outdoors' as Route, icon: Bike, count: '7,630', thumb: 'https://images.unsplash.com/photo-1461896836934-bd45ba8a0281?w=56&h=56&fit=crop' },
+  { label: 'Sports & Outdoors', href: '/category/sports-outdoors' as Route, icon: Bike, count: '7,630', thumb: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=56&h=56&fit=crop' },
   { label: 'Books & Media', href: '/category/books-media' as Route, icon: BookOpen, count: '4,920', thumb: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=56&h=56&fit=crop' },
   { label: 'Toys & Games', href: '/category/toys-games' as Route, icon: Gamepad2, count: '6,140', thumb: 'https://images.unsplash.com/photo-1558060370-d644479cb6f7?w=56&h=56&fit=crop' },
   { label: 'Pet Supplies', href: '/category/pet-supplies' as Route, icon: PawPrint, count: '3,410', thumb: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=56&h=56&fit=crop' },
@@ -60,7 +60,7 @@ const HERO_CAROUSEL_IMAGES = [
   { src: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=220&h=160&fit=crop', alt: 'Home furniture' },
   { src: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=220&h=160&fit=crop', alt: 'Fashion clothing' },
   { src: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=220&h=160&fit=crop', alt: 'Real estate property' },
-  { src: 'https://images.unsplash.com/photo-1546868871-af0de0ae72be?w=220&h=160&fit=crop', alt: 'Mountain bike' },
+  { src: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=220&h=160&fit=crop', alt: 'Mountain bike' },
   { src: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=220&h=160&fit=crop', alt: 'Electronics' },
 ];
 
@@ -160,7 +160,7 @@ const CATEGORIES_GRID: {
     label: 'Sports & Outdoors',
     href: '/category/sports-outdoors' as Route,
     count: '7.6K',
-    image: 'https://images.unsplash.com/photo-1461896836934-bd45ba8a0281?w=400&h=300&fit=crop',
+    image: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=400&h=300&fit=crop',
     gradient: 'from-green-900/70 to-green-900/20',
   },
   {
@@ -599,7 +599,7 @@ function TrendingBanner() {
     { src: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=300&h=300&fit=crop', label: 'MacBook Pro', price: '₦2,950,000', badge: 'Deal' },
     { src: 'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=300&h=300&fit=crop', label: 'Gold Watch', price: '₦540,000', badge: null },
     { src: 'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=300&h=300&fit=crop', label: 'Designer Bag', price: '₦425,000', badge: 'New' },
-    { src: 'https://images.unsplash.com/photo-1546868871-af0de0ae72be?w=300&h=300&fit=crop', label: 'Mountain Bike', price: '₦1,390,000', badge: 'Hot' },
+    { src: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=300&h=300&fit=crop', label: 'Mountain Bike', price: '₦1,390,000', badge: 'Hot' },
     { src: 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=300&h=300&fit=crop', label: 'Laptop Stand', price: '₦75,000', badge: 'Deal' },
   ];
 
