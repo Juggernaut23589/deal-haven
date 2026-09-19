@@ -663,6 +663,7 @@ function TrendingBanner() {
 import HomepageListingSections from './HomepageListingSections';
 import HomepageCategorySpotlights from './HomepageCategorySpotlights';
 import { AnimatedHomeSections } from './AnimatedHomeSections';
+import { HomepageFAQ } from './HomepageFAQ';
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -888,6 +889,9 @@ export default function HomePage() {
 
         {/* ── Animated client sections (scroll reveals, counters, etc) ──── */}
         <AnimatedHomeSections />
+
+        {/* ── FAQ ──────────────────────────────────────────────────────── */}
+        <HomepageFAQ />
       </main>
 
       <Footer />

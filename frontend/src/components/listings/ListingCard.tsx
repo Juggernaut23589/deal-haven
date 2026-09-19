@@ -6,7 +6,7 @@ import type { Route } from 'next';
 import Image from 'next/image';
 import { Heart, MapPin, Star, Images, Clock, Tag, Zap, TrendingUp, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { cn, buildWhatsAppLink } from '@/lib/utils';
+import { cn, buildWhatsAppLink, buildListingWhatsAppMessage } from '@/lib/utils';
 import { formatPrice, formatPostedAgo, formatListingCondition, getConditionColorClass } from '@/lib/formatters';
 import { calculateDealScoreColor, getDealScoreLabel } from '@/lib/utils';
 import { useToggleWishlist } from '@/hooks/useListings';
@@ -210,9 +210,11 @@ function ListingImage({
 
 function WhatsAppChatButton({
   whatsappNumber,
+  listingId,
   listingTitle,
 }: {
   whatsappNumber?: string | null;
+  listingId: string;
   listingTitle: string;
 }) {
   if (!whatsappNumber) return null;
@@ -220,7 +222,7 @@ function WhatsAppChatButton({
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const message = `Hi, is "${listingTitle}" still available?`;
+    const message = buildListingWhatsAppMessage(listingTitle, listingId);
     window.open(buildWhatsAppLink(whatsappNumber, message), '_blank', 'noopener,noreferrer');
   };
 
@@ -483,6 +485,7 @@ export function ListingCard({
           {seller.whatsappNumber && (
             <WhatsAppChatButton
               whatsappNumber={seller.whatsappNumber}
+              listingId={id}
               listingTitle={title}
             />
           )}

@@ -35,7 +35,7 @@ import {
   Phone,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn, buildWhatsAppLink } from '@/lib/utils';
+import { cn, buildWhatsAppLink, buildListingWhatsAppMessage } from '@/lib/utils';
 import { formatPrice, formatDate, formatPostedAgo, formatListingCondition, getConditionColorClass } from '@/lib/formatters';
 import { calculateDealScoreColor, getDealScoreLabel } from '@/lib/utils';
 import { useListing, useSimilarListings, useToggleWishlist } from '@/hooks/useListings';
@@ -737,15 +737,17 @@ function ReviewsSection({ listingId, sellerId }: { listingId: string; sellerId: 
 
 function WhatsAppReveal({
   whatsappNumber,
+  listingId,
   listingTitle,
 }: {
   whatsappNumber?: string | null;
+  listingId: string;
   listingTitle: string;
 }) {
   if (!whatsappNumber) return null;
 
   const handleClick = () => {
-    const message = `Hi, is "${listingTitle}" still available?`;
+    const message = buildListingWhatsAppMessage(listingTitle, listingId);
     window.open(buildWhatsAppLink(whatsappNumber, message), '_blank', 'noopener,noreferrer');
   };
 
@@ -1296,6 +1298,7 @@ export default function ListingDetailClient({ id }: { id: string }) {
                     </Button>
                     <WhatsAppReveal
                       whatsappNumber={listing.seller.whatsappNumber}
+                      listingId={listing.id}
                       listingTitle={listing.title}
                     />
                     <Button
@@ -1410,7 +1413,7 @@ export default function ListingDetailClient({ id }: { id: string }) {
                   <button
                     type="button"
                     onClick={() => {
-                      const message = `Hi, is "${listing.title}" still available?`;
+                      const message = buildListingWhatsAppMessage(listing.title, listing.id);
                       window.open(
                         buildWhatsAppLink(listing.seller!.whatsappNumber!, message),
                         '_blank',

@@ -23,6 +23,16 @@ export function buildWhatsAppLink(phoneNumber: string, message?: string): string
 }
 
 /**
+ * Prefilled WhatsApp message for enquiring about a listing, including its link so
+ * the seller can see exactly which item the buyer means.
+ */
+export function buildListingWhatsAppMessage(listingTitle: string, listingId: string): string {
+  const origin =
+    typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_APP_URL ?? '');
+  return `Hi, is "${listingTitle}" still available?\n${origin}/listing/${listingId}`;
+}
+
+/**
  * Formats a number as a localized currency string.
  * @example formatCurrency(1299.99) → "₦1,299.99"
  */
