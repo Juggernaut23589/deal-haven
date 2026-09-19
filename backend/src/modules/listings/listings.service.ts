@@ -52,6 +52,7 @@ const listingCardSelect = {
     select: {
       id: true,
       username: true,
+      whatsappNumber: true,
       sellerProfile: {
         select: {
           shopName: true,
@@ -203,6 +204,7 @@ function formatListingCard(raw: any) {
       reviewCount: sp?.totalReviews ?? 0,
       isVerified: sp?.verificationStatus === 'VERIFIED',
       isStarSeller: sp?.isStarSeller ?? false,
+      whatsappNumber: raw.seller.whatsappNumber ?? null,
     } : null,
     category: raw.category ? {
       id: raw.category.id,
@@ -729,7 +731,15 @@ export class ListingsService {
       prisma.listing.count({ where }),
     ]);
 
-    const formatted = data.map(formatListingCard);
+    const formatted = data.map(formatListingCard) as Record<string, unknown>[];
+
+    // Strip seller WhatsApp number for unauthenticated viewers
+    if (!viewerUserId) {
+      for (const l of formatted) {
+        const seller = l.seller as Record<string, unknown> | null | undefined;
+        if (seller) delete seller.whatsappNumber;
+      }
+    }
 
     // Overlay isSaved per viewer (batch query)
     if (viewerUserId && formatted.length > 0) {
