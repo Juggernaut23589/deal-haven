@@ -31,6 +31,8 @@ import {
   ChevronUp,
   Tag,
   MessageCircle,
+  Store,
+  Phone,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn, buildWhatsAppLink } from '@/lib/utils';
@@ -778,6 +780,7 @@ export default function ListingDetailClient({ id }: { id: string }) {
   const [bidAmount, setBidAmount] = React.useState('');
   const [isBidding, setIsBidding] = React.useState(false);
   const [isSaved, setIsSaved] = React.useState(false);
+  const [contactModalOpen, setContactModalOpen] = React.useState(false);
   const [reportOpen, setReportOpen] = React.useState(false);
   const [reportReason, setReportReason] = React.useState('');
   const [reportDesc, setReportDesc] = React.useState('');
@@ -984,6 +987,30 @@ export default function ListingDetailClient({ id }: { id: string }) {
                   </div>
                 )}
               </div>
+
+              {/* Seller's Shop / Contact Seller */}
+              {listing.seller && (
+                <div className="flex flex-wrap gap-3">
+                  <Link
+                    href={`/shop/${listing.seller.username}` as Route}
+                    className={cn(
+                      'inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-medium',
+                      'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800',
+                      'transition-colors duration-150'
+                    )}
+                  >
+                    <Store className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    Seller&apos;s Shop
+                  </Link>
+                  <Button
+                    variant="outline"
+                    leftIcon={<MessageSquare className="h-4 w-4" />}
+                    onClick={() => setContactModalOpen(true)}
+                  >
+                    Contact Seller
+                  </Button>
+                </div>
+              )}
 
               {/* Description */}
               <section aria-labelledby="description-heading">
@@ -1352,6 +1379,72 @@ export default function ListingDetailClient({ id }: { id: string }) {
         listingTitle={listing.title}
         listingPrice={listing.price}
       />
+
+      {/* Contact Seller Modal */}
+      {contactModalOpen && listing?.seller && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          onClick={(e) => { if (e.target === e.currentTarget) setContactModalOpen(false); }}
+          aria-modal="true"
+          role="dialog"
+          aria-labelledby="contact-modal-title"
+        >
+          <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+            <h2 id="contact-modal-title" className="text-lg font-bold text-slate-900 dark:text-slate-100">
+              Contact {listing.seller.displayName}
+            </h2>
+            <p className="text-sm text-slate-500">Choose how you&apos;d like to reach out.</p>
+            <div className="space-y-3">
+              {listing.seller.whatsappNumber ? (
+                <>
+                  <a
+                    href={`tel:${listing.seller.whatsappNumber}`}
+                    className={cn(
+                      'w-full flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors',
+                      'bg-primary text-white hover:bg-primary-dark'
+                    )}
+                  >
+                    <Phone className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    Call Seller
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const message = `Hi, is "${listing.title}" still available?`;
+                      window.open(
+                        buildWhatsAppLink(listing.seller!.whatsappNumber!, message),
+                        '_blank',
+                        'noopener,noreferrer'
+                      );
+                    }}
+                    className={cn(
+                      'w-full flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors',
+                      'bg-green-500 text-white hover:bg-green-600'
+                    )}
+                  >
+                    <MessageCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    Chat Seller
+                  </button>
+                </>
+              ) : (
+                <Button
+                  className="w-full"
+                  leftIcon={<MessageSquare className="h-4 w-4" />}
+                  onClick={() => {
+                    setContactModalOpen(false);
+                    handleMessageSeller();
+                  }}
+                >
+                  Message Seller
+                </Button>
+              )}
+            </div>
+            <Button variant="ghost" className="w-full" onClick={() => setContactModalOpen(false)}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Report Listing Modal */}
       {reportOpen && (
