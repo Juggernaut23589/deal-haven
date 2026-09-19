@@ -408,14 +408,17 @@ export const listingsApi = {
     listingIdOrFiles: string | File[],
     formData?: FormData
   ): Promise<Array<{ id: string; url: string; thumbnailUrl: string }>> => {
+    // Uploads process each image server-side (resize + WebP encode), which can take
+    // well beyond the default request timeout for several large photos — give it more room.
+    const uploadConfig = { timeout: 120_000 };
     if (typeof listingIdOrFiles === 'string') {
       // DO NOT set Content-Type manually — axios auto-sets multipart/form-data
       // with the correct boundary when it detects a FormData body.
-      return post(`/listings/${listingIdOrFiles}/images`, formData);
+      return post(`/listings/${listingIdOrFiles}/images`, formData, uploadConfig);
     }
     const form = new FormData();
     listingIdOrFiles.forEach((f) => form.append('images', f));
-    return post('/listings/images/upload', form);
+    return post('/listings/images/upload', form, uploadConfig);
   },
 
   deleteImage: (imageId: string): Promise<void> =>

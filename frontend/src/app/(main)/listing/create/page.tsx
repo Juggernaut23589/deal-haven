@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { compressImages } from '@/lib/imageCompression';
 import { useRequireAuth } from '@/hooks/useAuth';
 import { useAuthStore } from '@/store/authStore';
 import { useCreateListing, useUploadListingImages, usePublishListing } from '@/hooks/useListings';
@@ -1428,15 +1429,21 @@ export default function CreateListingPage() {
 
   // Publishing state
   const [isPublishing, setIsPublishing] = React.useState(false);
+  // Set once the listing record exists on the server but photo upload hasn't
+  // succeeded yet, so a retry re-uses it instead of creating a duplicate listing.
+  const [pendingListingId, setPendingListingId] = React.useState<string | null>(null);
   const [isSavingDraft, setIsSavingDraft] = React.useState(false);
 
   // ── Photo handlers ────────────────────────────────────────────────────────
   // Images are stored locally and uploaded at publish/save time (after listing ID exists)
 
   const handleAddImages = React.useCallback(
-    (files: File[]) => {
+    async (files: File[]) => {
       const newFiles = files.slice(0, MAX_IMAGES - images.length);
-      const previews: UploadedImage[] = newFiles.map((file) => ({
+      // Downscale/re-encode before storing — keeps the eventual upload fast and
+      // avoids overloading the server with full-resolution phone photos.
+      const compressed = await compressImages(newFiles);
+      const previews: UploadedImage[] = compressed.map((file) => ({
         url: URL.createObjectURL(file),
         id: null,
         file,
@@ -1514,14 +1521,21 @@ export default function CreateListingPage() {
     };
   }
 
-  // Upload pending images to an already-created listing
+  // Upload pending images to an already-created listing. Retries once — uploads can
+  // fail transiently (server-side image processing is heavier than a typical request).
   const uploadPendingImages = async (listingId: string) => {
     const pendingFiles = images.filter((i) => i.file && i.id === null).map((i) => i.file!);
     if (pendingFiles.length === 0) return;
     const form = new FormData();
     pendingFiles.forEach((f) => form.append('images', f));
-    // Let errors propagate — caller shows the real reason
-    await listingsApi.uploadImages(listingId, form);
+    try {
+      await listingsApi.uploadImages(listingId, form);
+    } catch {
+      const retryForm = new FormData();
+      pendingFiles.forEach((f) => retryForm.append('images', f));
+      // Let this second failure propagate — caller shows the real reason
+      await listingsApi.uploadImages(listingId, retryForm);
+    }
   };
 
   const handleBecomeSeller = async () => {
@@ -1559,17 +1573,33 @@ export default function CreateListingPage() {
     if (!locationCity.trim()) { toast.error('Location required', 'Please enter your city or town.'); return; }
     if (!locationArea.trim()) { toast.error('Location required', 'Please enter your area or street.'); return; }
 
+    const hadPendingPhotos = images.some((i) => i.file && i.id === null);
+
     setIsPublishing(true);
     try {
-      const listing = await createListing(buildPayload('active'));
+      // If a previous attempt already created the listing but photo upload failed,
+      // reuse it instead of creating a duplicate listing on retry.
+      const listing = pendingListingId
+        ? { id: pendingListingId }
+        : await createListing(buildPayload('active'));
 
-      // Upload images — if this fails we still publish the listing
-      // but show the user exactly what went wrong with the photos
       try {
         await uploadPendingImages(listing.id);
+        setPendingListingId(null);
       } catch (uploadErr: unknown) {
-        const uploadMsg = getApiError(uploadErr, 'Unknown upload error');
-        toast.warning('Photos not uploaded', `Listing published without photos. Reason: ${uploadMsg}`);
+        if (hadPendingPhotos) {
+          // Don't publish a listing the seller expected to have photos on. Keep
+          // them on this page — their images are still in memory — so hitting
+          // Publish again retries the upload instead of creating a new listing.
+          setPendingListingId(listing.id);
+          const uploadMsg = getApiError(uploadErr, 'Unknown upload error');
+          toast.error(
+            'Photos failed to upload',
+            `Your listing has not been published yet. Reason: ${uploadMsg}. Please try publishing again.`
+          );
+          return;
+        }
+        // No photos were ever selected — nothing to warn about, just publish.
       }
 
       await publishListing(listing.id);
