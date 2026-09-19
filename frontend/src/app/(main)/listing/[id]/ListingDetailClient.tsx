@@ -33,7 +33,7 @@ import {
   MessageCircle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { cn, buildWhatsAppLink } from '@/lib/utils';
 import { formatPrice, formatDate, formatPostedAgo, formatListingCondition, getConditionColorClass } from '@/lib/formatters';
 import { calculateDealScoreColor, getDealScoreLabel } from '@/lib/utils';
 import { useListing, useSimilarListings, useToggleWishlist } from '@/hooks/useListings';
@@ -733,36 +733,41 @@ function ReviewsSection({ listingId, sellerId }: { listingId: string; sellerId: 
 
 // ─── WhatsApp Reveal ──────────────────────────────────────────────────────────
 
-function WhatsAppReveal({ whatsappNumber, isAuthenticated }: { whatsappNumber?: string | null; isAuthenticated: boolean }) {
-  const [revealed, setRevealed] = React.useState(false);
+function WhatsAppReveal({
+  whatsappNumber,
+  listingTitle,
+  isAuthenticated,
+}: {
+  whatsappNumber?: string | null;
+  listingTitle: string;
+  isAuthenticated: boolean;
+}) {
   const router = useRouter();
 
   if (!whatsappNumber && !isAuthenticated) return null;
   if (!whatsappNumber) return null;
 
-  const handleReveal = () => {
+  const handleClick = () => {
     if (!isAuthenticated) {
       router.push('/auth/login' as Route);
       return;
     }
-    setRevealed(true);
+    const message = `Hi, is "${listingTitle}" still available?`;
+    window.open(buildWhatsAppLink(whatsappNumber, message), '_blank', 'noopener,noreferrer');
   };
 
   return (
     <button
       type="button"
-      onClick={handleReveal}
+      onClick={handleClick}
       className={cn(
         'w-full flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-        revealed
-          ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 cursor-default'
-          : 'bg-green-500 hover:bg-green-600 text-white'
+        'bg-green-500 hover:bg-green-600 text-white'
       )}
-      disabled={revealed}
-      aria-label={revealed ? `WhatsApp: ${whatsappNumber}` : 'Tap to reveal WhatsApp number'}
+      aria-label={`Chat with seller on WhatsApp about ${listingTitle}`}
     >
       <MessageCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
-      {revealed ? whatsappNumber : 'Tap to reveal WhatsApp'}
+      Chat on WhatsApp
     </button>
   );
 }
@@ -1273,6 +1278,7 @@ export default function ListingDetailClient({ id }: { id: string }) {
                     </Button>
                     <WhatsAppReveal
                       whatsappNumber={listing.seller.whatsappNumber}
+                      listingTitle={listing.title}
                       isAuthenticated={isAuthenticated}
                     />
                     <Button
