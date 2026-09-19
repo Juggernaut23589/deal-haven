@@ -13,6 +13,16 @@ export function cn(...inputs: ClassValue[]): string {
 }
 
 /**
+ * Builds a wa.me deep link that opens a WhatsApp chat (app on mobile, WhatsApp Web on desktop).
+ * Strips any `+`, spaces, dashes, and brackets, since wa.me expects bare international digits.
+ */
+export function buildWhatsAppLink(phoneNumber: string, message?: string): string {
+  const digitsOnly = phoneNumber.replace(/[^\d]/g, '');
+  const query = message ? `?text=${encodeURIComponent(message)}` : '';
+  return `https://wa.me/${digitsOnly}${query}`;
+}
+
+/**
  * Formats a number as a localized currency string.
  * @example formatCurrency(1299.99) → "₦1,299.99"
  */

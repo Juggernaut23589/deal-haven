@@ -6,7 +6,7 @@ import type { Route } from 'next';
 import Image from 'next/image';
 import { Heart, MapPin, Star, Images, Clock, Tag, Zap, TrendingUp, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { cn, buildWhatsAppLink } from '@/lib/utils';
 import { formatPrice, formatPostedAgo, formatListingCondition, getConditionColorClass } from '@/lib/formatters';
 import { calculateDealScoreColor, getDealScoreLabel } from '@/lib/utils';
 import { useToggleWishlist } from '@/hooks/useListings';
@@ -206,10 +206,17 @@ function ListingImage({
   );
 }
 
-// ─── WhatsApp Copy Button ─────────────────────────────────────────────────────
+// ─── WhatsApp Chat Button ─────────────────────────────────────────────────────
 
-function WhatsAppCopyButton({ whatsappNumber, isAuthenticated }: { whatsappNumber?: string | null; isAuthenticated: boolean }) {
-  const [copied, setCopied] = React.useState(false);
+function WhatsAppChatButton({
+  whatsappNumber,
+  listingTitle,
+  isAuthenticated,
+}: {
+  whatsappNumber?: string | null;
+  listingTitle: string;
+  isAuthenticated: boolean;
+}) {
   if (!whatsappNumber && !isAuthenticated) return null;
 
   const handleClick = (e: React.MouseEvent) => {
@@ -220,27 +227,23 @@ function WhatsAppCopyButton({ whatsappNumber, isAuthenticated }: { whatsappNumbe
       return;
     }
     if (!whatsappNumber) return;
-    navigator.clipboard.writeText(whatsappNumber).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+    const message = `Hi, is "${listingTitle}" still available?`;
+    window.open(buildWhatsAppLink(whatsappNumber, message), '_blank', 'noopener,noreferrer');
   };
 
   return (
     <button
       type="button"
       onClick={handleClick}
-      title={copied ? 'Copied!' : 'Copy WhatsApp number'}
+      title="Chat on WhatsApp"
       className={cn(
         'flex items-center gap-1 rounded-full px-2 py-0.5 text-2xs font-medium transition-colors',
-        copied
-          ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-          : 'bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400'
+        'bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400'
       )}
-      aria-label={copied ? 'WhatsApp number copied' : 'Copy WhatsApp number'}
+      aria-label={`Chat with seller on WhatsApp about ${listingTitle}`}
     >
       <MessageCircle className="h-3 w-3 shrink-0" aria-hidden="true" />
-      {copied ? 'Copied!' : 'WhatsApp'}
+      WhatsApp
     </button>
   );
 }
@@ -487,7 +490,11 @@ export function ListingCard({
 
           {/* WhatsApp */}
           {seller.whatsappNumber && (
-            <WhatsAppCopyButton whatsappNumber={seller.whatsappNumber} isAuthenticated={isAuthenticated} />
+            <WhatsAppChatButton
+              whatsappNumber={seller.whatsappNumber}
+              listingTitle={title}
+              isAuthenticated={isAuthenticated}
+            />
           )}
 
           {/* Posted time */}
