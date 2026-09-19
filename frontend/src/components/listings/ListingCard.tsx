@@ -211,22 +211,15 @@ function ListingImage({
 function WhatsAppChatButton({
   whatsappNumber,
   listingTitle,
-  isAuthenticated,
 }: {
   whatsappNumber?: string | null;
   listingTitle: string;
-  isAuthenticated: boolean;
 }) {
-  if (!whatsappNumber && !isAuthenticated) return null;
+  if (!whatsappNumber) return null;
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!isAuthenticated) {
-      window.location.href = '/auth/login';
-      return;
-    }
-    if (!whatsappNumber) return;
     const message = `Hi, is "${listingTitle}" still available?`;
     window.open(buildWhatsAppLink(whatsappNumber, message), '_blank', 'noopener,noreferrer');
   };
@@ -268,8 +261,6 @@ export function ListingCard({
   className,
   priority = false,
 }: ListingCardProps) {
-  const { isAuthenticated } = useAuth();
-
   if (isLoading) {
     return <ListingCardSkeleton className={className} />;
   }
@@ -493,7 +484,6 @@ export function ListingCard({
             <WhatsAppChatButton
               whatsappNumber={seller.whatsappNumber}
               listingTitle={title}
-              isAuthenticated={isAuthenticated}
             />
           )}
 

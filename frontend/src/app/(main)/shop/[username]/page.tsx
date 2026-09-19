@@ -27,19 +27,11 @@ const DEFAULT_BANNER = 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45
 function StorefrontWhatsApp({
   whatsappNumber,
   shopName,
-  isAuthenticated,
 }: {
   whatsappNumber: string;
   shopName: string;
-  isAuthenticated: boolean;
 }) {
-  const router = useRouter();
-
   const handleClick = () => {
-    if (!isAuthenticated) {
-      router.push('/auth/login' as Route);
-      return;
-    }
     const message = `Hi ${shopName}, I have a question about your listings.`;
     window.open(buildWhatsAppLink(whatsappNumber, message), '_blank', 'noopener,noreferrer');
   };
@@ -247,7 +239,6 @@ export default function ShopPage() {
                         <StorefrontWhatsApp
                           whatsappNumber={seller.whatsappNumber}
                           shopName={displayName}
-                          isAuthenticated={isAuthenticated}
                         />
                       )}
                       <Button variant="outline" size="sm" onClick={handleShare} leftIcon={<Share2 className="h-4 w-4" />}>

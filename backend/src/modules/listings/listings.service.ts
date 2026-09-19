@@ -483,10 +483,6 @@ export class ListingsService {
     const cached = await cache.get(cacheKey);
     if (cached) {
       this.incrementViewCount(id, viewerUserId).catch(() => null);
-      if (!viewerUserId && (cached as any).seller) {
-        const { whatsappNumber: _w, ..._sellerPublic } = (cached as any).seller;
-        return { ...(cached as any), seller: _sellerPublic };
-      }
       return cached;
     }
 
@@ -516,12 +512,6 @@ export class ListingsService {
         select: { id: true },
       });
       return { ...formatted, isSaved: !!saved };
-    }
-
-    // Strip seller WhatsApp number for unauthenticated viewers
-    if (formatted.seller) {
-      const { whatsappNumber: _w, ...sellerPublic } = formatted.seller as Record<string, unknown>;
-      return { ...formatted, seller: sellerPublic };
     }
 
     return formatted;
@@ -731,15 +721,7 @@ export class ListingsService {
       prisma.listing.count({ where }),
     ]);
 
-    const formatted = data.map(formatListingCard) as Record<string, unknown>[];
-
-    // Strip seller WhatsApp number for unauthenticated viewers
-    if (!viewerUserId) {
-      for (const l of formatted) {
-        const seller = l.seller as Record<string, unknown> | null | undefined;
-        if (seller) delete seller.whatsappNumber;
-      }
-    }
+    const formatted = data.map(formatListingCard);
 
     // Overlay isSaved per viewer (batch query)
     if (viewerUserId && formatted.length > 0) {

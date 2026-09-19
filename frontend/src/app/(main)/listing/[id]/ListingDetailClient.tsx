@@ -736,22 +736,13 @@ function ReviewsSection({ listingId, sellerId }: { listingId: string; sellerId: 
 function WhatsAppReveal({
   whatsappNumber,
   listingTitle,
-  isAuthenticated,
 }: {
   whatsappNumber?: string | null;
   listingTitle: string;
-  isAuthenticated: boolean;
 }) {
-  const router = useRouter();
-
-  if (!whatsappNumber && !isAuthenticated) return null;
   if (!whatsappNumber) return null;
 
   const handleClick = () => {
-    if (!isAuthenticated) {
-      router.push('/auth/login' as Route);
-      return;
-    }
     const message = `Hi, is "${listingTitle}" still available?`;
     window.open(buildWhatsAppLink(whatsappNumber, message), '_blank', 'noopener,noreferrer');
   };
@@ -1279,7 +1270,6 @@ export default function ListingDetailClient({ id }: { id: string }) {
                     <WhatsAppReveal
                       whatsappNumber={listing.seller.whatsappNumber}
                       listingTitle={listing.title}
-                      isAuthenticated={isAuthenticated}
                     />
                     <Button
                       variant="ghost"
