@@ -131,13 +131,16 @@ jobs:
               echo "Renamed deal-haven -> ashimarket"
             fi
 
+            # Flush logs BEFORE deleting processes — pm2 flush only touches logs of
+            # registered processes, so flushing after delete is a no-op and logs grow forever.
+            pm2 flush 2>/dev/null || true
+            # Belt-and-braces: truncate the files directly in case they weren't registered
+            for f in /home/deploy/.pm2/logs/*.log; do [ -f "$f" ] && : > "$f"; done
+
             # Kill every known stale process name (covers any past rename)
             for name in deal-haven-api deal-haven-web ashimarket-api ashimarket-web; do
               pm2 delete "$name" 2>/dev/null && echo "Deleted PM2 process: $name" || true
             done
-
-            # Flush all stale logs so they don't accumulate across deploys
-            pm2 flush 2>/dev/null || true
 
             # Remove stale compiled artifacts to guarantee a clean state
             rm -rf ${{ env.APP_DIR }}/backend/dist

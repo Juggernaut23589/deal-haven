@@ -92,7 +92,8 @@ export const RATE_LIMIT = {
   AUTH_WINDOW_MS: 15 * 60 * 1000,
   API_MAX: 100,
   API_WINDOW_MS: 60 * 1000,
-  UPLOAD_MAX: 20,
+  // Photos upload one request each; a max-size listing (20 photos) plus retries must fit.
+  UPLOAD_MAX: 60,
   UPLOAD_WINDOW_MS: 60 * 1000,
   SEARCH_MAX: 60,
   SEARCH_WINDOW_MS: 60 * 1000,

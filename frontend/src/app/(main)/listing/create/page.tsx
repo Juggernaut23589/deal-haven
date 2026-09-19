@@ -49,6 +49,8 @@ interface UploadedImage {
   id: string | null;
   file?: File;
   uploading?: boolean;
+  /** Set once this photo has been accepted by the server. */
+  uploaded?: boolean;
   error?: boolean;
 }
 
@@ -1521,20 +1523,40 @@ export default function CreateListingPage() {
     };
   }
 
-  // Upload pending images to an already-created listing. Retries once — uploads can
-  // fail transiently (server-side image processing is heavier than a typical request).
+  // Upload pending images to an already-created listing, ONE REQUEST PER PHOTO.
+  // The reverse proxy caps each request body at 20MB, so batching every photo into
+  // a single multipart request silently failed for multi-photo listings. Uploading
+  // sequentially also keeps cover/sort order and avoids overloading the server.
+  // Each photo is marked uploaded as it lands, so a retry only re-sends what's missing.
   const uploadPendingImages = async (listingId: string) => {
-    const pendingFiles = images.filter((i) => i.file && i.id === null).map((i) => i.file!);
-    if (pendingFiles.length === 0) return;
-    const form = new FormData();
-    pendingFiles.forEach((f) => form.append('images', f));
-    try {
-      await listingsApi.uploadImages(listingId, form);
-    } catch {
-      const retryForm = new FormData();
-      pendingFiles.forEach((f) => retryForm.append('images', f));
-      // Let this second failure propagate — caller shows the real reason
-      await listingsApi.uploadImages(listingId, retryForm);
+    const pending = images.filter((i) => i.file && !i.uploaded);
+    if (pending.length === 0) return;
+
+    let lastError: unknown = null;
+    let failed = 0;
+
+    for (const item of pending) {
+      const send = () => {
+        const form = new FormData();
+        form.append('images', item.file!);
+        return listingsApi.uploadImages(listingId, form);
+      };
+      try {
+        try {
+          await send();
+        } catch {
+          await send(); // one retry for transient failures
+        }
+        setImages((prev) => prev.map((img) => (img === item ? { ...img, uploaded: true } : img)));
+      } catch (err: unknown) {
+        failed += 1;
+        lastError = err;
+      }
+    }
+
+    if (failed > 0) {
+      const reason = getApiError(lastError, 'Unknown upload error');
+      throw new Error(`${failed} of ${pending.length} photo(s) failed to upload. ${reason}`);
     }
   };
 
@@ -1573,7 +1595,7 @@ export default function CreateListingPage() {
     if (!locationCity.trim()) { toast.error('Location required', 'Please enter your city or town.'); return; }
     if (!locationArea.trim()) { toast.error('Location required', 'Please enter your area or street.'); return; }
 
-    const hadPendingPhotos = images.some((i) => i.file && i.id === null);
+    const hadPendingPhotos = images.some((i) => i.file && !i.uploaded);
 
     setIsPublishing(true);
     try {
@@ -1592,10 +1614,11 @@ export default function CreateListingPage() {
           // them on this page — their images are still in memory — so hitting
           // Publish again retries the upload instead of creating a new listing.
           setPendingListingId(listing.id);
-          const uploadMsg = getApiError(uploadErr, 'Unknown upload error');
+          const uploadMsg =
+            uploadErr instanceof Error ? uploadErr.message : getApiError(uploadErr, 'Unknown upload error');
           toast.error(
             'Photos failed to upload',
-            `Your listing has not been published yet. Reason: ${uploadMsg}. Please try publishing again.`
+            `Your listing has not been published yet. ${uploadMsg} Please try publishing again.`
           );
           return;
         }
@@ -1623,8 +1646,9 @@ export default function CreateListingPage() {
       try {
         await uploadPendingImages(listing.id);
       } catch (uploadErr: unknown) {
-        const uploadMsg = getApiError(uploadErr, 'Unknown upload error');
-        toast.warning('Photos not uploaded', `Draft saved without photos. Reason: ${uploadMsg}`);
+        const uploadMsg =
+          uploadErr instanceof Error ? uploadErr.message : getApiError(uploadErr, 'Unknown upload error');
+        toast.warning('Some photos not uploaded', `Draft saved. ${uploadMsg}`);
       }
       toast.success('Draft saved', 'You can finish it anytime from My Listings.');
       router.push('/seller/listings' as Route);
