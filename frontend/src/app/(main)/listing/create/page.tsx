@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { compressImages } from '@/lib/imageCompression';
+import { prepareImages } from '@/lib/imageCompression';
 import { useRequireAuth } from '@/hooks/useAuth';
 import { useAuthStore } from '@/store/authStore';
 import { useCreateListing, useUploadListingImages, usePublishListing } from '@/hooks/useListings';
@@ -1442,18 +1442,28 @@ export default function CreateListingPage() {
   const handleAddImages = React.useCallback(
     async (files: File[]) => {
       const newFiles = files.slice(0, MAX_IMAGES - images.length);
-      // Downscale/re-encode before storing — keeps the eventual upload fast and
-      // avoids overloading the server with full-resolution phone photos.
-      const compressed = await compressImages(newFiles);
-      const previews: UploadedImage[] = compressed.map((file) => ({
-        url: URL.createObjectURL(file),
-        id: null,
-        file,
-        uploading: false,
-      }));
-      setImages((prev) => [...prev, ...previews]);
+      const unreadable: string[] = [];
+      // Each photo is copied into page memory and downscaled the moment it's picked,
+      // one at a time, so later steps never depend on the OS file handle.
+      await prepareImages(newFiles, ({ file, error }) => {
+        if (error) {
+          unreadable.push(error);
+          return;
+        }
+        setImages((prev) =>
+          prev.length >= MAX_IMAGES
+            ? prev
+            : [...prev, { url: URL.createObjectURL(file), id: null, file, uploading: false }]
+        );
+      });
+      if (unreadable.length > 0) {
+        toast.error(
+          `${unreadable.length} photo(s) could not be read`,
+          `${unreadable[0]}. Please select ${unreadable.length > 1 ? 'them' : 'it'} again.`
+        );
+      }
     },
-    [images.length]
+    [images.length, toast]
   );
 
   const handleRemoveImage = (idx: number) => {
@@ -1555,7 +1565,12 @@ export default function CreateListingPage() {
     }
 
     if (failed > 0) {
-      const reason = getApiError(lastError, 'Unknown upload error');
+      // A failure with no HTTP response (request never left the device / connection
+      // dropped) has no API message, so fall back to the transport error itself.
+      const e = lastError as { response?: unknown; code?: string; message?: string } | null;
+      const reason = e?.response
+        ? getApiError(lastError, 'Unknown upload error')
+        : `${e?.message ?? 'Network error'}${e?.code ? ` (${e.code})` : ''}`;
       throw new Error(`${failed} of ${pending.length} photo(s) failed to upload. ${reason}`);
     }
   };
