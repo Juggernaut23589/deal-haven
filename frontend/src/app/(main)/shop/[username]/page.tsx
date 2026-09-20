@@ -31,15 +31,13 @@ function StorefrontWhatsApp({
   whatsappNumber: string;
   shopName: string;
 }) {
-  const handleClick = () => {
-    const message = `Hi ${shopName}, I have a question about your listings.`;
-    window.open(buildWhatsAppLink(whatsappNumber, message), '_blank', 'noopener,noreferrer');
-  };
+  const href = buildWhatsAppLink(whatsappNumber, `Hi ${shopName}, I have a question about your listings.`);
 
   return (
-    <button
-      type="button"
-      onClick={handleClick}
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
       className={cn(
         'inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
         'bg-green-500 hover:bg-green-600 text-white'
@@ -48,7 +46,7 @@ function StorefrontWhatsApp({
     >
       <MessageCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
       WhatsApp
-    </button>
+    </a>
   );
 }
 

@@ -219,27 +219,26 @@ function WhatsAppChatButton({
 }) {
   if (!whatsappNumber) return null;
 
-  const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const message = buildListingWhatsAppMessage(listingTitle, listingId);
-    window.open(buildWhatsAppLink(whatsappNumber, message), '_blank', 'noopener,noreferrer');
-  };
+  // A real link (not window.open) so popup blockers can't swallow it; wa.me opens
+  // the WhatsApp app on mobile and WhatsApp Web on desktop.
+  const href = buildWhatsAppLink(whatsappNumber, buildListingWhatsAppMessage(listingTitle, listingId));
 
   return (
-    <button
-      type="button"
-      onClick={handleClick}
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(e) => e.stopPropagation()}
       title="Chat on WhatsApp"
       className={cn(
-        'flex items-center gap-1 rounded-full px-2 py-0.5 text-2xs font-medium transition-colors',
+        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-2xs font-medium transition-colors',
         'bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400'
       )}
       aria-label={`Chat with seller on WhatsApp about ${listingTitle}`}
     >
       <MessageCircle className="h-3 w-3 shrink-0" aria-hidden="true" />
       WhatsApp
-    </button>
+    </a>
   );
 }
 

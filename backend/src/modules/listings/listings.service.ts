@@ -48,6 +48,7 @@ const listingCardSelect = {
     select: { url: true, thumbnailUrl: true, altText: true },
     take: 1,
   },
+  _count: { select: { images: true } },
   seller: {
     select: {
       id: true,
@@ -180,7 +181,7 @@ function formatListingCard(raw: any) {
           alt: coverImg.altText ?? raw.title,
         }
       : null,
-    imageCount: raw.images?.length ?? 0,
+    imageCount: raw._count?.images ?? raw.images?.length ?? 0,
     location: [raw.area, raw.lga, raw.state].filter(Boolean).join(', ') || [raw.city, raw.state].filter(Boolean).join(', ') || null,
     city: raw.city,
     area: raw.area,

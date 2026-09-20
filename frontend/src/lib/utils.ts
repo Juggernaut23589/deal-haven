@@ -27,8 +27,10 @@ export function buildWhatsAppLink(phoneNumber: string, message?: string): string
  * the seller can see exactly which item the buyer means.
  */
 export function buildListingWhatsAppMessage(listingTitle: string, listingId: string): string {
+  // Prefer the configured public URL so server and client render the same href.
   const origin =
-    typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_APP_URL ?? '');
+    (process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/$/, '') ||
+    (typeof window !== 'undefined' ? window.location.origin : '');
   return `Hi, is "${listingTitle}" still available?\n${origin}/listing/${listingId}`;
 }
 

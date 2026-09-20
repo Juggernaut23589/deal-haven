@@ -746,15 +746,13 @@ function WhatsAppReveal({
 }) {
   if (!whatsappNumber) return null;
 
-  const handleClick = () => {
-    const message = buildListingWhatsAppMessage(listingTitle, listingId);
-    window.open(buildWhatsAppLink(whatsappNumber, message), '_blank', 'noopener,noreferrer');
-  };
+  const href = buildWhatsAppLink(whatsappNumber, buildListingWhatsAppMessage(listingTitle, listingId));
 
   return (
-    <button
-      type="button"
-      onClick={handleClick}
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
       className={cn(
         'w-full flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
         'bg-green-500 hover:bg-green-600 text-white'
@@ -763,7 +761,7 @@ function WhatsAppReveal({
     >
       <MessageCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
       Chat on WhatsApp
-    </button>
+    </a>
   );
 }
 
@@ -1274,13 +1272,11 @@ export default function ListingDetailClient({ id }: { id: string }) {
                         {formatDate(listing.seller.memberSince)}
                       </span>
                     </div>
-                    {listing.seller.responseTimeHours !== null && (
+                    {listing.seller.responseTime && (
                       <div className="flex justify-between">
                         <span>Avg. response time</span>
                         <span className="text-slate-700 dark:text-slate-300 font-medium">
-                          {listing.seller.responseTimeHours < 1
-                            ? '< 1 hour'
-                            : `${listing.seller.responseTimeHours}h`}
+                          {listing.seller.responseTime}
                         </span>
                       </div>
                     )}
@@ -1400,6 +1396,8 @@ export default function ListingDetailClient({ id }: { id: string }) {
             <div className="space-y-3">
               {listing.seller.whatsappNumber ? (
                 <>
+                  {/* Plain links, not window.open — popup blockers can't interfere,
+                      tel: opens the dialer on mobile, wa.me opens WhatsApp app/web. */}
                   <a
                     href={`tel:${listing.seller.whatsappNumber}`}
                     className={cn(
@@ -1410,16 +1408,13 @@ export default function ListingDetailClient({ id }: { id: string }) {
                     <Phone className="h-4 w-4 shrink-0" aria-hidden="true" />
                     Call Seller
                   </a>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const message = buildListingWhatsAppMessage(listing.title, listing.id);
-                      window.open(
-                        buildWhatsAppLink(listing.seller!.whatsappNumber!, message),
-                        '_blank',
-                        'noopener,noreferrer'
-                      );
-                    }}
+                  <a
+                    href={buildWhatsAppLink(
+                      listing.seller.whatsappNumber,
+                      buildListingWhatsAppMessage(listing.title, listing.id)
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className={cn(
                       'w-full flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors',
                       'bg-green-500 text-white hover:bg-green-600'
@@ -1427,7 +1422,13 @@ export default function ListingDetailClient({ id }: { id: string }) {
                   >
                     <MessageCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
                     Chat Seller
-                  </button>
+                  </a>
+                  <p className="text-center text-xs text-slate-500 dark:text-slate-400">
+                    Seller&apos;s number:{' '}
+                    <span className="font-mono font-medium text-slate-700 dark:text-slate-300 select-all">
+                      {listing.seller.whatsappNumber}
+                    </span>
+                  </p>
                 </>
               ) : (
                 <Button
