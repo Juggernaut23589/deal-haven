@@ -335,7 +335,7 @@ export const usersApi = {
   },
 
   getPublicUser: (username: string): Promise<import('@/types/user').PublicUser> =>
-    get(`/users/${username}`),
+    get(`/users/${username}/public`),
 
   becomeSeller: (): Promise<{ accessToken: string }> =>
     post<{ accessToken: string }>('/users/me/become-seller', {}),

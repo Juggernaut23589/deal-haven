@@ -1,4 +1,5 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
+import { ListingStatus } from '@prisma/client';
 import { listingsService } from './listings.service';
 import {
   createListingSchema,
@@ -169,6 +170,24 @@ export class ListingsController {
         },
         facets: {},
       },
+    });
+  }
+
+  // Public storefront: a seller's ACTIVE listings only
+  async getSellerPublicListings(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    const { sellerId } = request.params as { sellerId: string };
+    const query = request.query as { page?: string; limit?: string };
+
+    const result = await listingsService.getSellerListings(
+      sellerId,
+      ListingStatus.ACTIVE,
+      parseInt(query.page ?? '1', 10),
+      parseInt(query.limit ?? '24', 10),
+    );
+
+    void reply.status(200).send({
+      success: true,
+      ...result,
     });
   }
 

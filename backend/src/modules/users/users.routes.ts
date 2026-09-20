@@ -310,7 +310,6 @@ export async function userRoutes(fastify: FastifyInstance): Promise<void> {
   // GET /users/:username/public — public profile by username
   fastify.get('/:username/public', { preHandler: [optionalAuth] }, async (req, reply) => {
     const { username } = req.params as { username: string };
-    const viewer = (req as Partial<AuthenticatedRequest>).user;
     const user = await prisma.user.findUnique({
       where: { username },
       select: {
@@ -328,9 +327,7 @@ export async function userRoutes(fastify: FastifyInstance): Promise<void> {
       },
     });
     if (!user) throw new NotFoundError('User', username);
-    const { whatsappNumber, ...publicUser } = user;
-    const data = viewer ? { ...publicUser, whatsappNumber } : publicUser;
-    void reply.status(200).send({ success: true, data });
+    void reply.status(200).send({ success: true, data: user });
   });
 
   // ── GET /users/me/seller-stats ─────────────────────────────────────────────

@@ -11,6 +11,13 @@ export async function listingRoutes(fastify: FastifyInstance): Promise<void> {
     (req, reply) => listingsController.searchListings(req, reply),
   );
 
+  // Public: a seller's active listings (storefront)
+  fastify.get(
+    '/seller/:sellerId',
+    { preHandler: [searchRateLimiter, optionalAuth] },
+    (req, reply) => listingsController.getSellerPublicListings(req, reply),
+  );
+
   // Public: get listing detail
   fastify.get(
     '/:id',
