@@ -1,7 +1,0 @@
----
-# App server specific vars
-domain_name: "ashimarket.com"
-enable_ssl: true
-certbot_email: "j.oarowolo@gmail.com"
-google_client_id: "{{ google_client_id | default('') }}"
-google_client_secret: "{{ google_client_secret | default('') }}"

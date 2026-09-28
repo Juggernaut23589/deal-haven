@@ -1,60 +1,67 @@
-# Ashimarket — Infrastructure (Oracle Cloud)
+# Ashimarket — Infrastructure (Contabo)
 
-Terraform configuration that provisions the always-free Ampere A1 VM on
-Oracle Cloud Infrastructure (OCI) plus its networking (VCN, subnet, IGW,
-route table, security list).
+Single VM running nginx, Node.js/PM2, PostgreSQL, and Redis together.
+Provisioned with a plain idempotent shell script — no Ansible, no Terraform
+for this host (Contabo VMs are created through their web panel, not an API
+with a mature Terraform provider).
 
-## What gets created
+The old two-host Oracle Cloud setup (Terraform + Ansible) is preserved in
+[`oracle-legacy/`](./oracle-legacy) until that infrastructure is formally
+decommissioned — see `oracle-legacy/DECOMMISSION.md`.
 
-| Resource              | Details                                                       |
-|-----------------------|---------------------------------------------------------------|
-| VCN                   | `10.0.0.0/16`                                                 |
-| Internet Gateway      | Attached to VCN                                               |
-| Public subnet         | `10.0.1.0/24`, public IPs enabled                             |
-| Security list         | Ingress: 22, 80, 443, ICMP. Egress: all                       |
-| Compute instance      | `VM.Standard.A1.Flex`, 4 OCPU, 24 GB RAM, Ubuntu 22.04 ARM   |
+## Layout
 
-All resources are within OCI's **always-free** allowance.
-
-## Prerequisites
-
-1. **Terraform** >= 1.5 — `brew install terraform`
-2. **OCI API key** set up on your user:
-   - Console → Profile (top right) → User Settings → API Keys → Add API Key
-   - Download the private key to `~/.oci/oci_api_key.pem` (`chmod 600`)
-   - Copy the **fingerprint** and **config file preview** (tenancy/user OCIDs, region)
-3. **SSH keypair** — e.g. `~/.ssh/id_ed25519.pub` (will be installed on the VM)
-
-## Usage
-
-```bash
-cd infra
-cp terraform.tfvars.example terraform.tfvars
-# edit terraform.tfvars with your OCIDs, fingerprint, key path, region
-
-terraform init
-terraform plan
-terraform apply
+```
+infra/
+├── scripts/
+│   └── setup-server.sh   # idempotent: installs & tunes nginx, Node/PM2, Postgres, Redis
+├── nginx/
+│   └── ashimarket.conf   # the live nginx site config
+└── oracle-legacy/        # kept until Oracle VMs are torn down — see DECOMMISSION.md
 ```
 
-After apply, the public IP is printed:
+## Server
+
+| | |
+|---|---|
+| Host | `167.86.88.208` |
+| OS | Ubuntu 24.04 LTS |
+| Specs | 4 vCPU / 8 GB RAM / ~190 GB disk |
+| Access | `ssh contabo-ashimarket` (key-based, `deploy` user, passwordless sudo) — see `~/.ssh/config` |
+| Firewall | UFW: 22, 80, 443 only. Postgres/Redis bind to `127.0.0.1` and are never exposed. |
+
+## First-time setup
 
 ```bash
-terraform output instance_public_ip
-ssh ubuntu@$(terraform output -raw instance_public_ip)
+ssh contabo-ashimarket
+sudo bash infra/scripts/setup-server.sh
 ```
 
-## Teardown
+Idempotent — safe to re-run any time (e.g. after editing `nginx/ashimarket.conf`,
+just re-run to pick it up and reload nginx).
+
+What it does **not** do, on purpose:
+- Create the `deploy` user or configure SSH/UFW — that's a one-time manual
+  step per the migration plan (Phase 0/1), not something to automate blindly
+  against a box you're already logged into.
+- Create the database/user/password, or write `backend/.env` — secrets never
+  belong in a script that's checked into git. The script prints the exact
+  `psql` commands to run by hand.
+- Obtain the TLS certificate if one doesn't already exist — prints the
+  `certbot` command to run once DNS points at this box.
+
+## Deploys
+
+Handled by `.github/workflows/deploy.yml` on every push to `dev`: builds
+both apps in CI, ships the artifacts, runs Prisma migrations, and restarts
+both PM2 processes via [`../ecosystem.config.js`](../ecosystem.config.js).
+
+## Day-to-day
 
 ```bash
-terraform destroy
+ssh contabo-ashimarket
+pm2 list                        # process status
+pm2 logs ashimarket-api         # backend logs
+pm2 logs ashimarket-web         # frontend logs
+sudo nginx -t && sudo systemctl reload nginx   # after editing nginx config
 ```
-
-## Notes
-
-- `terraform.tfvars` and state files are gitignored — they contain secrets.
-- For production, move state to a remote backend (OCI Object Storage or S3).
-- Restrict `ssh_ingress_cidr` to your public IP rather than `0.0.0.0/0`.
-- Oracle Ubuntu images ship with iptables that block non-SSH ports. After
-  first SSH, you'll need to open 80/443 on the VM itself (documented in the
-  next setup step).

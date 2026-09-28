@@ -1,9 +1,0 @@
----
-- name: Configure Ashimarket App Server
-  hosts: app
-  become: yes
-
-  roles:
-    - common
-    - nodejs
-    - nginx
