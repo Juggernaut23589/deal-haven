@@ -105,6 +105,13 @@ export async function buildApp(options?: { https?: { key: Buffer; cert: Buffer }
   await fastify.register(staticFiles, {
     root: uploadRoot,
     prefix: '/uploads/',
+    setHeaders: (res) => {
+      // These are public listing/avatar photos meant to be embeddable anywhere
+      // (WhatsApp link previews, social sharing, hotlinking) — Helmet's default
+      // same-origin CORP would block that, and has been observed blocking normal
+      // same-origin <img> loads too under some corporate TLS-inspection proxies.
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    },
   });
 
   // Correlation ID middleware
