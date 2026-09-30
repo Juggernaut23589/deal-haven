@@ -994,8 +994,8 @@ export default function ListingDetailClient({ id }: { id: string }) {
                   <Link
                     href={`/shop/${listing.seller.username}` as Route}
                     className={cn(
-                      'inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-medium',
-                      'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800',
+                      'inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium',
+                      'bg-green-500 hover:bg-green-600 text-white',
                       'transition-colors duration-150'
                     )}
                   >
@@ -1003,7 +1003,7 @@ export default function ListingDetailClient({ id }: { id: string }) {
                     Seller&apos;s Shop
                   </Link>
                   <Button
-                    variant="outline"
+                    className="bg-green-500 hover:bg-green-600 text-white border-transparent"
                     leftIcon={<MessageSquare className="h-4 w-4" />}
                     onClick={() => setContactModalOpen(true)}
                   >

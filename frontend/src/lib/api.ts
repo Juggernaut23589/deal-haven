@@ -357,8 +357,32 @@ export const usersApi = {
 // ─── Listing Endpoints ────────────────────────────────────────────────────────
 
 export const listingsApi = {
-  search: (filters: SearchFilters): Promise<SearchResults> =>
-    get<SearchResults>('/listings', { params: filters }),
+  // Maps our internal SearchFilters field names to the exact querystring keys
+  // the backend's searchListingsSchema (Zod) accepts — they're not 1:1 (e.g.
+  // query -> q, categorySlug -> category), and array filters must be sent as
+  // comma-joined strings, not repeated params. A silent name/shape mismatch
+  // here means the backend just ignores that filter entirely (no error), which
+  // is exactly what made "search for X" return everything instead of nothing.
+  search: (filters: SearchFilters): Promise<SearchResults> => {
+    const params: Record<string, string | number | boolean | undefined> = {
+      q: filters.query,
+      category: filters.categorySlug,
+      condition: filters.condition?.length ? filters.condition.join(',') : undefined,
+      type: filters.type?.length ? filters.type.join(',') : undefined,
+      minPrice: filters.minPrice,
+      maxPrice: filters.maxPrice,
+      city: filters.city,
+      lga: filters.lga,
+      state: filters.state,
+      lat: filters.latitude,
+      lng: filters.longitude,
+      radius: filters.radiusKm,
+      sort: filters.sort,
+      page: filters.page,
+      limit: filters.limit,
+    };
+    return get<SearchResults>('/listings', { params });
+  },
 
   get: (id: string): Promise<ListingDetail> => get<ListingDetail>(`/listings/${id}`),
 

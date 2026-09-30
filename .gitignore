@@ -8,6 +8,13 @@ node_modules/
 .env.*.local
 !.env.example
 
+# server credentials — never commit
+.contabo.md
+*.credentials
+infra/terraform.tfvars
+infra/*.tfstate
+infra/*.tfstate.backup
+
 # builds
 dist/
 .next/
