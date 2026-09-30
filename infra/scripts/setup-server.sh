@@ -72,7 +72,9 @@ fi
 if ! command -v pm2 &>/dev/null; then
   log "Installing PM2"
   npm install -g pm2
-  env PATH=$PATH:/usr/bin pm2 startup systemd -u "${DEPLOY_USER}" --hp "/home/${DEPLOY_USER}" | tail -1 | bash || true
+  # Running as root, `pm2 startup` installs and enables its own systemd unit directly
+  # (no follow-up command needed — it only prints one for non-root invocations).
+  pm2 startup systemd -u "${DEPLOY_USER}" --hp "/home/${DEPLOY_USER}"
 else
   log "PM2 already installed ($(pm2 -v))"
 fi
@@ -170,7 +172,16 @@ else
   log "TLS cert already present for ${DOMAIN}"
 fi
 
-nginx -t && systemctl enable --now nginx && systemctl reload nginx
+systemctl enable nginx
+if nginx -t; then
+  # `enable --now` is a no-op if nginx is already running (e.g. auto-started by
+  # apt during install, possibly on a stale/default config) — force a reload
+  # explicitly so a valid on-disk config is actually picked up every time.
+  systemctl start nginx
+  systemctl reload nginx
+else
+  echo "⚠️  nginx config test failed — not starting/reloading. Fix the config and re-run." >&2
+fi
 
 # certbot's Debian/Ubuntu package ships its own systemd timer — just confirm it's on.
 systemctl enable --now certbot.timer 2>/dev/null || true
