@@ -815,12 +815,6 @@ export default function ListingDetailClient({ id }: { id: string }) {
     toggleWishlist({ listingId: params.id, currentlySaved: listing?.isSaved ?? false });
   };
 
-  const handleMessageSeller = () => {
-    if (!isAuthenticated) { router.push('/auth/login'); return; }
-    const sellerId = listing?.seller?.id ?? '';
-    router.push(`/dashboard/messages?listing=${params.id}&seller=${sellerId}` as Route);
-  };
-
   const handleReport = async () => {
     if (!isAuthenticated) { router.push('/auth/login'); return; }
     if (!reportReason) { toast.error('Select a reason for reporting'); return; }
@@ -1002,13 +996,15 @@ export default function ListingDetailClient({ id }: { id: string }) {
                     <Store className="h-4 w-4 shrink-0" aria-hidden="true" />
                     Seller&apos;s Shop
                   </Link>
-                  <Button
-                    className="bg-green-500 hover:bg-green-600 text-white border-transparent"
-                    leftIcon={<MessageSquare className="h-4 w-4" />}
-                    onClick={() => setContactModalOpen(true)}
-                  >
-                    Contact Seller
-                  </Button>
+                  {listing.seller.whatsappNumber && (
+                    <Button
+                      className="bg-green-500 hover:bg-green-600 text-white border-transparent"
+                      leftIcon={<MessageSquare className="h-4 w-4" />}
+                      onClick={() => setContactModalOpen(true)}
+                    >
+                      Contact Seller
+                    </Button>
+                  )}
                 </div>
               )}
 
@@ -1283,15 +1279,6 @@ export default function ListingDetailClient({ id }: { id: string }) {
                   </div>
 
                   <div className="space-y-2">
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      size="sm"
-                      leftIcon={<MessageSquare className="h-3.5 w-3.5" />}
-                      onClick={handleMessageSeller}
-                    >
-                      Message Seller
-                    </Button>
                     <WhatsAppReveal
                       whatsappNumber={listing.seller.whatsappNumber}
                       listingId={listing.id}
@@ -1380,7 +1367,7 @@ export default function ListingDetailClient({ id }: { id: string }) {
       />
 
       {/* Contact Seller Modal */}
-      {contactModalOpen && listing?.seller && (
+      {contactModalOpen && listing?.seller?.whatsappNumber && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
           onClick={(e) => { if (e.target === e.currentTarget) setContactModalOpen(false); }}
@@ -1394,54 +1381,39 @@ export default function ListingDetailClient({ id }: { id: string }) {
             </h2>
             <p className="text-sm text-slate-500">Choose how you&apos;d like to reach out.</p>
             <div className="space-y-3">
-              {listing.seller.whatsappNumber ? (
-                <>
-                  {/* Plain links, not window.open — popup blockers can't interfere,
-                      tel: opens the dialer on mobile, wa.me opens WhatsApp app/web. */}
-                  <a
-                    href={`tel:${listing.seller.whatsappNumber}`}
-                    className={cn(
-                      'w-full flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors',
-                      'bg-primary text-white hover:bg-primary-dark'
-                    )}
-                  >
-                    <Phone className="h-4 w-4 shrink-0" aria-hidden="true" />
-                    Call Seller
-                  </a>
-                  <a
-                    href={buildWhatsAppLink(
-                      listing.seller.whatsappNumber,
-                      buildListingWhatsAppMessage(listing.title, listing.id)
-                    )}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={cn(
-                      'w-full flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors',
-                      'bg-green-500 text-white hover:bg-green-600'
-                    )}
-                  >
-                    <MessageCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
-                    Chat Seller
-                  </a>
-                  <p className="text-center text-xs text-slate-500 dark:text-slate-400">
-                    Seller&apos;s number:{' '}
-                    <span className="font-mono font-medium text-slate-700 dark:text-slate-300 select-all">
-                      {listing.seller.whatsappNumber}
-                    </span>
-                  </p>
-                </>
-              ) : (
-                <Button
-                  className="w-full"
-                  leftIcon={<MessageSquare className="h-4 w-4" />}
-                  onClick={() => {
-                    setContactModalOpen(false);
-                    handleMessageSeller();
-                  }}
-                >
-                  Message Seller
-                </Button>
-              )}
+              {/* Plain links, not window.open — popup blockers can't interfere,
+                  tel: opens the dialer on mobile, wa.me opens WhatsApp app/web. */}
+              <a
+                href={`tel:${listing.seller.whatsappNumber}`}
+                className={cn(
+                  'w-full flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors',
+                  'bg-primary text-white hover:bg-primary-dark'
+                )}
+              >
+                <Phone className="h-4 w-4 shrink-0" aria-hidden="true" />
+                Call Seller
+              </a>
+              <a
+                href={buildWhatsAppLink(
+                  listing.seller.whatsappNumber,
+                  buildListingWhatsAppMessage(listing.title, listing.id)
+                )}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  'w-full flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors',
+                  'bg-green-500 text-white hover:bg-green-600'
+                )}
+              >
+                <MessageCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+                Chat Seller
+              </a>
+              <p className="text-center text-xs text-slate-500 dark:text-slate-400">
+                Seller&apos;s number:{' '}
+                <span className="font-mono font-medium text-slate-700 dark:text-slate-300 select-all">
+                  {listing.seller.whatsappNumber}
+                </span>
+              </p>
             </div>
             <Button variant="ghost" className="w-full" onClick={() => setContactModalOpen(false)}>
               Cancel
