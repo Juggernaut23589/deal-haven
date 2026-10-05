@@ -38,8 +38,6 @@ const footerColumns: { heading: string; links: { label: string; href: Route }[] 
       { label: 'Browse All Listings', href: '/search' },
       { label: 'How Buying Works', href: '/how-it-works' as Route },
       { label: 'Buyer Protection', href: '/buyer-protection' as Route },
-      { label: 'Make an Offer', href: '/how-it-works' as Route },
-      { label: 'Auctions', href: '/how-it-works' as Route },
       { label: 'Track an Order', href: '/dashboard/orders' as Route },
       { label: 'Returns & Disputes', href: '/how-it-works' as Route },
     ],

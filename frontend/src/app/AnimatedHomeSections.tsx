@@ -171,7 +171,7 @@ function SocialProofStrip() {
       avatar: 'https://images.unsplash.com/photo-1589156229687-496a31ad1d1f?w=96&h=96&fit=crop&crop=face',
       name: 'Fatima Abdullahi',
       location: 'Kano',
-      text: 'I used the Make an Offer feature to negotiate my living room set. The seller accepted within the hour. Very smooth!',
+      text: 'I messaged the seller on WhatsApp about my living room set and we agreed on a price within the hour. Very smooth!',
       rating: 5,
     },
     {

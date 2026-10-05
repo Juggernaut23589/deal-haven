@@ -624,17 +624,8 @@ function Step3Details({
 // ─── Step 4 — Pricing ─────────────────────────────────────────────────────────
 
 interface PricingValues {
-  type: ListingType;
   price: number | '';
   compareAtPrice: number | '';
-  offersEnabled: boolean;
-  offerAutoAccept: number | '';
-  offerAutoDecline: number | '';
-  // Auction fields
-  auctionStartPrice: number | '';
-  auctionReservePrice: number | '';
-  auctionBuyItNow: number | '';
-  auctionDurationDays: 3 | 5 | 7 | 10 | 14;
   // Quantity
   stockQuantity: number;
 }
@@ -646,12 +637,6 @@ function Step4Pricing({
   values: PricingValues;
   onChange: (v: Partial<PricingValues>) => void;
 }) {
-  const { type } = values;
-
-  const isAuction = type === 'auction';
-  const isFixedOrOffer = type === 'fixed_price' || type === 'make_offer';
-  const showOfferSettings = values.offersEnabled || type === 'make_offer';
-
   return (
     <div className="space-y-6">
       <div>
@@ -659,48 +644,11 @@ function Step4Pricing({
           Pricing
         </h2>
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Set your price and choose your listing type.
+          Set your price.
         </p>
       </div>
 
-      {/* Listing type */}
-      <div>
-        <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
-          Listing Type <span className="text-error" aria-hidden="true">*</span>
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3" role="radiogroup" aria-label="Listing type">
-          {[
-            { value: 'fixed_price', label: 'Buy It Now', icon: '💰', desc: 'Fixed price, buy immediately' },
-            { value: 'auction', label: 'Auction', icon: '🔨', desc: 'Timed bidding — highest bid wins' },
-            { value: 'make_offer', label: 'Make Offer', icon: '🤝', desc: 'Fixed price + accept offers' },
-          ].map(({ value, label, icon, desc }) => (
-            <button
-              key={value}
-              type="button"
-              role="radio"
-              aria-checked={type === value}
-              onClick={() => onChange({ type: value as ListingType })}
-              className={cn(
-                'flex flex-col items-center gap-2 rounded-xl border-2 p-4 text-center',
-                'transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                type === value
-                  ? 'border-primary bg-primary/5 dark:bg-primary/10'
-                  : 'border-slate-100 dark:border-slate-800 hover:border-primary/40'
-              )}
-            >
-              <span className="text-2xl" aria-hidden="true">{icon}</span>
-              <div>
-                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{label}</p>
-                <p className="text-xs text-slate-500 mt-0.5">{desc}</p>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Fixed price fields */}
-      {isFixedOrOffer && (
-        <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor="price" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
               Price (₦) <span className="text-error" aria-hidden="true">*</span>
@@ -746,136 +694,6 @@ function Step4Pricing({
             </div>
           </div>
         </div>
-      )}
-
-      {/* Offers enabled (for fixed_price type) */}
-      {type === 'fixed_price' && (
-        <label className="flex items-center gap-2.5 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={values.offersEnabled}
-            onChange={(e) => onChange({ offersEnabled: e.target.checked })}
-            className="accent-primary h-4 w-4"
-            aria-label="Allow buyers to make offers"
-          />
-          <div>
-            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-              Allow buyers to make offers
-            </span>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Buyers can negotiate. You can accept, decline, or counter.
-            </p>
-          </div>
-        </label>
-      )}
-
-      {/* Offer thresholds */}
-      {showOfferSettings && (
-        <div className="rounded-xl border border-primary/20 bg-primary/5 dark:bg-primary/10 p-4 space-y-4">
-          <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-            Auto-response Settings <span className="text-xs font-normal text-slate-400">(optional)</span>
-          </p>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="auto-accept" className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
-                Auto-accept offers above (₦)
-              </label>
-              <input
-                id="auto-accept"
-                type="number"
-                min={0}
-                value={values.offerAutoAccept}
-                onChange={(e) => onChange({ offerAutoAccept: e.target.value ? parseFloat(e.target.value) : '' })}
-                placeholder="e.g. 450"
-                className={cn(
-                  'w-full rounded-lg border border-slate-200 dark:border-slate-700',
-                  'bg-white dark:bg-slate-900 px-3 py-2 text-sm font-mono',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
-                )}
-              />
-            </div>
-            <div>
-              <label htmlFor="auto-decline" className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
-                Auto-decline offers below (₦)
-              </label>
-              <input
-                id="auto-decline"
-                type="number"
-                min={0}
-                value={values.offerAutoDecline}
-                onChange={(e) => onChange({ offerAutoDecline: e.target.value ? parseFloat(e.target.value) : '' })}
-                placeholder="e.g. 300"
-                className={cn(
-                  'w-full rounded-lg border border-slate-200 dark:border-slate-700',
-                  'bg-white dark:bg-slate-900 px-3 py-2 text-sm font-mono',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
-                )}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Auction fields */}
-      {isAuction && (
-        <div className="space-y-4 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Auction Settings</p>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="auction-start" className="block text-xs text-slate-500 mb-1">Starting Bid (₦) *</label>
-              <input
-                id="auction-start"
-                type="number"
-                min={0}
-                step={0.01}
-                value={values.auctionStartPrice}
-                onChange={(e) => onChange({ auctionStartPrice: e.target.value ? parseFloat(e.target.value) : '' })}
-                placeholder="1.00"
-                className={cn('w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary')}
-              />
-            </div>
-            <div>
-              <label htmlFor="auction-reserve" className="block text-xs text-slate-500 mb-1">Reserve Price (₦) <span className="text-slate-400">optional</span></label>
-              <input
-                id="auction-reserve"
-                type="number"
-                min={0}
-                step={0.01}
-                value={values.auctionReservePrice}
-                onChange={(e) => onChange({ auctionReservePrice: e.target.value ? parseFloat(e.target.value) : '' })}
-                placeholder="Hidden from buyers"
-                className={cn('w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary')}
-              />
-            </div>
-            <div>
-              <label htmlFor="auction-bin" className="block text-xs text-slate-500 mb-1">Buy It Now Price (₦) <span className="text-slate-400">optional</span></label>
-              <input
-                id="auction-bin"
-                type="number"
-                min={0}
-                step={0.01}
-                value={values.auctionBuyItNow}
-                onChange={(e) => onChange({ auctionBuyItNow: e.target.value ? parseFloat(e.target.value) : '' })}
-                placeholder="Instant purchase option"
-                className={cn('w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary')}
-              />
-            </div>
-            <div>
-              <label htmlFor="auction-duration" className="block text-xs text-slate-500 mb-1">Duration *</label>
-              <select
-                id="auction-duration"
-                value={values.auctionDurationDays}
-                onChange={(e) => onChange({ auctionDurationDays: parseInt(e.target.value) as PricingValues['auctionDurationDays'] })}
-                className={cn('w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary')}
-              >
-                {[3, 5, 7, 10, 14].map((d) => (
-                  <option key={d} value={d}>{d} days</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Quantity */}
       <div className="flex items-center gap-4">
@@ -1228,7 +1046,6 @@ function Step6Review({
     title: string;
     description: string;
     condition: string;
-    type: string;
     price: number | '';
     location: string;
     localPickup: boolean;
@@ -1299,7 +1116,6 @@ function Step6Review({
             {[
               { label: 'Category', value: data.category || '—', step: 1 as Step },
               { label: 'Condition', value: data.condition || '—', step: 3 as Step },
-              { label: 'Listing Type', value: data.type || '—', step: 4 as Step },
               { label: 'Location', value: data.location || '—', step: 5 as Step },
               {
                 label: 'Shipping',
@@ -1407,16 +1223,8 @@ export default function CreateListingPage() {
 
   // Step 4 — Pricing
   const [pricing, setPricing] = React.useState<PricingValues>({
-    type: 'fixed_price',
     price: '',
     compareAtPrice: '',
-    offersEnabled: false,
-    offerAutoAccept: '',
-    offerAutoDecline: '',
-    auctionStartPrice: '',
-    auctionReservePrice: '',
-    auctionBuyItNow: '',
-    auctionDurationDays: 7,
     stockQuantity: 1,
   });
 
@@ -1492,23 +1300,11 @@ export default function CreateListingPage() {
       description: details.description,
       categoryId: subcategoryId || categoryId,
       condition: details.condition as ListingCondition,
-      type: pricing.type,
+      type: 'fixed_price' as ListingType,
       price: Number(pricing.price) || 0,
       compareAtPrice: pricing.compareAtPrice ? Number(pricing.compareAtPrice) : undefined,
       stockQuantity: pricing.stockQuantity,
-      offersEnabled: pricing.offersEnabled || pricing.type === 'make_offer',
-      offerAutoAcceptThreshold: pricing.offerAutoAccept ? Number(pricing.offerAutoAccept) : undefined,
-      offerAutoDeclineThreshold: pricing.offerAutoDecline ? Number(pricing.offerAutoDecline) : undefined,
-      ...(pricing.type === 'auction' && pricing.auctionStartPrice
-        ? {
-            auction: {
-              startPrice: Number(pricing.auctionStartPrice),
-              reservePrice: pricing.auctionReservePrice ? Number(pricing.auctionReservePrice) : undefined,
-              buyItNowPrice: pricing.auctionBuyItNow ? Number(pricing.auctionBuyItNow) : undefined,
-              durationDays: pricing.auctionDurationDays,
-            },
-          }
-        : {}),
+      offersEnabled: false,
       state: locationState,
       lga: locationLga,
       city: locationCity,
@@ -1604,7 +1400,7 @@ export default function CreateListingPage() {
     }
     if (!categoryId) { toast.error('Select a category first'); return; }
     if (details.title.length < 5) { toast.error('Title too short', 'Please enter a more descriptive title.'); return; }
-    if (!pricing.price && pricing.type !== 'auction') { toast.error('Price required', 'Please enter a price for your listing.'); return; }
+    if (!pricing.price) { toast.error('Price required', 'Please enter a price for your listing.'); return; }
     if (!locationState) { toast.error('Location required', 'Please select your state.'); return; }
     if (!locationLga) { toast.error('Location required', 'Please select your local government area.'); return; }
     if (!locationCity.trim()) { toast.error('Location required', 'Please enter your city or town.'); return; }
@@ -1682,9 +1478,7 @@ export default function CreateListingPage() {
       case 1: return !!categoryId;
       case 2: return true; // Photos are optional for draft
       case 3: return details.title.length >= 5 && details.description.length >= 20;
-      case 4: return pricing.type === 'auction'
-        ? !!pricing.auctionStartPrice
-        : !!pricing.price;
+      case 4: return !!pricing.price;
       case 5: return !!locationState && !!locationLga && locationCity.trim().length >= 2 && locationArea.trim().length >= 2;
       default: return true;
     }
@@ -1788,7 +1582,6 @@ export default function CreateListingPage() {
                     title: details.title,
                     description: details.description,
                     condition: details.condition.replace(/_/g, ' '),
-                    type: pricing.type.replace(/_/g, ' '),
                     price: pricing.price,
                     location: [locationArea, locationCity, locationLga, locationState].filter(Boolean).join(', '),
                     localPickup,

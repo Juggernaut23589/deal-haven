@@ -19,7 +19,6 @@ import {
   Package,
   Flag,
   BadgeCheck,
-  Clock,
   Copy,
   Twitter,
   Facebook,
@@ -44,7 +43,6 @@ import { ListingCard } from '@/components/listings/ListingCard';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { MakeOfferModal } from '@/components/offers/MakeOfferModal';
 import { reviewsApi, ordersApi, listingsApi, reportsApi, getApiError } from '@/lib/api';
 import { useToast } from '@/store/uiStore';
 import type { ListingImage, ListingShippingOption } from '@/types/listing';
@@ -333,68 +331,6 @@ function DealScoreBadge({ score }: { score: number }) {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
-  );
-}
-
-// ─── Auction Countdown ─────────────────────────────────────────────────────────
-
-function AuctionCountdown({ endsAt }: { endsAt: string }) {
-  const [timeLeft, setTimeLeft] = React.useState('');
-  const [isUrgent, setIsUrgent] = React.useState(false);
-
-  React.useEffect(() => {
-    function calc() {
-      const diff = new Date(endsAt).getTime() - Date.now();
-      if (diff <= 0) {
-        setTimeLeft('Ended');
-        setIsUrgent(false);
-        return;
-      }
-      setIsUrgent(diff < 3_600_000);
-      const h = Math.floor(diff / 3_600_000);
-      const m = Math.floor((diff % 3_600_000) / 60_000);
-      const s = Math.floor((diff % 60_000) / 1_000);
-      if (h > 48) {
-        const d = Math.floor(h / 24);
-        setTimeLeft(`${d}d ${h % 24}h`);
-      } else {
-        setTimeLeft(
-          `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
-        );
-      }
-    }
-    calc();
-    const t = setInterval(calc, 1_000);
-    return () => clearInterval(t);
-  }, [endsAt]);
-
-  return (
-    <div
-      className={cn(
-        'flex items-center gap-2 rounded-lg px-4 py-3',
-        isUrgent
-          ? 'bg-error/10 border border-error/20'
-          : 'bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700'
-      )}
-    >
-      <Clock
-        className={cn('h-5 w-5 shrink-0', isUrgent ? 'text-error' : 'text-slate-400')}
-        aria-hidden="true"
-      />
-      <div>
-        <p className="text-xs text-slate-500 dark:text-slate-400">Auction ends in</p>
-        <p
-          className={cn(
-            'text-xl font-bold font-mono tabular-nums',
-            isUrgent ? 'text-error' : 'text-slate-900 dark:text-slate-100'
-          )}
-          aria-live="polite"
-          aria-label={`Auction ends in ${timeLeft}`}
-        >
-          {timeLeft}
-        </p>
-      </div>
     </div>
   );
 }
@@ -776,9 +712,6 @@ export default function ListingDetailClient({ id }: { id: string }) {
   const { data: similarListings, isLoading: isSimilarLoading } = useSimilarListings(params.id, 4);
   const { mutate: toggleWishlist, isPending: isWishlistPending } = useToggleWishlist();
 
-  const [offerModalOpen, setOfferModalOpen] = React.useState(false);
-  const [bidAmount, setBidAmount] = React.useState('');
-  const [isBidding, setIsBidding] = React.useState(false);
   const [isSaved, setIsSaved] = React.useState(false);
   const [contactModalOpen, setContactModalOpen] = React.useState(false);
   const [reportOpen, setReportOpen] = React.useState(false);
@@ -786,24 +719,6 @@ export default function ListingDetailClient({ id }: { id: string }) {
   const [reportDesc, setReportDesc] = React.useState('');
   const [isReporting, setIsReporting] = React.useState(false);
   const { toast } = useToast();
-
-  const handlePlaceBid = async () => {
-    if (!isAuthenticated) { router.push('/auth/login'); return; }
-    const amount = Number(bidAmount);
-    if (!amount || amount <= 0) { toast.error('Enter a valid bid amount'); return; }
-    setIsBidding(true);
-    try {
-      const result = await listingsApi.placeBid(params.id, amount);
-      toast.success('Bid placed!', `Current highest bid is now ${amount.toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })}`);
-      setBidAmount('');
-      // Refresh listing data to show updated bid
-      void result;
-    } catch (err: unknown) {
-      toast.error('Bid failed', getApiError(err, 'Could not place bid. Please try again.'));
-    } finally {
-      setIsBidding(false);
-    }
-  };
 
   React.useEffect(() => {
     if (listing) setIsSaved(listing.isSaved);
@@ -878,7 +793,6 @@ export default function ListingDetailClient({ id }: { id: string }) {
     );
   }
 
-  const isAuction = listing.type === 'auction' && listing.auction !== null;
   const isOwnListing = isAuthenticated && user?.id === listing.seller?.id;
   const conditionLabel = formatListingCondition(listing.condition);
   const conditionColor = getConditionColorClass(listing.condition);
@@ -1102,9 +1016,9 @@ export default function ListingDetailClient({ id }: { id: string }) {
                     <div className="flex items-baseline gap-3 flex-wrap">
                       <span
                         className="text-3xl font-bold font-mono tabular-nums text-slate-900 dark:text-slate-100"
-                        aria-label={`Price: ${formatPrice(isAuction ? (listing.auction?.currentPrice ?? listing.price) : listing.price)}`}
+                        aria-label={`Price: ${formatPrice(listing.price)}`}
                       >
-                        {formatPrice(isAuction ? (listing.auction?.currentPrice ?? listing.price) : listing.price)}
+                        {formatPrice(listing.price)}
                       </span>
                       {listing.compareAtPrice && listing.compareAtPrice > listing.price && (
                         <span className="text-lg text-slate-400 line-through tabular-nums">
@@ -1115,12 +1029,6 @@ export default function ListingDetailClient({ id }: { id: string }) {
                         <Badge variant="solid-accent">-{discount}%</Badge>
                       )}
                     </div>
-
-                    {isAuction && listing.auction && (
-                      <p className="text-xs text-slate-500 mt-1">
-                        {listing.auction.bidCount} {listing.auction.bidCount === 1 ? 'bid' : 'bids'}
-                      </p>
-                    )}
                   </div>
 
                   {/* Deal Score */}
@@ -1128,47 +1036,8 @@ export default function ListingDetailClient({ id }: { id: string }) {
                     <DealScoreBadge score={listing.dealScore} />
                   )}
 
-                  {/* Auction section */}
-                  {isAuction && listing.auction && (
-                    <div className="space-y-3">
-                      <AuctionCountdown endsAt={listing.auction.endsAt} />
-                      {!listing.auction.isEnded && (
-                        <div className="space-y-2">
-                          <label htmlFor="bid-amount" className="text-xs font-medium text-slate-600 dark:text-slate-400">
-                            Your bid (min. {formatPrice(listing.auction.currentPrice + listing.auction.minBidIncrement)})
-                          </label>
-                          <div className="flex gap-2">
-                            <input
-                              id="bid-amount"
-                              type="number"
-                              value={bidAmount}
-                              onChange={(e) => setBidAmount(e.target.value)}
-                              min={listing.auction.currentPrice + listing.auction.minBidIncrement}
-                              step={listing.auction.minBidIncrement}
-                              placeholder={formatPrice(listing.auction.currentPrice + listing.auction.minBidIncrement)}
-                              className={cn(
-                                'flex-1 rounded-lg border border-slate-200 dark:border-slate-700',
-                                'bg-white dark:bg-slate-900 px-3 py-2 text-sm font-mono',
-                                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
-                              )}
-                            />
-                          </div>
-                          <Button
-                            className="w-full"
-                            disabled={isBidding || !bidAmount || isOwnListing}
-                            isLoading={isBidding}
-                            loadingText="Placing bid…"
-                            onClick={() => void handlePlaceBid()}
-                          >
-                            {isOwnListing ? 'Cannot bid on your own listing' : 'Place Bid'}
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
                   {/* Request to Buy — hidden from listing owner */}
-                  {!isOwnListing && (!isAuction || (listing.auction?.buyItNowAvailable)) && (
+                  {!isOwnListing && (
                     <BuyButton
                       listingId={params.id}
                       isAuthenticated={isAuthenticated}
@@ -1181,21 +1050,6 @@ export default function ListingDetailClient({ id }: { id: string }) {
                   {isOwnListing && (
                     <Button variant="outline" className="w-full" size="lg" asChild>
                       <Link href={`/listing/${params.id}/edit` as Route}>Edit Your Listing</Link>
-                    </Button>
-                  )}
-
-                  {/* Make Offer — hidden from listing owner */}
-                  {!isOwnListing && listing.offersEnabled && !isAuction && (
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      size="lg"
-                      onClick={() => {
-                        if (!isAuthenticated) { router.push('/auth/login'); return; }
-                        setOfferModalOpen(true);
-                      }}
-                    >
-                      Make an Offer
                     </Button>
                   )}
 
@@ -1356,15 +1210,6 @@ export default function ListingDetailClient({ id }: { id: string }) {
           </section>
         </div>
       </div>
-
-      {/* Make Offer Modal */}
-      <MakeOfferModal
-        open={offerModalOpen}
-        onClose={() => setOfferModalOpen(false)}
-        listingId={params.id}
-        listingTitle={listing.title}
-        listingPrice={listing.price}
-      />
 
       {/* Contact Seller Modal */}
       {contactModalOpen && listing?.seller?.whatsappNumber && (

@@ -206,9 +206,9 @@ const HOW_IT_WORKS = [
   {
     step: '02',
     icon: TrendingUp,
-    title: 'Make an Offer',
+    title: 'Contact the Seller',
     description:
-      'Like what you see? Make an offer, place a bid, or buy instantly. Our Deal Score shows you if the price is fair.',
+      'Like what you see? Chat with the seller on WhatsApp or call them directly. Our Deal Score shows you if the price is fair.',
     image: 'https://images.unsplash.com/photo-1556742111-a301076d9d18?w=400&h=260&fit=crop',
   },
   {

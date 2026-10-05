@@ -34,7 +34,6 @@ const FEE_RULES: FeeRule[] = [
 const LISTING_RULES = [
   { label: 'Individual sellers', value: 'First 10 listings free per month, then standard fee applies' },
   { label: 'Premium sellers', value: 'Unlimited listings, priority placement, reduced transaction fee' },
-  { label: 'Offer/Counter-offer', value: 'No additional fee — same transaction fee as Buy It Now' },
 ];
 
 export default function AdminFeesPage() {

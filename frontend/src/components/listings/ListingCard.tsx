@@ -4,7 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import type { Route } from 'next';
 import Image from 'next/image';
-import { Heart, MapPin, Star, Images, Clock, Tag, Zap, TrendingUp, MessageCircle } from 'lucide-react';
+import { Heart, MapPin, Star, Images, Tag, Zap, TrendingUp, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn, buildWhatsAppLink, buildListingWhatsAppMessage } from '@/lib/utils';
 import { formatPrice, formatPostedAgo, formatListingCondition, getConditionColorClass } from '@/lib/formatters';
@@ -45,52 +45,6 @@ function DealScoreBadge({ score }: { score: number }) {
     >
       <TrendingUp className="h-2.5 w-2.5 shrink-0" aria-hidden="true" />
       {label}
-    </span>
-  );
-}
-
-// ─── Auction Countdown ────────────────────────────────────────────────────────
-
-function AuctionTimer({ endsAt }: { endsAt: string }) {
-  const [timeLeft, setTimeLeft] = React.useState('');
-
-  React.useEffect(() => {
-    function calc() {
-      const diff = new Date(endsAt).getTime() - Date.now();
-      if (diff <= 0) {
-        setTimeLeft('Ended');
-        return;
-      }
-      const h = Math.floor(diff / 3_600_000);
-      const m = Math.floor((diff % 3_600_000) / 60_000);
-      const s = Math.floor((diff % 60_000) / 1_000);
-      if (h > 24) {
-        const d = Math.floor(h / 24);
-        setTimeLeft(`${d}d ${h % 24}h`);
-      } else {
-        setTimeLeft(
-          `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
-        );
-      }
-    }
-    calc();
-    const interval = setInterval(calc, 1_000);
-    return () => clearInterval(interval);
-  }, [endsAt]);
-
-  const diff = new Date(endsAt).getTime() - Date.now();
-  const isUrgent = diff < 3_600_000 && diff > 0; // < 1 hour
-
-  return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1 text-xs font-mono font-semibold',
-        isUrgent ? 'text-error' : 'text-slate-500'
-      )}
-      aria-label={`Auction ends in ${timeLeft}`}
-    >
-      <Clock className="h-3 w-3 shrink-0" aria-hidden="true" />
-      {timeLeft}
     </span>
   );
 }
@@ -269,11 +223,9 @@ export function ListingCard({
   const {
     id,
     title,
-    slug,
     price,
     compareAtPrice,
     condition,
-    type,
     coverImage,
     imageCount,
     seller,
@@ -285,16 +237,12 @@ export function ListingCard({
     distanceMeters,
     dealScore,
     isPromoted,
-    offersEnabled,
     isSaved,
     createdAt,
-    auction,
   } = listing;
 
   const conditionLabel = formatListingCondition(condition);
   const conditionColor = getConditionColorClass(condition);
-  const isAuction = type === 'auction' && auction;
-  const displayPrice = isAuction ? auction.currentPrice : price;
   const discount =
     compareAtPrice && compareAtPrice > price
       ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100)
@@ -398,22 +346,8 @@ export function ListingCard({
 
         {/* Price row */}
         <div className="mt-2 flex items-baseline gap-2 flex-wrap">
-          <span
-            className={cn(
-              'font-bold font-mono tabular-nums text-slate-900 dark:text-slate-100',
-              isAuction ? 'text-base' : 'text-lg'
-            )}
-          >
-            {isAuction ? (
-              <>
-                <span className="text-xs font-sans font-normal text-slate-400 mr-0.5">
-                  Current bid
-                </span>
-                {formatPrice(displayPrice)}
-              </>
-            ) : (
-              formatPrice(displayPrice)
-            )}
+          <span className="font-bold font-mono tabular-nums text-lg text-slate-900 dark:text-slate-100">
+            {formatPrice(price)}
           </span>
           {compareAtPrice && compareAtPrice > price && (
             <span className="text-xs text-slate-400 line-through tabular-nums">
@@ -427,18 +361,12 @@ export function ListingCard({
           )}
         </div>
 
-        {/* Auction timer or deal score */}
-        <div className="mt-1.5 flex items-center gap-2 flex-wrap">
-          {isAuction && auction && (
-            <>
-              <AuctionTimer endsAt={auction.endsAt} />
-              <span className="text-xs text-slate-400">
-                {auction.bidCount} {auction.bidCount === 1 ? 'bid' : 'bids'}
-              </span>
-            </>
-          )}
-          {dealScore !== null && <DealScoreBadge score={dealScore} />}
-        </div>
+        {/* Deal score */}
+        {dealScore !== null && (
+          <div className="mt-1.5 flex items-center gap-2 flex-wrap">
+            <DealScoreBadge score={dealScore} />
+          </div>
+        )}
 
         {/* Spacer */}
         <div className="flex-1" />
@@ -493,38 +421,19 @@ export function ListingCard({
           <p className="text-2xs text-slate-400">{formatPostedAgo(createdAt)}</p>
         </div>
 
-        {/* CTA: Make Offer */}
-        {offersEnabled && !isAuction && (
-          <Link
-            href={`/listing/${id}/make-offer` as Route}
-            className={cn(
-              'mt-3 flex h-8 items-center justify-center rounded-lg',
-              'border border-primary/30 text-xs font-medium text-primary',
-              'hover:bg-primary/5 dark:hover:bg-primary/10',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-              'transition-colors duration-150'
-            )}
-            aria-label={`Make an offer on ${title}`}
-          >
-            Make an Offer
-          </Link>
-        )}
-
-        {!offersEnabled && !isAuction && (
-          <Link
-            href={href}
-            className={cn(
-              'mt-3 flex h-8 items-center justify-center rounded-lg',
-              'bg-primary text-xs font-medium text-white',
-              'hover:bg-primary-dark',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-              'transition-colors duration-150'
-            )}
-            aria-label={`View ${title}`}
-          >
-            View Listing
-          </Link>
-        )}
+        <Link
+          href={href}
+          className={cn(
+            'mt-3 flex h-8 items-center justify-center rounded-lg',
+            'bg-primary text-xs font-medium text-white',
+            'hover:bg-primary-dark',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+            'transition-colors duration-150'
+          )}
+          aria-label={`View ${title}`}
+        >
+          View Listing
+        </Link>
       </div>
     </motion.article>
   );

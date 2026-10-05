@@ -8,7 +8,6 @@ const FAQS = [
   { q: 'Is it free to list items?', a: 'Yes. Posting listings is completely free on Ashimarket. We charge a small 3% platform fee only on completed transactions.' },
   { q: 'How do I pay for an item?', a: 'Payments are arranged directly between buyer and seller. You can use bank transfer, cash on delivery, or any method that both parties agree on.' },
   { q: 'What if an item is not as described?', a: 'You can open a dispute from your Order Details page within 30 days of delivery. Our team will review the evidence and mediate a resolution.' },
-  { q: 'How do I make an offer?', a: 'On any listing that accepts offers, click "Make an Offer", enter your amount and an optional message. The seller has 48 hours to accept, decline, or counter.' },
   { q: 'Can I sell as an individual and a business?', a: 'Yes. You can register as both buyer and seller with the same account.' },
   { q: 'How do I delete a listing?', a: 'Go to Seller Dashboard → My Listings, click the ⋯ menu on the listing, and select Delete.' },
   { q: 'Why was my listing rejected?', a: 'Listings can be rejected if they contain prohibited items, misleading information, or violate our terms. Check your email or dashboard notifications for the reason.' },

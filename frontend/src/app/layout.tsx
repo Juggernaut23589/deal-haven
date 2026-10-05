@@ -31,10 +31,10 @@ export const metadata: Metadata = {
     template: '%s | Ashimarket',
   },
   description:
-    'Ashimarket is a modern multi-vendor marketplace where you can buy and sell everything from electronics to real estate. Make offers, bid at auction, and find unbeatable deals.',
+    'Ashimarket is a modern multi-vendor marketplace where you can buy and sell everything from electronics to real estate. Contact sellers directly and find unbeatable deals.',
   keywords: [
     'marketplace', 'buy', 'sell', 'deals', 'electronics', 'cars', 'real estate',
-    'auction', 'make offer', 'online shopping', 'ashimarket',
+    'online shopping', 'ashimarket',
   ],
   authors: [{ name: 'Ashimarket' }],
   creator: 'Ashimarket',
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     siteName: 'Ashimarket',
     title: 'Ashimarket — Find Amazing Deals, Sell With Ease',
     description:
-      'A modern marketplace for buying and selling everything. Auctions, offers, and incredible deals.',
+      'A modern marketplace for buying and selling everything. Contact sellers directly for incredible deals.',
     images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Ashimarket Marketplace' }],
   },
   twitter: {

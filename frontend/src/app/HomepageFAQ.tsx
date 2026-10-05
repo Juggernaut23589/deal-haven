@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 const FAQS: { q: string; a: string }[] = [
   {
     q: 'How do I contact a seller?',
-    a: 'Open any listing and tap "Contact Seller" — you can call them directly or start a WhatsApp chat with the listing already linked in the message. You can also message sellers inside Ashimarket from the listing page.',
+    a: 'Open any listing and tap "Contact Seller" — you can call them directly or start a WhatsApp chat with the listing already linked in the message.',
   },
   {
     q: 'Is it free to post a listing?',
@@ -20,10 +20,6 @@ const FAQS: { q: string; a: string }[] = [
   {
     q: 'How do I pay for an item?',
     a: 'Payment is arranged directly between you and the seller — bank transfer, cash on collection, or whatever you both agree on. Ashimarket does not hold or process payments.',
-  },
-  {
-    q: 'How do I make an offer on a listing?',
-    a: 'On listings that accept offers, tap "Make an Offer", enter your amount and an optional note. The seller has 48 hours to accept, decline, or send a counter-offer.',
   },
   {
     q: 'How do I stay safe when buying or selling?',

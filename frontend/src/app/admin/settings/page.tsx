@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Settings, Bell, Shield, Globe, Database } from 'lucide-react';
+import { Bell, Shield, Globe, Database } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SettingGroup {
@@ -29,17 +29,6 @@ const SETTING_GROUPS: SettingGroup[] = [
       { label: 'Listing expiry', value: '30 days (renewable)' },
       { label: 'New seller posting limit', value: 'No restriction', note: 'Restriction was removed' },
       { label: 'Duplicate detection', value: 'Enabled' },
-    ],
-  },
-  {
-    title: 'Offers & Auctions',
-    icon: Settings,
-    items: [
-      { label: 'Offer expiry', value: '48 hours' },
-      { label: 'Counter-offer expiry', value: '24 hours' },
-      { label: 'Max active offers per listing (per buyer)', value: '3' },
-      { label: 'Auction anti-snipe extension', value: '2 minutes (if bid in last 2 min)' },
-      { label: 'Min bid increment', value: '5% of current price or ₦1, whichever is greater' },
     ],
   },
   {

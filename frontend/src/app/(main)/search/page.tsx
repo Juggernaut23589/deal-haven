@@ -46,8 +46,6 @@ const CONDITION_OPTIONS: { value: ListingCondition; label: string }[] = [
 
 const LISTING_TYPE_OPTIONS: { value: ListingType; label: string }[] = [
   { value: 'fixed_price', label: 'Buy It Now' },
-  { value: 'auction', label: 'Auction' },
-  { value: 'make_offer', label: 'Make Offer' },
   { value: 'free', label: 'Free' },
 ];
 
