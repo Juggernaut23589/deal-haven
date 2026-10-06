@@ -27,6 +27,7 @@ export class AuthController {
       firstName: body.firstName,
       lastName: body.lastName,
       roles,
+      whatsappNumber: body.whatsappNumber,
     });
 
     void reply.status(201).send({
