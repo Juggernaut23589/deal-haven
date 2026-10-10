@@ -1,4 +1,5 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { isValidPhoneNumber } from 'libphonenumber-js';
 import { prisma } from '../../config/database';
 import { requireAuth, optionalAuth } from '../../middleware/auth';
 import { processAndSaveImage, resolveUploadUrl } from '../../middleware/upload';
@@ -12,10 +13,9 @@ async function updateProfile(request: FastifyRequest, reply: FastifyReply): Prom
   const { id: userId } = (request as AuthenticatedRequest).user;
   const body = request.body as Record<string, unknown>;
 
-  const NIGERIAN_WHATSAPP_RE = /^\+234[789][01]\d{8}$/;
   if ('whatsappNumber' in body && body.whatsappNumber !== undefined && body.whatsappNumber !== '') {
-    if (!NIGERIAN_WHATSAPP_RE.test(body.whatsappNumber as string)) {
-      throw new ValidationError('Enter a valid Nigerian WhatsApp number (e.g. +2348012345678)');
+    if (!isValidPhoneNumber(body.whatsappNumber as string)) {
+      throw new ValidationError('Enter a valid WhatsApp number in international format (e.g. +2348012345678 or +14155552671)');
     }
   }
 

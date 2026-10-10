@@ -7,6 +7,7 @@ import { Logo } from '@/components/ui/Logo';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { isValidPhoneNumber } from 'libphonenumber-js/min';
 import {
   ShoppingBag,
   Store,
@@ -46,8 +47,8 @@ const registerSchema = z
       .string()
       .min(1, 'WhatsApp number is required')
       .refine(
-        (v) => /^\+234[789][01]\d{8}$/.test(v.replace(/\s/g, '')),
-        'Enter a valid Nigerian number (e.g. +2348012345678)',
+        (v) => isValidPhoneNumber(v.replace(/\s/g, '')),
+        'Enter a valid number in international format (e.g. +2348012345678 or +14155552671)',
       ),
     agreedToTerms: z
       .boolean()
@@ -614,7 +615,7 @@ export default function RegisterPage() {
                       )}
                     />
                     <p id="whatsapp-hint" className="mt-1 text-xs text-slate-400">
-                      Nigerian numbers only — e.g. +2348012345678
+                      Include your country code — e.g. +2348012345678 or +14155552671
                     </p>
                     {errors.whatsappNumber && (
                       <p id="whatsapp-error" role="alert" className="mt-1 text-xs text-error flex items-center gap-1">

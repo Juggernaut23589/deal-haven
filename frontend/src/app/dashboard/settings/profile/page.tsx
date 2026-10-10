@@ -6,6 +6,7 @@ import { ChevronRight, Camera, Save, AlertCircle, CheckCircle2 } from 'lucide-re
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { isValidPhoneNumber } from 'libphonenumber-js/min';
 import { cn } from '@/lib/utils';
 import { Footer } from '@/components/layout/Footer';
 import { useRequireAuth } from '@/hooks/useAuth';
@@ -31,8 +32,8 @@ const profileSchema = z.object({
     .string()
     .optional()
     .refine(
-      (v) => !v || /^\+234[789][01]\d{8}$/.test(v.replace(/\s/g, '')),
-      'Enter a valid Nigerian number (e.g. +2348012345678)',
+      (v) => !v || isValidPhoneNumber(v.replace(/\s/g, '')),
+      'Enter a valid number in international format (e.g. +2348012345678 or +14155552671)',
     ),
   bio: z.string().max(500).optional(),
   city: z.string().max(100).optional(),
@@ -313,7 +314,7 @@ export default function ProfileSettingsPage() {
                 {...register('whatsappNumber')}
                 className={cn(inputCls(), errors.whatsappNumber ? 'border-error' : '')}
               />
-              <p id="whatsapp-hint" className="mt-1 text-xs text-slate-400">Nigerian numbers only (+234...)</p>
+              <p id="whatsapp-hint" className="mt-1 text-xs text-slate-400">Include your country code — e.g. +2348012345678 or +14155552671</p>
               {errors.whatsappNumber && (
                 <p id="whatsapp-err" role="alert" className="mt-1 text-xs text-error flex items-center gap-1">
                   <AlertCircle className="h-3 w-3" aria-hidden="true" />

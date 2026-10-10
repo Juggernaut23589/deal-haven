@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isValidPhoneNumber } from 'libphonenumber-js';
 import { AUTH } from '../../config/constants';
 
 export const registerSchema = z.object({
@@ -21,7 +22,10 @@ export const registerSchema = z.object({
   asSeller: z.boolean().optional().default(false),
   whatsappNumber: z
     .string()
-    .regex(/^\+234[789][01]\d{8}$/, 'Enter a valid Nigerian WhatsApp number (e.g. +2348012345678)')
+    .refine(
+      (v) => isValidPhoneNumber(v),
+      'Enter a valid WhatsApp number in international format (e.g. +2348012345678 or +14155552671)',
+    )
     .optional(),
 });
 
