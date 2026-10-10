@@ -99,17 +99,29 @@ async function main() {
       ],
     },
     {
-      name: 'Sports & Outdoors', slug: 'sports-outdoors', sortOrder: 8, isFeatured: false,
+      name: 'Beauty & Skincare', slug: 'beauty-skincare', sortOrder: 8, isFeatured: true,
+      iconUrl: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f484.svg',
+      children: [
+        { name: 'Skincare', slug: 'skincare' },
+        { name: 'Makeup', slug: 'makeup' },
+        { name: 'Haircare', slug: 'haircare' },
+        { name: 'Fragrances', slug: 'fragrances' },
+        { name: 'Personal Care', slug: 'personal-care' },
+        { name: 'Beauty Tools & Accessories', slug: 'beauty-tools-accessories' },
+      ],
+    },
+    {
+      name: 'Sports & Outdoors', slug: 'sports-outdoors', sortOrder: 9, isFeatured: false,
       iconUrl: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/26bd.svg',
       children: [],
     },
     {
-      name: 'Books & Media', slug: 'books-media', sortOrder: 9, isFeatured: false,
+      name: 'Books & Media', slug: 'books-media', sortOrder: 10, isFeatured: false,
       iconUrl: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4da.svg',
       children: [],
     },
     {
-      name: 'Collectibles & Art', slug: 'collectibles-art', sortOrder: 10, isFeatured: false,
+      name: 'Collectibles & Art', slug: 'collectibles-art', sortOrder: 11, isFeatured: false,
       iconUrl: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3a8.svg',
       children: [],
     },
@@ -176,6 +188,20 @@ async function main() {
         { categoryId: elecId, name: 'Model', slug: 'model', attributeType: 'TEXT', sortOrder: 2 },
         { categoryId: elecId, name: 'Storage', slug: 'storage', attributeType: 'SELECT', isFilterable: true, sortOrder: 3, options: JSON.stringify(['32GB', '64GB', '128GB', '256GB', '512GB', '1TB', '2TB']) },
         { categoryId: elecId, name: 'Color', slug: 'color', attributeType: 'TEXT', sortOrder: 4 },
+      ],
+    });
+  }
+
+  // Beauty & Skincare attributes
+  const beautyId = categoryMap['beauty-skincare'];
+  if (beautyId) {
+    await prisma.categoryAttribute.createMany({
+      data: [
+        { categoryId: beautyId, name: 'Brand', slug: 'brand', attributeType: 'TEXT', isFilterable: true, sortOrder: 1 },
+        { categoryId: beautyId, name: 'Skin Type', slug: 'skin-type', attributeType: 'SELECT', isFilterable: true, sortOrder: 2, options: JSON.stringify(['Oily', 'Dry', 'Combination', 'Sensitive', 'Normal', 'All Skin Types']) },
+        { categoryId: beautyId, name: 'Product Type', slug: 'product-type', attributeType: 'TEXT', isFilterable: true, sortOrder: 3 },
+        { categoryId: beautyId, name: 'Volume / Size', slug: 'volume-size', attributeType: 'TEXT', sortOrder: 4 },
+        { categoryId: beautyId, name: 'Sealed / Unused', slug: 'sealed-unused', attributeType: 'BOOLEAN', isFilterable: true, sortOrder: 5 },
       ],
     });
   }

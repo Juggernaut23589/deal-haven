@@ -72,6 +72,7 @@ const TOP_LEVEL_CATEGORIES = [
   { id: 'electronics', slug: 'electronics', label: 'Electronics', icon: '📱' },
   { id: 'clothing', slug: 'clothing', label: 'Clothing & Fashion', icon: '👗' },
   { id: 'furniture', slug: 'furniture-home', label: 'Furniture & Home', icon: '🛋️' },
+  { id: 'beauty-skincare', slug: 'beauty-skincare', label: 'Beauty & Skincare', icon: '💄' },
   { id: 'services', slug: 'services', label: 'Services', icon: '🔧' },
   { id: 'jobs', slug: 'jobs-gigs', label: 'Jobs & Gigs', icon: '💼' },
   { id: 'sports', slug: 'sports-outdoors', label: 'Sports & Outdoors', icon: '⚽' },

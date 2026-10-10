@@ -125,6 +125,21 @@ const CATEGORY_MAP: Record<string, CategoryMeta> = {
       { label: 'Appliances', slug: 'appliances', image: 'https://images.unsplash.com/photo-1556909114-44e3e70034e2?w=400&h=260&fit=crop' },
     ],
   },
+  'beauty-skincare': {
+    label: 'Beauty & Skincare',
+    icon: '\u{1F484}',
+    description: 'Skincare, makeup, haircare, fragrances, and beauty tools from trusted sellers.',
+    heroImage: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=1400&h=500&fit=crop',
+    heroGradient: 'from-pink-900/80 via-pink-900/50 to-pink-900/10',
+    subcategories: [
+      { label: 'Skincare', slug: 'skincare', image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=260&fit=crop' },
+      { label: 'Makeup', slug: 'makeup', image: 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=400&h=260&fit=crop' },
+      { label: 'Haircare', slug: 'haircare', image: 'https://images.unsplash.com/photo-1522338242992-e1a54906a8da?w=400&h=260&fit=crop' },
+      { label: 'Fragrances', slug: 'fragrances', image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=400&h=260&fit=crop' },
+      { label: 'Personal Care', slug: 'personal-care', image: 'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=400&h=260&fit=crop' },
+      { label: 'Beauty Tools & Accessories', slug: 'beauty-tools-accessories', image: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=400&h=260&fit=crop' },
+    ],
+  },
   services: {
     label: 'Services',
     icon: '\u{1F527}',

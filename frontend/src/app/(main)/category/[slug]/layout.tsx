@@ -9,6 +9,7 @@ const CATEGORY_META: Record<string, { label: string; description: string }> = {
   electronics: { label: 'Electronics', description: 'Shop phones, laptops, TVs, gaming consoles, and electronics at the best prices.' },
   'clothing-accessories': { label: 'Clothing & Accessories', description: 'Buy and sell fashion, clothing, shoes, and accessories for men, women, and kids.' },
   'furniture-home': { label: 'Furniture & Home', description: 'Discover furniture, home decor, appliances, and office equipment at great prices.' },
+  'beauty-skincare': { label: 'Beauty & Skincare', description: 'Shop skincare, makeup, haircare, fragrances, and beauty tools from trusted sellers.' },
   services: { label: 'Services', description: 'Find local professionals for home services, tech support, tutoring, and more.' },
   'jobs-gigs': { label: 'Jobs & Gigs', description: 'Browse full-time, part-time, freelance, and contract opportunities across Nigeria.' },
   'sports-outdoors': { label: 'Sports & Outdoors', description: 'Shop sports equipment, gym gear, and outdoor adventure items on Ashimarket.' },

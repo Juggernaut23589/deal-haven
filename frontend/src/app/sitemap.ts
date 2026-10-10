@@ -14,7 +14,7 @@ const STATIC_PAGES: MetadataRoute.Sitemap = [
 
 const CATEGORIES = [
   'automobiles', 'real-estate', 'electronics', 'clothing-accessories',
-  'furniture-home', 'services', 'jobs-gigs', 'sports-outdoors',
+  'furniture-home', 'beauty-skincare', 'services', 'jobs-gigs', 'sports-outdoors',
   'books-media', 'toys-games', 'health-beauty', 'other',
 ];
 

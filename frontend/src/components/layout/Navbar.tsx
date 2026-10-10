@@ -45,6 +45,7 @@ const NAV_CATEGORIES: { label: string; href: Route; icon: string }[] = [
   { label: 'Electronics', href: '/category/electronics' as Route, icon: '📱' },
   { label: 'Clothing', href: '/category/clothing' as Route, icon: '👗' },
   { label: 'Furniture & Home', href: '/category/furniture-home' as Route, icon: '🛋️' },
+  { label: 'Beauty & Skincare', href: '/category/beauty-skincare' as Route, icon: '💄' },
   { label: 'Services', href: '/category/services' as Route, icon: '🔧' },
   { label: 'Jobs & Gigs', href: '/category/jobs-gigs' as Route, icon: '💼' },
   { label: 'Sports & Outdoors', href: '/category/sports-outdoors' as Route, icon: '⚽' },

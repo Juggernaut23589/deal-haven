@@ -30,6 +30,7 @@ import {
   Gamepad2,
   PawPrint,
   Palette,
+  Sparkles,
 } from 'lucide-react';
 import { Footer } from '@/components/layout/Footer';
 import { Badge } from '@/components/ui/Badge';
@@ -44,6 +45,7 @@ const SIDEBAR_CATEGORIES: { label: string; href: Route; icon: React.ElementType;
   { label: 'Electronics', href: '/category/electronics' as Route, icon: Smartphone, count: '265,961', thumb: 'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=56&h=56&fit=crop' },
   { label: 'Home & Furniture', href: '/category/furniture-home' as Route, icon: Home, count: '51,002', thumb: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=56&h=56&fit=crop' },
   { label: 'Fashion', href: '/category/clothing' as Route, icon: Shirt, count: '143,777', thumb: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=56&h=56&fit=crop' },
+  { label: 'Beauty & Skincare', href: '/category/beauty-skincare' as Route, icon: Sparkles, count: '14,250', thumb: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=56&h=56&fit=crop' },
   { label: 'Sports & Outdoors', href: '/category/sports-outdoors' as Route, icon: Bike, count: '7,630', thumb: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=56&h=56&fit=crop' },
   { label: 'Books & Media', href: '/category/books-media' as Route, icon: BookOpen, count: '4,920', thumb: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=56&h=56&fit=crop' },
   { label: 'Toys & Games', href: '/category/toys-games' as Route, icon: Gamepad2, count: '6,140', thumb: 'https://images.unsplash.com/photo-1558060370-d644479cb6f7?w=56&h=56&fit=crop' },
@@ -141,6 +143,13 @@ const CATEGORIES_GRID: {
     count: '12.1K',
     image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=300&fit=crop',
     gradient: 'from-amber-900/70 to-amber-900/20',
+  },
+  {
+    label: 'Beauty & Skincare',
+    href: '/category/beauty-skincare' as Route,
+    count: '14.2K',
+    image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=300&fit=crop',
+    gradient: 'from-pink-900/70 to-pink-900/20',
   },
   {
     label: 'Services',

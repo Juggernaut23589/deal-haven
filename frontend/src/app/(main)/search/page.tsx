@@ -56,6 +56,7 @@ const CATEGORIES = [
   { label: 'Electronics', slug: 'electronics', icon: '📱' },
   { label: 'Clothing & Fashion', slug: 'clothing', icon: '👗' },
   { label: 'Furniture & Home', slug: 'furniture-home', icon: '🛋️' },
+  { label: 'Beauty & Skincare', slug: 'beauty-skincare', icon: '💄' },
   { label: 'Services', slug: 'services', icon: '🔧' },
   { label: 'Jobs & Gigs', slug: 'jobs-gigs', icon: '💼' },
   { label: 'Sports & Outdoors', slug: 'sports-outdoors', icon: '⚽' },
